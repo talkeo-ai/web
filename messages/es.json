@@ -1,0 +1,14 @@
+{
+  "app": {
+    "name": "Talkeo"
+  },
+  "landing": {
+    "placeholder": "Base lista. Todavía no hay landing."
+  },
+  "home": {
+    "placeholder": "Base lista. Todavía no hay app.",
+    "loading": "Cargando",
+    "sessionReady": "Sesión activa",
+    "sessionMissing": "Sin sesión"
+  }
+}
