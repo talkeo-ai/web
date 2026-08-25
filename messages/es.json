@@ -3,8 +3,56 @@
     "name": "Talkeo",
     "description": "Talkeo mide qué sabés de inglés —micro-skill por micro-skill, desde cómo lo usás— y con eso arma tu práctica de hoy. Y te muestra lo que todavía no midió."
   },
-  "landing": {
-    "tagline": "Aprendé inglés practicando."
+  "nav": {
+    "language": "Idioma"
+  },
+  "hero": {
+    "headline": "Aprendé idiomas con conversaciones de IA",
+    "cta": "Empezar",
+    "signIn": "Ya tengo una cuenta"
+  },
+  "surfaces": {
+    "conversation": "Conversación real",
+    "writeAndFix": "Escribir y corregir",
+    "readAloud": "Leer en voz alta",
+    "dictation": "Dictado",
+    "rolePlay": "Role-play",
+    "fillTheGap": "Completar el hueco",
+    "shadowing": "Shadowing",
+    "translate": "Traducir",
+    "subtitles": "Subtítulos",
+    "review": "Repaso",
+    "previous": "Anterior",
+    "next": "Siguiente"
+  },
+  "footer": {
+    "tagline": "Práctica que se adapta a vos, sesión tras sesión.",
+    "product": "Producto",
+    "legal": "Legal",
+    "terms": "Términos",
+    "privacy": "Privacidad",
+    "refunds": "Reembolsos",
+    "help": "Ayuda",
+    "contact": "Contacto",
+    "language": "Idioma del sitio",
+    "rights": "© {year} Talkeo"
+  },
+  "nervousActivity": {
+    "levelDetected": "Nivel detectado",
+    "levelValue": "B1 - Intermedio",
+    "memorySaved": "Memoria guardada",
+    "memoryWork": "Trabaja en marketing",
+    "memoryTravel": "Viaja a Londres en marzo",
+    "memoryLikes": "Le gusta hablar de viajes",
+    "errorSaved": "Error guardado",
+    "error1": "\"I am agree\" → \"I agree\"",
+    "error2": "\"depend of\" → \"depend on\"",
+    "error3": "\"I have 25 years\" → \"I am 25\"",
+    "goalRegistered": "Meta registrada",
+    "goal1": "Reuniones en inglés",
+    "goal2": "Entrevista de trabajo",
+    "progressUpdated": "Progreso actualizado",
+    "progressValue": "Sesión 12 - mejorando"
   },
   "home": {
     "placeholder": "Base lista. Todavía no hay app.",
