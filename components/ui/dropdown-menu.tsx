@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckIcon } from "lucide-react";
-import { DropdownMenu as Primitive } from "radix-ui";
+import { DropdownMenu as Primitive, Slot } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -81,7 +81,10 @@ function DropdownMenuCheckboxItem({
       )}
       {...props}
     >
-      {children}
+      {/* The indicator is a sibling of `children`, which is two elements — one
+          more than `asChild` can slot. Wrapping the caller's child marks which
+          of the two the item should merge into. */}
+      <Slot.Slottable>{children}</Slot.Slottable>
       <Primitive.ItemIndicator>
         <CheckIcon className="size-4" />
       </Primitive.ItemIndicator>
@@ -89,8 +92,31 @@ function DropdownMenuCheckboxItem({
   );
 }
 
+/**
+ * The tail that ties the panel to whatever opened it. Radix positions and
+ * flips it along with the content, so it stays pointed at the trigger even
+ * when the panel has to swap sides near a viewport edge.
+ */
+function DropdownMenuArrow({
+  className,
+  width = 16,
+  height = 8,
+  ...props
+}: React.ComponentProps<typeof Primitive.Arrow>) {
+  return (
+    <Primitive.Arrow
+      data-slot="dropdown-menu-arrow"
+      width={width}
+      height={height}
+      className={cn("fill-popover", className)}
+      {...props}
+    />
+  );
+}
+
 export {
   DropdownMenu,
+  DropdownMenuArrow,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,

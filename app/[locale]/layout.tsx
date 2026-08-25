@@ -1,16 +1,36 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fredoka, Geist_Mono, Inter } from "next/font/google";
 import { locale as localeParam } from "next/root-params";
 
 import { routing } from "@/lib/i18n/routing";
 
 import "../globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// One family for the whole surface, headings included. Variable, so the 400 of
+// body text and the 600 of a display come out of a single file instead of two
+// downloads. Self-hosted by `next/font` — served from our own origin, with the
+// fallback metrics generated so swapping in the real face causes no reflow.
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
+});
+
+// Displays only, paired against the neutral face of the interface so the
+// headline reads warm and the body reads plain.
+//
+// Rounded and wide rather than rounded and tall: a narrow face gains its
+// presence by stretching upward, which at display sizes reads as strain. This
+// one is drawn broad, so the weight has somewhere to go sideways.
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
+  subsets: ["latin"],
+  display: "swap",
+  // Ships the width axis as well as weight. Without asking for it the file
+  // only carries 100%, and `font-stretch` further down silently does nothing.
+  axes: ["wdth"],
 });
 
 const geistMono = Geist_Mono({
@@ -54,7 +74,7 @@ export default async function RootLayout({
     // is adding the control, not redoing the system.
     <html
       lang={locale}
-      className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`dark ${inter.variable} ${fredoka.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
