@@ -41,9 +41,14 @@ function isPlainObject(value: unknown): value is Messages {
  *
  * `next/root-params` is unavailable in Route Handlers and Server Actions. Pass
  * the locale explicitly in those two places.
+ *
+ * An explicit locale wins over the segment. `getTranslations({ locale })` asks
+ * for a specific language, and content that is deliberately pinned — a legal
+ * document with one reference version — has no other way to say so. Ignoring
+ * the argument made that call silently return the reader's locale instead.
  */
-export default getRequestConfig(async () => {
-  const candidate = await localeParam();
+export default getRequestConfig(async ({ locale: requested }) => {
+  const candidate = requested ?? (await localeParam());
 
   if (!hasLocale(routing.locales, candidate)) {
     notFound();
@@ -57,7 +62,8 @@ export default getRequestConfig(async () => {
       ? base
       : withFallback(
           base,
-          (await import(`../../messages/${candidate}.json`)).default as Messages,
+          (await import(`../../messages/${candidate}.json`))
+            .default as Messages,
         );
 
   return { locale: candidate, messages };

@@ -18,10 +18,3 @@ export const routing = defineRouting({
 });
 
 export type Locale = (typeof routing.locales)[number];
-
-/** Shown in the language selector, each in its own language. */
-export const LOCALE_NAMES: Record<Locale, string> = {
-  en: "English",
-  es: "Español",
-  pt: "Português",
-};

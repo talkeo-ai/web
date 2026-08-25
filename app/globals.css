@@ -51,6 +51,11 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06), 0 1px 3px 0 rgb(0 0 0 / 0.1);
   --shadow-card: 0 1px 1px 0 rgb(0 0 0 / 0.05);
 
+  /* Headings run in the same family as the interface. The token stays separate
+     so pointing displays at a different face later is one line, not a sweep
+     through every heading in the project. */
+  --font-heading: var(--font-fredoka), ui-sans-serif, system-ui, sans-serif;
+
   /* Motion. Press sinks fast and comes back slow — that is what makes a
      button feel physical instead of flat. A highlight that follows the pointer
      works the same way: it has to arrive under the cursor immediately or it
@@ -113,6 +118,13 @@
   --on-accent: oklch(0.205 0 0);
   /* Accent as *text* needs a darker step than accent as a fill: 6.2:1 here. */
   --accent-text: var(--color-accent-800);
+
+  /* See the dark block for what the lip is and why it is opaque. */
+  --cta-face: oklch(0.205 0 0);
+  --cta-face-text: oklch(0.985 0 0);
+  --cta-lip: oklch(0.08 0 0);
+  --cta-alt-border: oklch(0.87 0 0);
+  --cta-alt-lip: oklch(0.82 0 0);
 
   /* The map. These three are the product, so they are tokens and not
      decoration: what you know, where you break, and what we have not
@@ -179,6 +191,15 @@
   --on-accent: oklch(0.205 0 0);
   --accent-text: var(--color-accent-400);
 
+  /* The lip under a control: the same face a few steps down in lightness, so
+     it reads as the side of a solid object rather than as a cast shadow. It is
+     never translucent — a real edge does not let the page through. */
+  --cta-face: #fafafa;
+  --cta-face-text: #121212;
+  --cta-lip: #a3a3a3;
+  --cta-alt-border: #404040;
+  --cta-alt-lip: #2a2a2a;
+
   --map-known: var(--color-accent-400);
   --map-breaking: #ff6467;
   --map-unmeasured: #262626;
@@ -223,7 +244,7 @@
    theme never needs a rebuild.
    ───────────────────────────────────────────────────────────────────────── */
 @theme inline {
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 
   --color-background: var(--background);
@@ -255,6 +276,11 @@
 
   --color-on-accent: var(--on-accent);
   --color-accent-text: var(--accent-text);
+  --color-cta-face: var(--cta-face);
+  --color-cta-face-text: var(--cta-face-text);
+  --color-cta-lip: var(--cta-lip);
+  --color-cta-alt-border: var(--cta-alt-border);
+  --color-cta-alt-lip: var(--cta-alt-lip);
   --color-map-known: var(--map-known);
   --color-map-breaking: var(--map-breaking);
   --color-map-unmeasured: var(--map-unmeasured);

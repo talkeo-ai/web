@@ -1,59 +1,64 @@
-import { Slot } from "radix-ui";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Slot } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
 /**
- * The primary variant carries a vertical gradient — one step down the accent
- * ramp, around 8% of luminance. It is subtle on purpose: it gives the control
- * a slight relief that reads closer to native desktop chrome than to a flat
- * fill.
+ * Buttons are solid objects with a lip: the face sits on top of a band of the
+ * same colour a few steps darker, drawn with `box-shadow` at zero blur so it
+ * keeps the face's own corner radius. Blur would turn it into a cast shadow,
+ * which reads as the control floating rather than as having a side.
  *
- * CSS cannot interpolate `background-image`, so hovering would cut abruptly.
- * The hover gradient lives on a pseudo-element whose opacity animates instead.
- * That is why the host needs `isolate` and `overflow-hidden`.
+ * Pressing moves the face down by exactly the lip's height and removes the
+ * lip, so the button lands flush against the page. The travel and the fade
+ * have to match, or the face detaches from its own edge mid-press.
  *
- * The press sinks fast and returns slow. That asymmetry is what makes a button
- * feel physical; a symmetric transition reads mechanical.
+ * The lip lives on `box-shadow` and not on `border-bottom` on purpose: a
+ * border participates in layout, so the two variants — one bordered, one not —
+ * would end up different heights for the same `h-*`.
  */
 const buttonVariants = cva(
   [
-    "relative isolate inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden",
-    "font-medium whitespace-nowrap outline-none select-none",
-    "transition-[color,background-color,border-color,box-shadow,transform]",
-    "duration-(--duration-control) ease-(--ease-standard)",
-    "active:scale-[0.98] active:duration-(--duration-press-in)",
-    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+    "relative inline-flex shrink-0 items-center justify-center gap-2",
+    "font-heading font-medium tracking-wide uppercase whitespace-nowrap",
+    "cursor-pointer outline-none select-none",
+    "transition-[transform,box-shadow,background-color,border-color]",
+    "duration-(--duration-press-out) ease-(--ease-standard)",
+    "active:duration-(--duration-press-in)",
+    "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2",
     "disabled:pointer-events-none disabled:opacity-60",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
-    "motion-reduce:active:scale-100",
+    // The press is movement, so it is the one thing that goes when motion is
+    // reduced — the lip stays, since it is colour and not animation.
+    "motion-reduce:active:translate-y-0",
   ],
   {
     variants: {
       variant: {
         primary: [
-          "text-on-accent shadow-xs",
-          "bg-linear-to-b from-accent-500 to-accent-600",
-          "before:absolute before:inset-0 before:-z-10 before:rounded-[inherit]",
-          "before:bg-linear-to-b before:from-accent-400 before:to-accent-500",
-          "before:opacity-0 before:transition-opacity before:duration-(--duration-control)",
-          "hover:before:opacity-100",
-          "active:from-accent-600 active:to-accent-700 active:before:opacity-0",
+          "bg-cta-face text-cta-face-text",
+          "shadow-[0_4px_0_0_var(--cta-lip)]",
+          "hover:brightness-95",
+          "active:translate-y-[4px] active:shadow-none",
         ],
         secondary: [
-          "bg-surface-tertiary text-foreground",
-          "hover:bg-surface-quaternary",
+          "text-text-secondary bg-transparent",
+          "border-cta-alt-border border-2",
+          "shadow-[0_4px_0_0_var(--cta-alt-lip)]",
+          "hover:bg-surface-secondary hover:text-foreground",
+          "active:translate-y-[4px] active:shadow-none",
         ],
         ghost: "text-foreground hover:bg-surface-secondary",
-        link: "text-accent-text underline-offset-4 hover:underline",
       },
-      // Pills at every size. A capsule reads as an action on sight, which a
-      // rounded rectangle has to earn from its label.
+      // Heights are set against the width these get used at, not picked off a
+      // scale: a wide control keeps its proportion around 0.13 of its own
+      // width, and past that it stops reading as a button and starts reading
+      // as a panel you can click.
       size: {
-        sm: "h-9 rounded-full px-4 text-sm",
-        md: "h-10 rounded-full px-5 text-sm",
-        lg: "h-12 rounded-full px-7 text-base",
+        sm: "h-10 rounded-xl px-5 text-[13px]",
+        md: "h-11 rounded-2xl px-6 text-[14px]",
+        lg: "h-12 rounded-2xl px-8 text-[15px]",
       },
     },
     defaultVariants: {
