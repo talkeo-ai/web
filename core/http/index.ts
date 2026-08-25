@@ -8,11 +8,11 @@ import {
 import type { CorePort } from "../port";
 
 /**
- * The adapter for the real Core, over HTTP.
+ * The adapter that talks to the real service over HTTP.
  *
- * The contract is versioned in the URL (`/v1`), which is the house rule. Every
- * response is parsed through its schema at the boundary: a shape change in the
- * Core has to fail here, loudly, and not three components deep.
+ * The contract is versioned in the URL. Every response is parsed through its
+ * schema at the boundary, so a shape change fails here, loudly, instead of
+ * three components deep.
  */
 export function createHttpCore(baseUrl: string): CorePort {
   async function request<T>(

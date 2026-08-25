@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-/**
- * A measured band. Never a single letter: the Core reports a floor and a
- * ceiling per area, with the untouched part visible.
- */
+/** A band, expressed as a floor and a ceiling per area rather than one value. */
 export const bandSchema = z.enum(["A0", "A1", "A2", "B1", "B2", "C1", "C2"]);
 
 export const areaVerdictSchema = z.object({

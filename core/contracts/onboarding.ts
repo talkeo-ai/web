@@ -3,15 +3,11 @@ import { z } from "zod";
 /**
  * The shape of the onboarding, not its content.
  *
- * The onboarding is the focus selector running in MEASURE mode: the Core
- * decides what comes next from what the user just did, and it branches — the
- * zero gate reroutes in two or three items and is refutable in both
- * directions. So the client never owns the sequence. It renders the step it is
- * handed and posts an answer back.
+ * The sequence is decided server-side and can branch, so the client never owns
+ * it: it renders the step it is handed and posts an answer back.
  *
- * Which steps exist and what they ask is a product decision that does not live
- * here. `kind` is deliberately an open string: the catalog can grow without
- * this contract changing.
+ * `kind` is deliberately an open string, so the catalog of steps can grow
+ * without this contract changing.
  */
 export const onboardingStepSchema = z.object({
   /** Stable id. It is also the URL segment, so a session can be resumed. */

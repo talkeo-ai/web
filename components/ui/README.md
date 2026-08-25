@@ -6,5 +6,5 @@ The primitives, from shadcn/ui on Radix. Added one at a time, when a screen actu
 npx shadcn@latest add dialog
 ```
 
-Do not run `npx boardui add` here. The visual system is replicated into `app/globals.css`; the
-BoardUI source is not redistributable in a public repository.
+The design tokens they read live in `app/globals.css`. A component here never hardcodes a
+colour, a radius or a spacing value.

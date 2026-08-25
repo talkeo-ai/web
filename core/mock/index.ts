@@ -2,39 +2,20 @@ import type { CorePort } from "../port";
 import type { OnboardingState, Verdict } from "../contracts";
 
 /**
- * The adapter that answers while the Core has no HTTP door (it arrives in stage
- * E9).
+ * The adapter that answers while there is no service to talk to.
  *
- * The fixtures are not invented: they are the ones already written and reviewed
- * in the Core's own flow simulator (`lab/cerebro/prototipos/simulador`), so what
- * the UI is built against is what the Core is designed to produce.
+ * The fixtures mirror the shape and tone of real responses, so the UI is built
+ * against something representative rather than placeholder text.
  */
 
 const VERDICT: Verdict = {
   areas: [
-    {
-      area: "Hablando",
-      floor: "A2",
-      ceiling: "B1",
-      note: "te rompés en pasados al narrar y en el arranque de cada respuesta",
-    },
-    {
-      area: "Escribiendo",
-      floor: "A2",
-      ceiling: "A2",
-      note: "la -s de 3ª falla en habla y escritura — señal fuerte, no casualidad",
-    },
-    {
-      area: "Entendiendo",
-      floor: "B1",
-      ceiling: "B2",
-      note: "tu mejor área — y tu léxico técnico va adelante de todo lo demás",
-    },
+    { area: "Speaking", floor: "A2", ceiling: "B1", note: "Sample note." },
+    { area: "Writing", floor: "A2", ceiling: "A2", note: "Sample note." },
+    { area: "Understanding", floor: "B1", ceiling: "B2", note: "Sample note." },
   ],
-  unmeasured:
-    "De tu inglés todavía no medimos ~85%. No es un problema: es el mapa diciendo la verdad — y se achica solo con el uso.",
-  startingPoint:
-    "Empezamos por los pasados al narrar — con tu léxico técnico, que ya lo tenés — y medimos el resto sin que lo notes.",
+  unmeasured: "Sample note about what has not been measured yet.",
+  startingPoint: "Sample note about where practice starts.",
 };
 
 export function createMockCore(): CorePort {

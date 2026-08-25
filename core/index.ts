@@ -8,10 +8,10 @@ export * from "./contracts";
 export type { CorePort } from "./port";
 
 /**
- * Configuration picks the adapter — the same rule the backend follows.
+ * Configuration picks the adapter.
  *
- * Set `CORE_URL` to talk to a real Core; leave it unset and the mock answers.
- * There is no third branch and no flag scattered anywhere else.
+ * Set `CORE_URL` to talk to the real service; leave it unset and the fixture
+ * answers. There is no third branch and no flag scattered anywhere else.
  */
 let instance: CorePort | undefined;
 
