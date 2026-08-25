@@ -5,6 +5,31 @@ import { locale as localeParam } from "next/root-params";
 
 import { routing } from "./routing";
 
+type Messages = Record<string, unknown>;
+
+/**
+ * Merges a locale's messages over the default ones, so a key that has not been
+ * translated yet falls back to English instead of throwing. That is what makes
+ * adding a language cheap: ship the keys you have, fill the rest later.
+ */
+function withFallback(base: Messages, override: Messages): Messages {
+  const merged: Messages = { ...base };
+
+  for (const [key, value] of Object.entries(override)) {
+    const existing = merged[key];
+    merged[key] =
+      isPlainObject(existing) && isPlainObject(value)
+        ? withFallback(existing, value)
+        : value;
+  }
+
+  return merged;
+}
+
+function isPlainObject(value: unknown): value is Messages {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 /**
  * The locale is read from the `[locale]` root segment through
  * `next/root-params`, never from request headers.
@@ -24,8 +49,16 @@ export default getRequestConfig(async () => {
     notFound();
   }
 
-  return {
-    locale: candidate,
-    messages: (await import(`../../messages/${candidate}.json`)).default,
-  };
+  const base = (await import(`../../messages/${routing.defaultLocale}.json`))
+    .default as Messages;
+
+  const messages =
+    candidate === routing.defaultLocale
+      ? base
+      : withFallback(
+          base,
+          (await import(`../../messages/${candidate}.json`)).default as Messages,
+        );
+
+  return { locale: candidate, messages };
 });

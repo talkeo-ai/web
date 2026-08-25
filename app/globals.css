@@ -2,129 +2,325 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Class-based, and `:where()` on purpose: specificity 0, so `dark:` utilities
+   never outweigh anything else. Matches the element itself and its subtree, so
+   a dark island inside a light page works. */
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+/* ─────────────────────────────────────────────────────────────────────────
+   1 · Primitives
+   Raw values. Nothing in a component points here — components use the
+   semantic tokens in section 2, which is what makes light and dark work
+   without a single `dark:` prefix.
+   ───────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* The accent ramp is an alias layer. Everything interactive points at
+     `accent-*`, so retinting the whole product is changing these eleven
+     lines and nothing else.
+     Step 500 is the green sampled from the logo (#78dc35). The rest of the
+     ramp is built around it at the same hue; every step verified inside the
+     sRGB gamut. */
+  --color-accent-50: oklch(0.972 0.035 135.9);
+  --color-accent-100: oklch(0.941 0.07 135.9);
+  --color-accent-200: oklch(0.897 0.12 135.9);
+  --color-accent-300: oklch(0.855 0.17 135.9);
+  --color-accent-400: oklch(0.833 0.2 135.9);
+  --color-accent-500: oklch(0.803 0.217 135.9);
+  --color-accent-600: oklch(0.7 0.195 135.9);
+  --color-accent-700: oklch(0.58 0.16 135.9);
+  --color-accent-800: oklch(0.48 0.13 135.9);
+  --color-accent-900: oklch(0.405 0.105 135.9);
+  --color-accent-950: oklch(0.285 0.075 135.9);
+
+  /* Radius. One knob drives the scale, so the curvature reads constant
+     across element sizes. */
+  --radius: 0.625rem;
+  --radius-xs: calc(var(--radius) * 0.33);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.67);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.33);
+  --radius-2xl: calc(var(--radius) * 1.67);
+  --radius-3xl: calc(var(--radius) * 2);
+  --radius-4xl: calc(var(--radius) * 2.67);
+  --radius-full: 9999px;
+
+  /* Shadows. Contact shadows, not elevation: one layer, 1px of offset. The
+     geometry never changes between themes — only the alpha, in section 2. */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06), 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  --shadow-card: 0 1px 1px 0 rgb(0 0 0 / 0.05);
+
+  /* Motion. Press sinks fast and comes back slow — that is what makes a
+     button feel physical instead of flat. A highlight that follows the pointer
+     works the same way: it has to arrive under the cursor immediately or it
+     reads as lag, and it leaves slowly so a sweep across a row leaves a trail
+     instead of a flicker. */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-control: 150ms;
+  --duration-press-in: 220ms;
+  --duration-press-out: 420ms;
+  --duration-highlight-in: 110ms;
+  --duration-highlight-out: 320ms;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   2 · Semantic tokens
+   This is what components reference. They flip under `.dark` on their own,
+   which is why no component in this project carries a `dark:` prefix.
+   ───────────────────────────────────────────────────────────────────────── */
 :root {
+  color-scheme: light;
+
+  /* Surfaces. Light climbs white → 97 → 92 → 87. */
   --background: oklch(1 0 0);
+  --surface-secondary: oklch(0.973 0 0);
+  --surface-tertiary: oklch(0.922 0 0);
+  --surface-quaternary: oklch(0.87 0 0);
+
   --foreground: oklch(0.145 0 0);
+  --text-secondary: oklch(0.556 0 0);
+  --text-tertiary: oklch(0.65 0 0);
+
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
+
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
+  --secondary: oklch(0.973 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
+  --muted: oklch(0.973 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
+  --accent: oklch(0.973 0 0);
   --accent-foreground: oklch(0.205 0 0);
+
   --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  /* Hairlines: real 1px borders at very low contrast. Structure you sense
+     rather than see. */
   --border: oklch(0.922 0 0);
+  --border-strong: oklch(0.87 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
+  --ring: var(--color-accent-600);
+
+  /* What goes on top of an accent fill. The brand green is light — 1.7:1
+     against white — so text on it is dark, not white. That reads 10.9:1 on
+     step 500 and 7.5:1 on step 600. It does not change with the theme,
+     because the fill underneath does not either. */
+  --on-accent: oklch(0.205 0 0);
+  /* Accent as *text* needs a darker step than accent as a fill: 6.2:1 here. */
+  --accent-text: var(--color-accent-800);
+
+  /* The map. These three are the product, so they are tokens and not
+     decoration: what you know, where you break, and what we have not
+     measured. Grey is the one that matters. */
+  --map-known: var(--color-accent-500);
+  --map-breaking: oklch(0.637 0.208 25);
+  --map-unmeasured: oklch(0.922 0 0);
+
+  --chart-1: var(--color-accent-500);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary: var(--color-accent-600);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent: oklch(0.973 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-ring: var(--color-accent-600);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: dark;
+
+  /* The root is not pure black: that smears on OLED and flattens everything.
+     Card surfaces sit *lighter* than the root, so they read as floating above
+     it rather than sinking into it. */
+  --background: #121212;
+  --surface-secondary: #171717;
+  --surface-tertiary: #262626;
+  --surface-quaternary: #404040;
+
+  --foreground: #fafafa;
+  --text-secondary: #737373;
+  --text-tertiary: #525252;
+
+  --card: #262626;
+  --card-foreground: #fafafa;
+  --popover: #262626;
+  --popover-foreground: #fafafa;
+
+  --primary: #fafafa;
+  --primary-foreground: #171717;
+  --secondary: #262626;
+  --secondary-foreground: #fafafa;
+  --muted: #262626;
+  --muted-foreground: #a1a1a1;
+  --accent: #262626;
+  --accent-foreground: #fafafa;
+
+  --destructive: #ff6467;
+  --destructive-foreground: #fafafa;
+
+  /* Resting border is darker than hover, and hover lighter than press, so
+     pressing reads as the control dimming. */
+  --border: #404040;
+  --border-strong: #525252;
+  --input: #262626;
+  --ring: var(--color-accent-400);
+
+  --on-accent: oklch(0.205 0 0);
+  --accent-text: var(--color-accent-400);
+
+  --map-known: var(--color-accent-400);
+  --map-breaking: #ff6467;
+  --map-unmeasured: #262626;
+
+  --chart-1: var(--color-accent-400);
+  --chart-2: #737373;
+  --chart-3: #525252;
+  --chart-4: #404040;
+  --chart-5: #262626;
+
+  --sidebar: #171717;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: var(--color-accent-400);
+  --sidebar-primary-foreground: oklch(0.205 0 0);
+  --sidebar-accent: #262626;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #404040;
+  --sidebar-ring: var(--color-accent-400);
+
+  /* Same geometry as light, roughly double the alpha. Never a grey glow. */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.18);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.12), 0 1px 3px 0 rgb(0 0 0 / 0.16);
+  --shadow-card: 0 1px 1px 0 rgb(0 0 0 / 0.14);
+}
+
+/* Tailwind bakes `shadow-*` into `--tw-shadow` at build time, freezing the
+   light value. Without re-pointing it here, shadows do not change with the
+   theme at all. */
+.dark .shadow-xs {
+  --tw-shadow: var(--shadow-xs);
+}
+.dark .shadow-sm {
+  --tw-shadow: var(--shadow-sm);
+}
+.dark .shadow-card {
+  --tw-shadow: var(--shadow-card);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   3 · Re-export
+   `inline` makes Tailwind read the computed value at runtime, so switching
+   theme never needs a rebuild.
+   ───────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-tertiary: var(--surface-tertiary);
+  --color-surface-quaternary: var(--surface-quaternary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-on-accent: var(--on-accent);
+  --color-accent-text: var(--accent-text);
+  --color-map-known: var(--map-known);
+  --color-map-breaking: var(--map-breaking);
+  --color-map-unmeasured: var(--map-unmeasured);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+    scrollbar-gutter: stable;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* When a popover opens, the library underneath Radix locks the page and pads
+   the body to make up for the scrollbar it just hid. `scrollbar-gutter: stable`
+   already reserves that space permanently, so the compensation is not correcting
+   a shift — it is causing one. */
+body[data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Only opacity and transform: both are composited, so nothing here triggers
+   layout or paint. A cell is grey underneath and its measured colour fades in
+   on top — the colour itself is never animated. */
+@keyframes measure-in {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Every animation in this project is gated on this. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

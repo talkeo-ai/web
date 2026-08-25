@@ -1,17 +1,19 @@
 import { getTranslations } from "next-intl/server";
 
 /**
- * Placeholder. The landing is built next, on top of this.
+ * Blank slate. The landing gets rebuilt from here.
  *
- * It reads nothing request-dependent, so it prerenders whole — `next build`
- * should report it as static.
+ * The page reads nothing that depends on the request, so it prerenders whole —
+ * `next build` reports it as static. Keep it that way: anything
+ * visitor-specific belongs behind a `<Suspense>` boundary.
  */
 export default async function LandingPage() {
-  const t = await getTranslations("landing");
+  const t = await getTranslations();
 
   return (
-    <main className="flex flex-1 items-center justify-center p-8">
-      <p className="text-muted-foreground text-sm">{t("placeholder")}</p>
+    <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8">
+      <h1 className="text-4xl font-semibold tracking-tight">{t("app.name")}</h1>
+      <p className="text-muted-foreground">{t("landing.tagline")}</p>
     </main>
   );
 }

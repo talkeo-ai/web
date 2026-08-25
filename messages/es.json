@@ -1,9 +1,10 @@
 {
   "app": {
-    "name": "Talkeo"
+    "name": "Talkeo",
+    "description": "Talkeo mide qué sabés de inglés —micro-skill por micro-skill, desde cómo lo usás— y con eso arma tu práctica de hoy. Y te muestra lo que todavía no midió."
   },
   "landing": {
-    "placeholder": "Base lista. Todavía no hay landing."
+    "tagline": "Aprendé inglés practicando."
   },
   "home": {
     "placeholder": "Base lista. Todavía no hay app.",

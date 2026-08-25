@@ -46,8 +46,8 @@ route lost its shell — that is a bug, not a detail.
 is an interface with two adapters behind it: a fixture today, HTTP against the real service when
 it exists. Configuration picks one; no component knows the difference.
 
-**No hardcoded copy.** Every user-facing string lives in `messages/`. Spanish is the only locale
-loaded today.
+**No hardcoded copy.** Every user-facing string lives in `messages/`. English, Spanish and
+Portuguese ship today; the locale is detected and remembered.
 
 ## Layout
 

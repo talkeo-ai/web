@@ -1,0 +1,15 @@
+{
+  "app": {
+    "name": "Talkeo",
+    "description": "O Talkeo mede o que você sabe de inglês — habilidade por habilidade, a partir do seu uso real — e monta a prática de hoje com isso. E mostra o que ainda não mediu."
+  },
+  "landing": {
+    "tagline": "Aprenda inglês praticando."
+  },
+  "home": {
+    "placeholder": "Base pronta. Ainda não há app.",
+    "loading": "Carregando",
+    "sessionReady": "Sessão ativa",
+    "sessionMissing": "Sem sessão"
+  }
+}
