@@ -51,6 +51,17 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06), 0 1px 3px 0 rgb(0 0 0 / 0.1);
   --shadow-card: 0 1px 1px 0 rgb(0 0 0 / 0.05);
 
+  /* The exception to the contact-shadow rule above, for the one case it does
+     not cover: something genuinely floating over other artwork rather than
+     resting on the page. Three layers, and each earns its place — a lit top
+     edge, so the surface has a direction the light comes from; a tight
+     contact shadow; and one wide ambient layer that separates it from
+     whatever is behind. Geometry is identical across themes, as everywhere
+     else here: only the alphas move. */
+  --shadow-raised:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.7), 0 1px 2px 0 rgb(0 0 0 / 0.06),
+    0 8px 20px -6px rgb(0 0 0 / 0.1);
+
   /* Headings run in the same family as the interface. The token stays separate
      so pointing displays at a different face later is one line, not a sweep
      through every heading in the project. */
@@ -62,6 +73,19 @@
      reads as lag, and it leaves slowly so a sweep across a row leaves a trail
      instead of a flicker. */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Entrances decelerate into place, exits accelerate away. The pair is
+     asymmetric on purpose and an entrance runs roughly twice its exit:
+     something arriving has to be noticed, something leaving does not. Getting
+     this backwards is what makes an interface feel like it is dragging. */
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.55, 0, 1, 0.45);
+  /* `--ease-standard` with its end control point pushed past the target, so
+     the overshoot peaks at 24% around 64% of the way through. The soft start
+     is the point: a back-ease that leaps from rest spends its travel in the
+     first third, and then anything fading alongside it is left crossfading a
+     stationary object — which reads as appearing rather than as arriving.
+     Only ever on entrances. Things leaving do not bounce. */
+  --ease-bump: cubic-bezier(0.4, 0, 0.2, 1.9);
   --duration-control: 150ms;
   --duration-press-in: 220ms;
   --duration-press-out: 420ms;
@@ -88,6 +112,9 @@
   --text-tertiary: oklch(0.65 0 0);
 
   --card: oklch(1 0 0);
+  /* Midpoint of the two surface steps around it — for raised elements
+     that should sit closer to the page than a full card does. */
+  --card-quiet: oklch(0.986 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -165,6 +192,8 @@
   --text-tertiary: #525252;
 
   --card: #262626;
+  /* Midpoint of --surface-secondary (#171717) and --card (#262626). */
+  --card-quiet: #1f1f1f;
   --card-foreground: #fafafa;
   --popover: #262626;
   --popover-foreground: #fafafa;
@@ -223,6 +252,12 @@
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.18);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.12), 0 1px 3px 0 rgb(0 0 0 / 0.16);
   --shadow-card: 0 1px 1px 0 rgb(0 0 0 / 0.14);
+  /* The top edge stays a thin white line rather than becoming a grey one:
+     on a dark surface the highlight is the only thing that reads as an edge
+     catching light, and greying it just makes the border look thicker. */
+  --shadow-raised:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.06), 0 1px 2px 0 rgb(0 0 0 / 0.4),
+    0 8px 20px -6px rgb(0 0 0 / 0.5);
 }
 
 /* Tailwind bakes `shadow-*` into `--tw-shadow` at build time, freezing the
@@ -236,6 +271,9 @@
 }
 .dark .shadow-card {
   --tw-shadow: var(--shadow-card);
+}
+.dark .shadow-raised {
+  --tw-shadow: var(--shadow-raised);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -256,6 +294,7 @@
   --color-text-tertiary: var(--text-tertiary);
 
   --color-card: var(--card);
+  --color-card-quiet: var(--card-quiet);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
@@ -336,6 +375,71 @@ body[data-scroll-locked] {
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+/* A connector: it draws outward from the centre on the way in and retracts
+   back toward it on the way out, so the two directions are one motion and its
+   reverse rather than a draw and an unrelated fade. `pathLength="1"` normalises
+   every path to a unit length, so this one pair covers all of them whatever
+   their real geometry.
+
+   `stroke-dashoffset` is the exception to the transform/opacity rule, and the
+   only one: there is no composited way to reveal a curved stroke along its own
+   length. It is confined to the stroke inside an SVG mask a few pixels wide, so
+   the repaint never reaches the page. */
+@keyframes line-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes line-retract {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 1;
+  }
+}
+
+/* The joint where a connector meets what it carries. It lands a beat before
+   the line settles, so the line reads as arriving somewhere rather than
+   stopping in mid-air. Centring is inside the keyframe because a transform
+   animation replaces the element's transform outright. */
+@keyframes joint-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes joint-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+}
+
+/* Hard steps, never a fade: a caret that eases is a pulsing dot, and a caret
+   is what makes arriving text read as text being written instead of a glitch. */
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
   }
 }
 

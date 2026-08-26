@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
@@ -14,7 +16,15 @@ import { SiteHeader } from "@/components/site-header";
 export default function PublicLayout({ children }: LayoutProps<"/[locale]">) {
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <SiteHeader />
+      {/* The header reads the pathname, which on the catch-all route is
+          request data — without a boundary that fails the whole shell's
+          prerender and unknown URLs get the framework's bare error document
+          instead of the 404 page. Concrete routes still prerender the header
+          whole; only the catch-all streams it. The empty fallback shifts
+          nothing: the bar is fixed, and pages reserve its space themselves. */}
+      <Suspense>
+        <SiteHeader />
+      </Suspense>
       {children}
       <SiteFooter />
     </div>

@@ -7,20 +7,23 @@
     "language": "Idioma"
   },
   "hero": {
-    "headline": "Aprenda idiomas com conversas de IA",
-    "cta": "Começar",
+    "headline": "Descubra seu nível de inglês e melhore o que te falta",
+    "cta": "Começar agora",
     "signIn": "Já tenho uma conta"
   },
   "surfaces": {
-    "conversation": "Conversa real",
+    "conversation": "Conversa com IA",
+    "pronunciation": "Pronúncia",
     "writeAndFix": "Escrever e corrigir",
-    "readAloud": "Ler em voz alta",
-    "dictation": "Ditado",
     "rolePlay": "Role-play",
+    "yourContent": "Seu conteúdo",
     "fillTheGap": "Completar a lacuna",
     "shadowing": "Shadowing",
-    "translate": "Traduzir",
+    "dictation": "Ditado",
+    "readAloud": "Ler em voz alta",
     "subtitles": "Legendas",
+    "translate": "Traduzir",
+    "realPeople": "Com gente real",
     "review": "Revisão",
     "previous": "Anterior",
     "next": "Próximo"
@@ -39,25 +42,27 @@
   },
   "nervousActivity": {
     "levelDetected": "Nível detectado",
-    "levelValue": "B1 - Intermediário",
-    "memorySaved": "Memória salva",
-    "memoryWork": "Trabalha em marketing",
-    "memoryTravel": "Viaja pra Londres em março",
-    "memoryLikes": "Gosta de falar sobre viagens",
-    "errorSaved": "Erro salvo",
-    "error1": "\"I am agree\" → \"I agree\"",
-    "error2": "\"depend of\" → \"depend on\"",
-    "error3": "\"I have 25 years\" → \"I am 25\"",
-    "goalRegistered": "Meta registrada",
-    "goal1": "Reuniões em inglês",
-    "goal2": "Entrevista de emprego",
-    "progressUpdated": "Progresso atualizado",
-    "progressValue": "Sessão 12 - melhorando"
+    "levelValue": "Falando: A2 · Escrevendo: B1",
+    "goalAssigned": "Meta atribuída",
+    "goalInterview": "Entrevista de emprego",
+    "goalTravel": "Viagem a Londres em março",
+    "gapDetected": "Falta detectada",
+    "gapInterview": "Responder perguntas ao vivo",
+    "gapTravel": "Frases pro aeroporto",
+    "exerciseCreated": "Exercício criado",
+    "exerciseInterview": "Role-play: entrevista técnica",
+    "exerciseTravel": "Conversa: no aeroporto",
+    "errorLogged": "Erro registrado",
+    "errorAge": "\"I have 25 years\" → \"I am 25\""
   },
   "home": {
     "placeholder": "Base pronta. Ainda não há app.",
     "loading": "Carregando",
     "sessionReady": "Sessão ativa",
     "sessionMissing": "Sem sessão"
+  },
+  "notFound": {
+    "title": "Esta página não existe",
+    "cta": "Voltar ao início"
   }
 }
