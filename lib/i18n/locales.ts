@@ -11,8 +11,8 @@ import type { Locale } from "./routing";
  * routing config without adding it here is a compile error. Typed loosely, the
  * omission types clean and throws at render on a prerendered page.
  */
-export const LOCALE_LABELS: Record<Locale, { flag: string; native: string }> = {
-  en: { flag: "🇬🇧", native: "English" },
-  es: { flag: "🇪🇸", native: "Español" },
-  pt: { flag: "🇧🇷", native: "Português" },
+export const LOCALE_LABELS: Record<Locale, { native: string }> = {
+  en: { native: "English" },
+  es: { native: "Español" },
+  pt: { native: "Português" },
 };

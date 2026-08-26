@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LocaleFlag } from "@/components/locale-flag";
 import { LOCALE_LABELS } from "@/lib/i18n/locales";
 import { Link, usePathname } from "@/lib/i18n/navigation";
 import { routing } from "@/lib/i18n/routing";
@@ -25,9 +26,10 @@ export function LocaleSelector() {
   const t = useTranslations("nav");
   // `useLocale` is typed as a plain string, so it is narrowed before indexing
   // rather than assumed to be one of ours.
-  const current = hasLocale(routing.locales, locale)
-    ? LOCALE_LABELS[locale]
-    : LOCALE_LABELS[routing.defaultLocale];
+  const currentLocale = hasLocale(routing.locales, locale)
+    ? locale
+    : routing.defaultLocale;
+  const current = LOCALE_LABELS[currentLocale];
 
   return (
     <DropdownMenu>
@@ -40,7 +42,9 @@ export function LocaleSelector() {
         className="group text-text-secondary hover:text-foreground gap-1.5 text-[13px] font-semibold tracking-wider uppercase"
       >
         <span className="hidden sm:inline">{t("language")}:</span>
-        <span className="sm:hidden">{current.flag}</span>
+        {/* Sized explicitly rather than off the label: the trigger's type is
+            13px, and a flag set to match reads as a smudge. */}
+        <LocaleFlag locale={currentLocale} className="size-4 sm:hidden" />
         <span className="hidden sm:inline">{current.native}</span>
         <ChevronDownIcon
           className="size-4 transition-transform duration-(--duration-control) ease-(--ease-standard) group-data-[state=open]:rotate-180"
@@ -66,7 +70,7 @@ export function LocaleSelector() {
             >
               <Link href={pathname} locale={code}>
                 <span className="flex items-center gap-3">
-                  <span className="text-lg leading-none">{entry.flag}</span>
+                  <LocaleFlag locale={code} className="size-5 shrink-0" />
                   <span className="text-[15px]">{entry.native}</span>
                 </span>
               </Link>
