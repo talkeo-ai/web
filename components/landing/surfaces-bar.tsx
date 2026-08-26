@@ -81,7 +81,10 @@ export function SurfacesBar() {
 
   return (
     <section className="border-border/60 border-t">
-      <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-5 sm:gap-4 sm:px-6">
+      {/* Tighter at phone sizes: the row shares the first screen with the
+          whole hero there, so it keeps its story in about two-thirds of the
+          height it gets on desktop. */}
+      <div className="mx-auto flex max-w-6xl items-center gap-1.5 px-3 py-3 sm:gap-4 sm:px-6 sm:py-5">
         <Arrow
           direction="left"
           onClick={() => page(-1)}
@@ -95,7 +98,7 @@ export function SurfacesBar() {
           className={[
             // No `scroll-smooth`: the arrows pass an explicit behaviour, which
             // by spec wins over the CSS property anyway.
-            "flex flex-1 gap-5 overflow-x-auto select-none sm:gap-8",
+            "flex flex-1 gap-4 overflow-x-auto select-none sm:gap-8",
             // The row pages in whole items, so the native scrollbar would only
             // duplicate a control that is already on screen.
             "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
@@ -104,10 +107,10 @@ export function SurfacesBar() {
           {SURFACES.map(({ key, icon: Icon }) => (
             <div
               key={key}
-              className="text-text-secondary flex shrink-0 items-center gap-2.5"
+              className="text-text-secondary flex shrink-0 items-center gap-2 sm:gap-2.5"
             >
-              <Icon className="size-5 shrink-0" aria-hidden />
-              <span className="text-[13px] font-bold tracking-[0.8px] whitespace-nowrap uppercase">
+              <Icon className="size-4 shrink-0 sm:size-5" aria-hidden />
+              <span className="text-[11px] font-bold tracking-[0.8px] whitespace-nowrap uppercase sm:text-[13px]">
                 {t(key)}
               </span>
             </div>

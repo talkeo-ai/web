@@ -13,16 +13,17 @@ test("the root serves the default locale and hands out an anonymous id", async (
 });
 
 test("each locale serves its own language", async ({ page }) => {
+  // One word each, and one that only exists in that language — the point is
+  // that the right locale was served, not that the headline still says what it
+  // said the day this was written.
   await page.goto("/es");
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Aprendé idiomas",
-  );
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("mejorá");
 
   await page.goto("/pt");
   await expect(page.locator("html")).toHaveAttribute("lang", "pt");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Aprenda idiomas",
+    "melhore",
   );
 });
 

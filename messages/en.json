@@ -7,20 +7,23 @@
     "language": "Site language"
   },
   "hero": {
-    "headline": "Learn languages with AI conversations",
-    "cta": "Get started",
+    "headline": "Discover your English level and improve what you're missing",
+    "cta": "Start now",
     "signIn": "I already have an account"
   },
   "surfaces": {
-    "conversation": "Real conversation",
+    "conversation": "AI conversation",
+    "pronunciation": "Pronunciation",
     "writeAndFix": "Write and correct",
-    "readAloud": "Read aloud",
-    "dictation": "Dictation",
     "rolePlay": "Role-play",
+    "yourContent": "Your content",
     "fillTheGap": "Fill the gap",
     "shadowing": "Shadowing",
-    "translate": "Translate",
+    "dictation": "Dictation",
+    "readAloud": "Read aloud",
     "subtitles": "Subtitles",
+    "translate": "Translate",
+    "realPeople": "With real people",
     "review": "Review",
     "previous": "Previous",
     "next": "Next"
@@ -426,25 +429,27 @@
   },
   "nervousActivity": {
     "levelDetected": "Level detected",
-    "levelValue": "B1 - Intermediate",
-    "memorySaved": "Memory saved",
-    "memoryWork": "Works in marketing",
-    "memoryTravel": "Traveling to London in March",
-    "memoryLikes": "Likes talking about travel",
-    "errorSaved": "Error saved",
-    "error1": "\"I am agree\" → \"I agree\"",
-    "error2": "\"depend of\" → \"depend on\"",
-    "error3": "\"I have 25 years\" → \"I am 25\"",
-    "goalRegistered": "Goal registered",
-    "goal1": "Meetings in English",
-    "goal2": "Job interview",
-    "progressUpdated": "Progress updated",
-    "progressValue": "Session 12 - improving"
+    "levelValue": "Speaking: A2 · Writing: B1",
+    "goalAssigned": "Goal assigned",
+    "goalInterview": "Job interview",
+    "goalTravel": "Trip to London in March",
+    "gapDetected": "Gap detected",
+    "gapInterview": "Answering questions live",
+    "gapTravel": "Airport phrases",
+    "exerciseCreated": "Exercise created",
+    "exerciseInterview": "Role-play: tech interview",
+    "exerciseTravel": "Conversation: at the airport",
+    "errorLogged": "Error logged",
+    "errorAge": "\"I have 25 years\" → \"I am 25\""
   },
   "home": {
     "placeholder": "Foundation ready. No app yet.",
     "loading": "Loading",
     "sessionReady": "Session active",
     "sessionMissing": "No session"
+  },
+  "notFound": {
+    "title": "This page doesn't exist",
+    "cta": "Back to home"
   }
 }
