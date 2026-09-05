@@ -449,6 +449,59 @@
     "sessionReady": "Session active",
     "sessionMissing": "No session"
   },
+  "onboarding": {
+    "start": {
+      "title": "Let's find out where you are",
+      "body": "A few minutes and you'll know what you have in English, what you don't, and where to start.",
+      "cta": "Start"
+    },
+    "progress": "Step {position} of {total}",
+    "back": "Back",
+    "continue": "Continue",
+    "loading": "Loading",
+    "selfAssessment": {
+      "question": "How much English do you have today?",
+      "hint": "Pick whichever is closest. We measure it properly next.",
+      "options": {
+        "just_starting": "I'm just starting",
+        "words_and_phrases": "I know some words and phrases",
+        "simple_conversations": "I can hold simple conversations",
+        "varied_topics": "I can talk about a range of topics"
+      }
+    },
+    "areas": {
+      "question": "What do you want to get better at?",
+      "hint": "You can pick more than one.",
+      "all": "Everything",
+      "options": {
+        "conversation": "Conversation",
+        "pronunciation": "Pronunciation",
+        "vocabulary": "Vocabulary",
+        "grammar": "Grammar",
+        "listening": "Listening",
+        "reading": "Reading",
+        "writing": "Writing"
+      }
+    },
+    "meetKai": {
+      "title": "Now you'll talk to Kai",
+      "body": "Kai is your guide. A couple of questions, and your practice gets built around the answers.",
+      "nameLabel": "What should we call you?",
+      "namePlaceholder": "Your name",
+      "nameHint": "Optional.",
+      "useMic": "Use microphone",
+      "preferText": "I'd rather type",
+      "micBlocked": "The browser didn't allow the microphone. We'll keep going in text."
+    },
+    "interview": {
+      "title": "The conversation with Kai goes here",
+      "body": "Not built yet. The rest of the run comes later."
+    },
+    "notBuilt": {
+      "title": "This part isn't built yet",
+      "body": "For now, the run ends here."
+    }
+  },
   "notFound": {
     "title": "This page doesn't exist",
     "cta": "Back to home"

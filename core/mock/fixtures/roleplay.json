@@ -1,0 +1,52 @@
+{
+  "get_roleplay_bundle": {
+    "standard": {
+      "schema_version": 1,
+      "roleplay_bundle": {
+        "bundle_id": "bd_0001",
+        "scenario": {
+          "situation_class_id": "job_interview",
+          "title": "Entrevista de trabajo",
+          "setup": "Simulás una entrevista para un puesto de diseño en una empresa internacional. La entrevistadora te va a hacer preguntas cortas."
+        },
+        "session_goals": [
+          { "check_id": "ck_0001", "text": "Presentate" },
+          { "check_id": "ck_0002", "text": "Contá un proyecto tuyo" }
+        ],
+        "mode": "voice",
+        "variant": "standard",
+        "mission_words": null
+      }
+    },
+    "code_switching": {
+      "schema_version": 1,
+      "roleplay_bundle": {
+        "bundle_id": "bd_0002",
+        "scenario": {
+          "situation_class_id": "job_interview",
+          "title": "Charla de trabajo, en español",
+          "setup": "Charlamos en español sobre tu trabajo. Tu misión: usar estas palabras en inglés cuando salgan."
+        },
+        "session_goals": [
+          { "check_id": "ck_0003", "text": "Usá las palabras de la misión" }
+        ],
+        "mode": "voice",
+        "variant": "code_switching",
+        "mission_words": ["deadline", "feedback"]
+      }
+    }
+  },
+  "roleplay_turn": {
+    "schema_version": 1,
+    "reply": { "artefact": { "kind": "audio", "url": "/mock-audio/rp-reply-001.mp3" } },
+    "flow": { "step": "roleplay", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "end_roleplay": {
+    "schema_version": 1,
+    "checks": [
+      { "check_id": "ck_0001", "done": true },
+      { "check_id": "ck_0002", "done": true }
+    ],
+    "flow": { "step": "verdict", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  }
+}

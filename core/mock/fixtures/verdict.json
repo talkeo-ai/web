@@ -1,0 +1,50 @@
+{
+  "get_state_map": {
+    "standard": {
+      "schema_version": 1,
+      "state_map": {
+        "kind": "standard",
+        "headline": { "level_estimate": "B1", "confidence_pct": 78 },
+        "areas": [
+          { "area": "conversation", "in_scope": true, "refined": true, "floor": "A2", "ceiling": "B1", "measured_pct": 62, "value_0_1": 0.55 },
+          { "area": "vocabulary", "in_scope": true, "refined": true, "floor": "B1", "ceiling": "B1", "measured_pct": 70, "value_0_1": 0.62 },
+          { "area": "grammar", "in_scope": false, "refined": false, "floor": "A2", "ceiling": "B1", "measured_pct": 34, "value_0_1": 0.48 },
+          { "area": "listening", "in_scope": false, "refined": false, "floor": "B1", "ceiling": "B2", "measured_pct": 30, "value_0_1": 0.58 },
+          { "area": "reading", "in_scope": false, "refined": false, "floor": "B1", "ceiling": "B2", "measured_pct": 28, "value_0_1": 0.6 },
+          { "area": "writing", "in_scope": false, "refined": false, "floor": "A2", "ceiling": "A2", "measured_pct": 25, "value_0_1": 0.42 },
+          { "area": "pronunciation", "in_scope": false, "refined": false, "floor": null, "ceiling": null, "measured_pct": 12, "value_0_1": null }
+        ],
+        "zero": null
+      }
+    },
+    "zero": {
+      "schema_version": 1,
+      "state_map": {
+        "kind": "zero",
+        "headline": null,
+        "areas": [
+          { "area": "vocabulary", "in_scope": true, "refined": false, "floor": "A0", "ceiling": "A1", "measured_pct": 18, "value_0_1": 0.2 },
+          { "area": "listening", "in_scope": true, "refined": false, "floor": null, "ceiling": null, "measured_pct": 8, "value_0_1": null },
+          { "area": "conversation", "in_scope": true, "refined": false, "floor": null, "ceiling": null, "measured_pct": 0, "value_0_1": null },
+          { "area": "grammar", "in_scope": false, "refined": false, "floor": null, "ceiling": null, "measured_pct": 0, "value_0_1": null },
+          { "area": "reading", "in_scope": false, "refined": false, "floor": null, "ceiling": null, "measured_pct": 5, "value_0_1": null },
+          { "area": "writing", "in_scope": false, "refined": false, "floor": null, "ceiling": null, "measured_pct": 0, "value_0_1": null },
+          { "area": "pronunciation", "in_scope": false, "refined": false, "floor": null, "ceiling": null, "measured_pct": 4, "value_0_1": null }
+        ],
+        "zero": {
+          "micro_goal": {
+            "goal_id": "c3d4e5f6-0003-4000-8000-000000000003",
+            "kind": "micro",
+            "status": "completed",
+            "name": "Decir tu presentación en inglés",
+            "focus": "tres frases, de verdad",
+            "target_date": null,
+            "version": 1,
+            "signed_ts": "2026-08-27T18:40:00Z"
+          },
+          "known_words_estimate": 400
+        }
+      }
+    }
+  }
+}

@@ -13,6 +13,15 @@ export const ANONYMOUS_ID_COOKIE = "talkeo_uid";
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365;
 
+/** Shared by every cookie that anchors a visitor, so they expire together. */
+export const SESSION_COOKIE_OPTIONS = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+  maxAge: ONE_YEAR_IN_SECONDS,
+} as const;
+
 /**
  * Ensures the request carries an anonymous id, minting one when it does not.
  *
@@ -31,13 +40,7 @@ export function ensureAnonymousId(
 
   const id = crypto.randomUUID();
 
-  response.cookies.set(ANONYMOUS_ID_COOKIE, id, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: ONE_YEAR_IN_SECONDS,
-  });
+  response.cookies.set(ANONYMOUS_ID_COOKIE, id, SESSION_COOKIE_OPTIONS);
 
   return id;
 }

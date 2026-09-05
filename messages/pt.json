@@ -62,6 +62,59 @@
     "sessionReady": "Sessão ativa",
     "sessionMissing": "Sem sessão"
   },
+  "onboarding": {
+    "start": {
+      "title": "Vamos ver onde você está",
+      "body": "Alguns minutos e você sabe o que tem de inglês, o que não tem, e por onde começar.",
+      "cta": "Começar"
+    },
+    "progress": "Passo {position} de {total}",
+    "back": "Voltar",
+    "continue": "Seguir",
+    "loading": "Carregando",
+    "selfAssessment": {
+      "question": "Quanto inglês você tem hoje?",
+      "hint": "Escolha o que mais se parece. Depois medimos de verdade.",
+      "options": {
+        "just_starting": "Estou começando agora",
+        "words_and_phrases": "Sei algumas palavras e frases",
+        "simple_conversations": "Consigo ter conversas simples",
+        "varied_topics": "Consigo falar sobre vários assuntos"
+      }
+    },
+    "areas": {
+      "question": "O que você quer melhorar?",
+      "hint": "Pode escolher mais de um.",
+      "all": "Tudo",
+      "options": {
+        "conversation": "Conversação",
+        "pronunciation": "Pronúncia",
+        "vocabulary": "Vocabulário",
+        "grammar": "Gramática",
+        "listening": "Escuta",
+        "reading": "Leitura",
+        "writing": "Escrita"
+      }
+    },
+    "meetKai": {
+      "title": "Agora você vai falar com o Kai",
+      "body": "O Kai é seu guia. Ele faz algumas perguntas e monta a sua prática sob medida.",
+      "nameLabel": "Como te chamamos?",
+      "namePlaceholder": "Seu nome",
+      "nameHint": "Opcional.",
+      "useMic": "Usar microfone",
+      "preferText": "Prefiro texto",
+      "micBlocked": "O navegador não liberou o microfone. Seguimos por texto."
+    },
+    "interview": {
+      "title": "Aqui vai a conversa com o Kai",
+      "body": "Ainda não foi construída. O resto do percurso vem depois."
+    },
+    "notBuilt": {
+      "title": "Esta parte ainda não existe",
+      "body": "Por enquanto o percurso termina aqui."
+    }
+  },
   "notFound": {
     "title": "Esta página não existe",
     "cta": "Voltar ao início"

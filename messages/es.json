@@ -62,6 +62,59 @@
     "sessionReady": "Sesión activa",
     "sessionMissing": "Sin sesión"
   },
+  "onboarding": {
+    "start": {
+      "title": "Vamos a ver dónde estás",
+      "body": "Unos minutos y sabés qué tenés de inglés, qué no, y por dónde conviene empezar.",
+      "cta": "Empezar"
+    },
+    "progress": "Paso {position} de {total}",
+    "back": "Atrás",
+    "continue": "Seguir",
+    "loading": "Cargando",
+    "selfAssessment": {
+      "question": "¿Cuánto inglés sabés hoy?",
+      "hint": "Elegí lo que más se parezca. Lo medimos en serio después.",
+      "options": {
+        "just_starting": "Recién empiezo",
+        "words_and_phrases": "Sé algunas palabras y frases",
+        "simple_conversations": "Puedo tener conversaciones simples",
+        "varied_topics": "Puedo hablar de varios temas"
+      }
+    },
+    "areas": {
+      "question": "¿Qué querés mejorar?",
+      "hint": "Podés elegir más de uno.",
+      "all": "Todo",
+      "options": {
+        "conversation": "Conversación",
+        "pronunciation": "Pronunciación",
+        "vocabulary": "Vocabulario",
+        "grammar": "Gramática",
+        "listening": "Escucha",
+        "reading": "Lectura",
+        "writing": "Escritura"
+      }
+    },
+    "meetKai": {
+      "title": "Ahora vas a hablar con Kai",
+      "body": "Kai es tu guía. Te hace un par de preguntas y con eso te arma la práctica a tu medida.",
+      "nameLabel": "¿Cómo te llamamos?",
+      "namePlaceholder": "Tu nombre",
+      "nameHint": "Opcional.",
+      "useMic": "Usar micrófono",
+      "preferText": "Prefiero texto",
+      "micBlocked": "El navegador no dio el micrófono. Seguimos por texto."
+    },
+    "interview": {
+      "title": "Acá va la charla con Kai",
+      "body": "Todavía no está construida. El resto del recorrido llega después."
+    },
+    "notBuilt": {
+      "title": "Esta parte todavía no está",
+      "body": "Por ahora el recorrido llega hasta acá."
+    }
+  },
   "notFound": {
     "title": "Esta página no existe",
     "cta": "Volver al inicio"

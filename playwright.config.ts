@@ -1,6 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3000;
+// `reuseExistingServer` will happily adopt whatever is already on the port,
+// including a `next dev` left running — which serves different code than the
+// production build these tests exist to check. Set `E2E_PORT` to run beside it.
+const PORT = Number(process.env.E2E_PORT ?? 3000);
 const baseURL = `http://localhost:${PORT}`;
 
 export default defineConfig({

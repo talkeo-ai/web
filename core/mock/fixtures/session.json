@@ -1,0 +1,20 @@
+{
+  "create_anonymous_user": {
+    "schema_version": 1,
+    "user_id": "0f7c2a1e-3b9d-4c8a-9e21-5a6b7c8d9e00"
+  },
+  "create_session": {
+    "schema_version": 1,
+    "session_id": "a1b2c3d4-0001-4000-8000-000000000001",
+    "flow": { "step": "survey", "mode": "standard", "mic_granted": false, "display_name": null }
+  },
+  "get_flow_state": {
+    "schema_version": 1,
+    "flow": { "step": "items", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "attach_identity": {
+    "schema_version": 1,
+    "ok": true,
+    "flow": { "step": "day2", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  }
+}
