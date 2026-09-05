@@ -1,11 +1,17 @@
 import {
   CoreError,
   type ClientDeclaration,
+  type Delta,
   type Flow,
   type Goal,
+  type GoalArtefact,
+  type Instrument,
+  type InterviewEvent,
   type Item,
+  type PlanItem,
   type Scope,
   type SelfAssessment,
+  type TalkeoTurn,
 } from "../contracts";
 
 /**
@@ -26,6 +32,14 @@ export type MockUser = {
   last_session_id: string | null;
 };
 
+export type MockInterview = {
+  /** How far into the recorded interview the assistant is. */
+  next: number;
+  turns: TalkeoTurn[];
+  events: InterviewEvent[];
+  closed: boolean;
+};
+
 export type MockSession = {
   session_id: string;
   user_id: string;
@@ -34,11 +48,22 @@ export type MockSession = {
   self_assessment: SelfAssessment | null;
   scope: Scope | null;
   goal_signed: boolean;
+  interview: MockInterview;
+  /** What the interview registered as the goal, if it did. */
+  goal_name: string | null;
+  goal_version: number;
+  artefacts: GoalArtefact[];
+  /** The cells for today, once the plan card exists. Edits land here. */
+  plan_today: PlanItem[] | null;
   /** What is left to serve, already filtered by what the client can draw. */
   queue: Item[];
-  /** Ids handed out, so an answer to something never served is rejected. */
-  served: Set<string>;
+  /** Ids handed out with their instrument, so an answer to something never served is rejected. */
+  served: Map<string, Instrument>;
   answered: number;
+  /** The yes/no answers to the opening items, in order. */
+  opening_answers: ("yes" | "no")[];
+  missions_done: Set<string>;
+  delta: Delta | null;
 };
 
 const users = new Map<string, MockUser>();
@@ -69,6 +94,7 @@ export function requireUser(userId: string): MockUser {
 export function createSession(
   userId: string,
   client: ClientDeclaration,
+  goalVersion: number,
 ): MockSession {
   const user = requireUser(userId);
 
@@ -77,7 +103,7 @@ export function createSession(
     user_id: userId,
     client,
     flow: {
-      step: "survey",
+      step: "talkeo_interview",
       mode: "standard",
       mic_granted: false,
       display_name: user.display_name,
@@ -85,9 +111,17 @@ export function createSession(
     self_assessment: null,
     scope: null,
     goal_signed: false,
+    interview: { next: 0, turns: [], events: [], closed: false },
+    goal_name: null,
+    goal_version: goalVersion,
+    artefacts: [],
+    plan_today: null,
     queue: [],
-    served: new Set(),
+    served: new Map(),
     answered: 0,
+    opening_answers: [],
+    missions_done: new Set(),
+    delta: null,
   };
 
   sessions.set(session.session_id, session);

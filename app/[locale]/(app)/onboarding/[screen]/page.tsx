@@ -2,12 +2,9 @@ import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { AreasScreen } from "@/components/onboarding/areas-screen";
-import { MeetKaiScreen } from "@/components/onboarding/meet-kai-screen";
+import { ConsentLine } from "@/components/onboarding/consent-line";
 import { NotBuiltScreen } from "@/components/onboarding/not-built-screen";
 import { OnboardingFrame } from "@/components/onboarding/onboarding-frame";
-import { SelfAssessmentScreen } from "@/components/onboarding/self-assessment-screen";
-import { selfAssessmentSchema } from "@/core/contracts";
 import { redirect } from "@/lib/i18n/navigation";
 import { routing } from "@/lib/i18n/routing";
 import { readCurrentRun } from "@/lib/onboarding/current-run";
@@ -17,8 +14,6 @@ import {
   onboardingHref,
   stepOf,
 } from "@/lib/onboarding/screens";
-
-import { finishOpeningScreens, submitSurvey } from "../actions";
 
 /**
  * One screen of the run.
@@ -30,11 +25,10 @@ import { finishOpeningScreens, submitSurvey } from "../actions";
  */
 export default function OnboardingScreenPage({
   params,
-  searchParams,
 }: PageProps<"/[locale]/onboarding/[screen]">) {
   return (
     <Suspense fallback={<FrameFallback />}>
-      <Screen params={params} searchParams={searchParams} />
+      <Screen params={params} />
     </Suspense>
   );
 }
@@ -53,10 +47,8 @@ function FrameFallback() {
 
 async function Screen({
   params,
-  searchParams,
 }: {
   params: PageProps<"/[locale]/onboarding/[screen]">["params"];
-  searchParams: PageProps<"/[locale]/onboarding/[screen]">["searchParams"];
 }) {
   const { locale, screen } = await params;
 
@@ -78,39 +70,10 @@ async function Screen({
     });
   }
 
-  if (screen === "areas") {
-    const answer = selfAssessmentSchema.safeParse((await searchParams).level);
-
-    // Landing here without the first answer means the URL was reached out of
-    // order. Both answers go up in one call, so there is nothing to submit yet.
-    if (!answer.success) {
-      return redirect({ href: onboardingHref("self-assessment"), locale });
-    }
-
-    return (
-      <OnboardingFrame screen={screen}>
-        <AreasScreen
-          selfAssessment={answer.data}
-          action={submitSurvey.bind(null, locale)}
-        />
-      </OnboardingFrame>
-    );
-  }
-
   return (
     <OnboardingFrame screen={screen}>
-      {screen === "self-assessment" ? (
-        <SelfAssessmentScreen />
-      ) : screen === "meet-kai" ? (
-        <MeetKaiScreen
-          defaultName={current.flow.display_name ?? ""}
-          action={finishOpeningScreens.bind(null, locale)}
-        />
-      ) : screen === "interview" ? (
-        <NotBuiltScreen namespace="interview" />
-      ) : (
-        <NotBuiltScreen namespace="notBuilt" />
-      )}
+      <NotBuiltScreen screen={screen} />
+      {screen === "talkeo" ? <ConsentLine /> : null}
     </OnboardingFrame>
   );
 }

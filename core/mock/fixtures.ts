@@ -1,24 +1,42 @@
 import {
+  dayPlanSchema,
+  doseSchema,
+  goalArtefactSchema,
   goalSchema,
+  goalV2Schema,
   itemSchema,
+  planCardSchema,
+  rangoSchema,
   roleplayBundleSchema,
   situationClassSchema,
   stateMapSchema,
   stateSummarySchema,
+  talkeoTurnSchema,
   type CheckOutcome,
+  type DayPlan,
+  type Dose,
   type Goal,
+  type GoalArtefact,
+  type GoalV2,
   type Instrument,
   type Item,
+  type PlanCard,
+  type Rango,
   type RoleplayBundle,
   type ServedAudio,
   type SituationClass,
   type StateMap,
   type StateSummary,
+  type TalkeoTurn,
 } from "../contracts";
 
+import goalV2File from "./fixtures/goal-v2.json";
 import itemsFile from "./fixtures/items.json";
+import planCardFile from "./fixtures/plan-card.json";
+import planFile from "./fixtures/plan.json";
 import roleplayFile from "./fixtures/roleplay.json";
 import surveyKaiFile from "./fixtures/survey-kai.json";
+import talkeoFile from "./fixtures/talkeo.json";
 import verdictFile from "./fixtures/verdict.json";
 
 /**
@@ -62,6 +80,62 @@ export const STATE_SUMMARY: StateSummary = stateSummarySchema.parse(
   surveyKaiFile.get_state_summary.state_summary,
 );
 
+// --- the assistant's interview ---
+
+const interviewTurns = talkeoFile.talkeo_turn;
+
+/**
+ * The interview as recorded, in the order the assistant says it: from the
+ * opening to the turn that closes the interview and starts the exercises.
+ */
+export const TALKEO_INTERVIEW_TURNS: TalkeoTurn[] = [
+  interviewTurns.opening,
+  interviewTurns.ask_name,
+  interviewTurns.confirm_name,
+  interviewTurns.scope_and_why,
+  interviewTurns.goal_noted,
+  interviewTurns.interest_noted,
+  interviewTurns.closing,
+].map((entry) => talkeoTurnSchema.parse(entry.turn));
+
+/** What the assistant says when spoken to while an exercise is on screen. */
+export const TALKEO_TURN_DURING_ITEMS: TalkeoTurn = talkeoTurnSchema.parse(
+  interviewTurns.during_items_belief.turn,
+);
+
+/** The turn that opens the verification, once the measuring is done. */
+export const TALKEO_TURN_LEVEL_EXPLAINED: TalkeoTurn = talkeoTurnSchema.parse(
+  interviewTurns.level_explained.turn,
+);
+
+/** The turn that hands over to the conversation. */
+export const TALKEO_TURN_PRE_ROLEPLAY: TalkeoTurn = talkeoTurnSchema.parse(
+  interviewTurns.pre_roleplay.turn,
+);
+
+export const GOAL_ARTEFACT: GoalArtefact = goalArtefactSchema.parse(
+  talkeoFile.attach_artefact.artefact,
+);
+
+// --- the goal and the plan card ---
+
+export const GOAL_V2: GoalV2 = goalV2Schema.parse(goalV2File.get_goal_v2.goal);
+
+export const PLAN_CARD: PlanCard = planCardSchema.parse(
+  planCardFile.get_plan_card.plan,
+);
+
+const editedPlanCard: PlanCard = planCardSchema.parse(
+  planCardFile.edit_plan_card.plan,
+);
+
+/** The one line the service says about a cell the user added by hand. */
+export const USER_ADDED_CELL_WHY: string = editedPlanCard.today.find(
+  (item) => !PLAN_CARD.today.some((known) => known.cell_id === item.cell_id),
+)!.why;
+
+// --- the conversation ---
+
 export const ROLEPLAY_BUNDLE: RoleplayBundle = roleplayBundleSchema.parse(
   roleplayFile.get_roleplay_bundle.standard.roleplay_bundle,
 );
@@ -78,10 +152,33 @@ export const ROLEPLAY_REPLY_AUDIO: ServedAudio = {
 
 export const ROLEPLAY_CHECKS: CheckOutcome[] = roleplayFile.end_roleplay.checks;
 
+// --- the result screen ---
+
 export const STATE_MAP_STANDARD: StateMap = stateMapSchema.parse(
   verdictFile.get_state_map.standard.state_map,
 );
 
 export const STATE_MAP_ZERO: StateMap = stateMapSchema.parse(
   verdictFile.get_state_map.zero.state_map,
+);
+
+// --- the day plan and the dose ---
+
+export const DAY_PLAN: DayPlan = dayPlanSchema.parse(
+  planFile.get_day_plan.standard.plan,
+);
+
+export const DAY_PLAN_FLOOR_BREACH: DayPlan = dayPlanSchema.parse(
+  planFile.get_day_plan.floor_breach.plan,
+);
+
+export const DOSE: Dose = doseSchema.parse(planFile.get_dose.dose);
+
+/** The dose as the service reports it right after the target changed. */
+export const DOSE_AFTER_TARGET: Dose = doseSchema.parse(
+  planFile.set_dose_target.dose,
+);
+
+export const RANGO_AFTER_REORDER: Rango = rangoSchema.parse(
+  planFile.set_goal_order.rango,
 );

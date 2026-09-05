@@ -15,7 +15,12 @@
         ],
         "mode": "voice",
         "variant": "standard",
-        "mission_words": null
+        "mission_words": null,
+        "missions": [
+          { "mission_id": "ms_0001", "cell_id": "cell_0001", "text": "Usá 'deadline' cuando hables de los plazos" },
+          { "mission_id": "ms_0002", "cell_id": "cell_0002", "text": "Contá qué feedback recibiste" },
+          { "mission_id": "ms_0003", "cell_id": "cell_0003", "text": "Nombrá a un stakeholder del proyecto" }
+        ]
       }
     },
     "code_switching": {
@@ -32,14 +37,23 @@
         ],
         "mode": "voice",
         "variant": "code_switching",
-        "mission_words": ["deadline", "feedback"]
+        "mission_words": ["deadline", "feedback"],
+        "missions": [
+          { "mission_id": "ms_0004", "cell_id": "cell_0001", "text": "Decí 'deadline' cuando hablemos de plazos" },
+          { "mission_id": "ms_0005", "cell_id": "cell_0002", "text": "Decí 'feedback' cuando cuentes qué te dijeron" }
+        ]
       }
     }
   },
   "roleplay_turn": {
     "schema_version": 1,
     "reply": { "artefact": { "kind": "audio", "url": "/mock-audio/rp-reply-001.mp3" } },
-    "flow": { "step": "roleplay", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+    "flow": { "step": "roleplay", "mode": "standard", "mic_granted": true, "display_name": "Caro" },
+    "mission_progress": [
+      { "mission_id": "ms_0001", "done": true },
+      { "mission_id": "ms_0002", "done": false },
+      { "mission_id": "ms_0003", "done": false }
+    ]
   },
   "end_roleplay": {
     "schema_version": 1,
@@ -47,6 +61,10 @@
       { "check_id": "ck_0001", "done": true },
       { "check_id": "ck_0002", "done": true }
     ],
-    "flow": { "step": "verdict", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+    "flow": { "step": "delta", "mode": "standard", "mic_granted": true, "display_name": "Caro" },
+    "delta": {
+      "taught": ["deadline", "feedback", "stakeholder"],
+      "used": ["deadline", "feedback"]
+    }
   }
 }

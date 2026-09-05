@@ -27,7 +27,13 @@ export const selfAssessmentSchema = z.enum([
   "varied_topics",
 ]);
 
-/** The step to render. The service decides it; this client obeys it. */
+/**
+ * The step to render. The service decides it; this client obeys it.
+ *
+ * `survey`, `kai_interview`, `kai_briefing` and `day2` are kept as wire values
+ * so nothing old breaks, but no new run enters them: the run now opens with
+ * the assistant talking, and the closing steps are `delta` and `home`.
+ */
 export const stepSchema = z.enum([
   "survey",
   "kai_interview",
@@ -37,6 +43,12 @@ export const stepSchema = z.enum([
   "verdict",
   "email",
   "day2",
+  "talkeo_interview",
+  "verification",
+  "plan",
+  "lesson",
+  "delta",
+  "home",
 ]);
 
 export const modeSchema = z.enum(["standard", "zero"]);
@@ -56,7 +68,46 @@ export const interestKindSchema = z.enum([
   "other",
 ]);
 
-export const speakerSchema = z.enum(["user", "kai"]);
+/** `kai` is a kept wire value; the assistant speaks as `talkeo`. */
+export const speakerSchema = z.enum(["user", "kai", "talkeo"]);
+
+/** Where a fact about the user came from. The two are never mixed. */
+export const originSchema = z.enum(["declared", "inferred"]);
+
+/** What the screen does when the spoken audio reaches a marked word. */
+export const markActionSchema = z.enum(["highlight", "flip", "point", "reveal"]);
+
+/**
+ * What the assistant registered during a turn.
+ *
+ * Every kind is an annotation or a policy: none of them is evidence, and none
+ * of them carries a level.
+ */
+export const interviewEventKindSchema = z.enum([
+  "name_heard",
+  "scope_set",
+  "goal_noted",
+  "situation_noted",
+  "history_noted",
+  "interest_noted",
+  "obstacle_noted",
+  "artefact_attached",
+  "belief_noted",
+  "doubt_noted",
+  "comment_noted",
+]);
+
+/** What this client reports about what is on screen. */
+export const viewEventSchema = z.enum(["card_shown", "card_left"]);
+
+/** A goal cell over its life inside the run. Only the service writes it. */
+export const cellStatusSchema = z.enum([
+  "predicted",
+  "verified_unknown",
+  "known",
+  "taught",
+  "used",
+]);
 
 /** The locales the protocol accepts, which are the ones this app ships. */
 export const protocolLocaleSchema = z.enum(["es", "en", "pt"]);
@@ -73,6 +124,11 @@ export type RoleplayMode = z.infer<typeof roleplayModeSchema>;
 export type RoleplayVariant = z.infer<typeof roleplayVariantSchema>;
 export type InterestKind = z.infer<typeof interestKindSchema>;
 export type Speaker = z.infer<typeof speakerSchema>;
+export type Origin = z.infer<typeof originSchema>;
+export type MarkAction = z.infer<typeof markActionSchema>;
+export type InterviewEventKind = z.infer<typeof interviewEventKindSchema>;
+export type ViewEvent = z.infer<typeof viewEventSchema>;
+export type CellStatus = z.infer<typeof cellStatusSchema>;
 export type ProtocolLocale = z.infer<typeof protocolLocaleSchema>;
 
 /** Every area, in the order screens list them. */

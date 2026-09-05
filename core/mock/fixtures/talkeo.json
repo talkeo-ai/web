@@ -1,0 +1,233 @@
+{
+  "talkeo_turn": {
+    "opening": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0001",
+        "text": "Hola, soy Talkeo. Te voy a armar un ejercicio a tu medida, pero primero quiero conocerte un poco. ¿Preferís hablar o escribir?",
+        "marks": [
+          { "word_index": 19, "action": "point", "target": "control:voice" },
+          { "word_index": 21, "action": "point", "target": "control:text" }
+        ],
+        "word_timings": [
+          { "word_index": 0, "start_ms": 0, "end_ms": 320 },
+          { "word_index": 1, "start_ms": 320, "end_ms": 520 },
+          { "word_index": 2, "start_ms": 520, "end_ms": 900 },
+          { "word_index": 19, "start_ms": 5200, "end_ms": 5600 },
+          { "word_index": 21, "start_ms": 5900, "end_ms": 6300 }
+        ],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0001.mp3" },
+        "events": [],
+        "closing": false
+      },
+      "flow": { "step": "talkeo_interview", "mode": "standard", "mic_granted": false, "display_name": null }
+    },
+    "ask_name": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0002",
+        "text": "Decime tu nombre, así te saludo bien.",
+        "marks": [],
+        "word_timings": [
+          { "word_index": 0, "start_ms": 0, "end_ms": 400 },
+          { "word_index": 1, "start_ms": 400, "end_ms": 600 },
+          { "word_index": 2, "start_ms": 600, "end_ms": 1000 }
+        ],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0002.mp3" },
+        "events": [],
+        "closing": false
+      },
+      "flow": { "step": "talkeo_interview", "mode": "standard", "mic_granted": true, "display_name": null }
+    },
+    "confirm_name": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0003",
+        "text": "¿Te llamás Caro?",
+        "marks": [{ "word_index": 2, "action": "reveal", "target": "control:confirm_name" }],
+        "word_timings": [
+          { "word_index": 0, "start_ms": 0, "end_ms": 250 },
+          { "word_index": 1, "start_ms": 250, "end_ms": 600 },
+          { "word_index": 2, "start_ms": 600, "end_ms": 1000 }
+        ],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0003.mp3" },
+        "events": [
+          { "event_id": "ev_t_0001", "kind": "name_heard", "origin": "declared", "payload": { "name": "Caro" } }
+        ],
+        "closing": false
+      },
+      "flow": { "step": "talkeo_interview", "mode": "standard", "mic_granted": true, "display_name": null }
+    },
+    "scope_and_why": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0004",
+        "text": "Vi que querés mejorar en conversación y vocabulario. ¿Para qué querés el inglés?",
+        "marks": [
+          { "word_index": 5, "action": "highlight", "target": "area:conversation" },
+          { "word_index": 7, "action": "highlight", "target": "area:vocabulary" }
+        ],
+        "word_timings": [
+          { "word_index": 0, "start_ms": 0, "end_ms": 200 },
+          { "word_index": 5, "start_ms": 1400, "end_ms": 2100 },
+          { "word_index": 7, "start_ms": 2300, "end_ms": 3000 }
+        ],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0004.mp3" },
+        "events": [
+          { "event_id": "ev_t_0002", "kind": "scope_set", "origin": "declared", "payload": { "areas": ["conversation", "vocabulary"] } }
+        ],
+        "closing": false
+      },
+      "flow": { "step": "talkeo_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+    },
+    "goal_noted": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0005",
+        "text": "Entonces te preparamos para eso desde hoy. ¿Qué es lo que más te cuesta en una entrevista: entender, encontrar las palabras, o sostener la charla?",
+        "marks": [],
+        "word_timings": [{ "word_index": 0, "start_ms": 0, "end_ms": 400 }],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0005.mp3" },
+        "events": [
+          {
+            "event_id": "ev_t_0003",
+            "kind": "goal_noted",
+            "origin": "declared",
+            "payload": { "name": "Pasar entrevistas de trabajo en inglés", "situation_class_id": "job_interview" }
+          }
+        ],
+        "closing": false
+      },
+      "flow": { "step": "talkeo_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+    },
+    "interest_noted": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0006",
+        "text": "¿The Futur? ¿El de Chris Do? Buenísimo, con eso ya sé para dónde vamos.",
+        "marks": [],
+        "word_timings": [{ "word_index": 0, "start_ms": 0, "end_ms": 300 }],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0006.mp3" },
+        "events": [
+          {
+            "event_id": "ev_t_0004",
+            "kind": "interest_noted",
+            "origin": "declared",
+            "payload": { "name": "The Futur", "category": "design", "language": "en" }
+          }
+        ],
+        "closing": false
+      },
+      "flow": { "step": "talkeo_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+    },
+    "closing": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0007",
+        "text": "En tu primera clase vas a aprender lo que te falta para contar un proyecto tuyo en una entrevista. Pero primero vamos a medir tu nivel. Comencemos.",
+        "marks": [{ "word_index": 22, "action": "point", "target": "control:start_items" }],
+        "word_timings": [
+          { "word_index": 0, "start_ms": 0, "end_ms": 200 },
+          { "word_index": 22, "start_ms": 7100, "end_ms": 7600 }
+        ],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0007.mp3" },
+        "events": [],
+        "closing": true
+      },
+      "flow": { "step": "items", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+    },
+    "during_items_belief": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0008",
+        "text": "Anotado. Lo vemos después; seguí deslizando.",
+        "marks": [],
+        "word_timings": [{ "word_index": 0, "start_ms": 0, "end_ms": 500 }],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0008.mp3" },
+        "events": [
+          {
+            "event_id": "ev_t_0005",
+            "kind": "belief_noted",
+            "origin": "declared",
+            "payload": { "item_id": "it_0001", "belief": "creo que es mejorar" }
+          }
+        ],
+        "closing": false
+      },
+      "flow": { "step": "items", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+    },
+    "level_explained": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0009",
+        "text": "En vocabulario estás en B1, con bastante seguridad. Hay varias formas de saber inglés, y con Talkeo se aprenden todas. Registramos todo lo que sabés para adecuar tus lecciones y eso nos permite predecir tus huecos.",
+        "marks": [
+          { "word_index": 1, "action": "highlight", "target": "area:vocabulary" },
+          { "word_index": 12, "action": "reveal", "target": "card:map" },
+          { "word_index": 36, "action": "flip", "target": "card:predicted_gaps" }
+        ],
+        "word_timings": [
+          { "word_index": 0, "start_ms": 0, "end_ms": 200 },
+          { "word_index": 1, "start_ms": 200, "end_ms": 900 },
+          { "word_index": 12, "start_ms": 4000, "end_ms": 4400 },
+          { "word_index": 36, "start_ms": 12000, "end_ms": 12500 }
+        ],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0009.mp3" },
+        "events": [],
+        "closing": true
+      },
+      "flow": { "step": "verification", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+    },
+    "pre_roleplay": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0010",
+        "text": "Bien. Ahora lo ponés en práctica.",
+        "marks": [],
+        "word_timings": [{ "word_index": 0, "start_ms": 0, "end_ms": 300 }],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0010.mp3" },
+        "events": [],
+        "closing": true
+      },
+      "flow": { "step": "roleplay", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+    }
+  },
+  "get_interview_state": {
+    "schema_version": 1,
+    "state": {
+      "turn_count": 7,
+      "last_turn": {
+        "turn_id": "tt_0007",
+        "text": "En tu primera clase vas a aprender lo que te falta para contar un proyecto tuyo en una entrevista. Pero primero vamos a medir tu nivel. Comencemos.",
+        "marks": [],
+        "word_timings": [],
+        "audio": null,
+        "events": [],
+        "closing": true
+      },
+      "events": [
+        { "event_id": "ev_t_0001", "kind": "name_heard", "origin": "declared", "payload": { "name": "Caro" } },
+        { "event_id": "ev_t_0002", "kind": "scope_set", "origin": "declared", "payload": { "areas": ["conversation", "vocabulary"] } },
+        { "event_id": "ev_t_0003", "kind": "goal_noted", "origin": "declared", "payload": { "name": "Pasar entrevistas de trabajo en inglés", "situation_class_id": "job_interview" } },
+        { "event_id": "ev_t_0004", "kind": "interest_noted", "origin": "declared", "payload": { "name": "The Futur", "category": "design", "language": "en" } }
+      ],
+      "closed": true
+    },
+    "flow": { "step": "items", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "attach_artefact": {
+    "schema_version": 1,
+    "artefact": { "artefact_id": "af_0001", "kind": "text", "title": "Descripción del puesto" },
+    "flow": { "step": "talkeo_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "set_scope": {
+    "schema_version": 1,
+    "scope": { "areas": ["conversation", "vocabulary"], "version": 1 },
+    "flow": { "step": "talkeo_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "report_view": {
+    "schema_version": 1,
+    "ok": true,
+    "flow": { "step": "items", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  }
+}

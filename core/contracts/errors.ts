@@ -16,6 +16,8 @@ export const errorCodeSchema = z.enum([
   /** A stale version of something versioned. */
   "CONFLICT",
   "NOT_FOUND",
+  /** A cataloged call whose implementation has not landed on the service. */
+  "NOT_IMPLEMENTED",
 ]);
 
 export const errorBodySchema = z.object({

@@ -5,20 +5,32 @@ import {
   areaSchema,
   goalKindSchema,
   interestKindSchema,
+  originSchema,
   protocolLocaleSchema,
   selfAssessmentSchema,
   speakerSchema,
+  viewEventSchema,
 } from "./enums";
 import { instrumentSchema, itemResponseSchema, itemSchema } from "./items";
 import {
   checkOutcomeSchema,
+  dayPlanSchema,
+  deltaSchema,
+  doseSchema,
   flowSchema,
+  goalArtefactSchema,
   goalSchema,
+  goalV2Schema,
+  interviewStateSchema,
+  missionProgressSchema,
+  planCardSchema,
+  rangoSchema,
   roleplayBundleSchema,
   scopeSchema,
   situationClassSchema,
   stateMapSchema,
   stateSummarySchema,
+  talkeoTurnSchema,
 } from "./objects";
 
 /**
@@ -173,6 +185,39 @@ export const stateSummaryResultSchema = z.object({
   state_summary: stateSummarySchema,
 });
 
+// --- the day plan and the dose ---
+
+export const getDayPlanRequestSchema = z.object({
+  user_id: z.string(),
+  budget_minutes: z.number().int().optional(),
+});
+
+export const dayPlanResultSchema = z.object({
+  ...versioned,
+  plan: dayPlanSchema,
+});
+
+export const getDoseRequestSchema = z.object({ user_id: z.string() });
+
+export const doseResultSchema = z.object({ ...versioned, dose: doseSchema });
+
+export const setDoseTargetRequestSchema = z.object({
+  user_id: z.string(),
+  target_session_minutes: z.number().int(),
+});
+
+/** Reordering goals is one of the two levers over the split; the other is scope. */
+export const setGoalOrderRequestSchema = z.object({
+  user_id: z.string(),
+  goal_ids: z.array(z.string()),
+});
+
+export const goalOrderResultSchema = z.object({
+  ...versioned,
+  order: z.array(z.string()),
+  rango: rangoSchema,
+});
+
 // --- items ---
 
 export const getNextItemRequestSchema = z.object({ session_id: z.string() });
@@ -224,17 +269,126 @@ export const roleplayTurnRequestSchema = z.object({
   artefact: uploadArtefactSchema,
 });
 
+/**
+ * The reply, and which missions the turn completed. A mission done is a cell
+ * used; nothing here says a sentence was correct.
+ */
 export const roleplayTurnResultSchema = z.object({
   ...versioned,
   reply: z.object({ artefact: replyArtefactSchema }),
   flow: flowSchema,
+  mission_progress: z.array(missionProgressSchema).default([]),
 });
 
 export const endRoleplayRequestSchema = z.object({ session_id: z.string() });
 
+/** The checks, and the delta of the first win, computed here and shown at the close. */
 export const endRoleplayResultSchema = z.object({
   ...versioned,
   checks: z.array(checkOutcomeSchema),
+  flow: flowSchema,
+  delta: deltaSchema.nullable().optional(),
+});
+
+// --- the assistant's interview, the plan card, the delta ---
+
+/**
+ * The user's turn in. No artefact asks for the assistant's opening or its next
+ * turn: the assistant talks first, and this client never scripts it.
+ */
+export const talkeoTurnRequestSchema = z.object({
+  session_id: z.string(),
+  artefact: uploadArtefactSchema.nullable().optional(),
+});
+
+export const talkeoTurnResultSchema = z.object({
+  ...versioned,
+  turn: talkeoTurnSchema,
+  flow: flowSchema,
+});
+
+export const getInterviewStateRequestSchema = z.object({
+  session_id: z.string(),
+});
+
+export const interviewStateResultSchema = z.object({
+  ...versioned,
+  state: interviewStateSchema,
+  flow: flowSchema,
+});
+
+/** Text pasted or a link, to materialise the goal. Files come later. */
+export const attachArtefactRequestSchema = z.object({
+  session_id: z.string(),
+  kind: z.enum(["text", "link"]),
+  title: z.string().optional(),
+  text: z.string().optional(),
+  url: z.string().optional(),
+});
+
+export const attachArtefactResultSchema = z.object({
+  ...versioned,
+  artefact: goalArtefactSchema,
+  flow: flowSchema,
+});
+
+/**
+ * The areas the user wants to improve, chosen on screen or marked by the
+ * assistant from what the user said. Left out, `origin` means declared.
+ */
+export const setScopeRequestSchema = z.object({
+  session_id: z.string(),
+  areas: z.union([z.array(areaSchema), z.array(z.literal("all"))]),
+  origin: originSchema.optional(),
+});
+
+export const setScopeResultSchema = z.object({
+  ...versioned,
+  scope: scopeSchema,
+  flow: flowSchema,
+});
+
+/**
+ * What is on screen right now. Reporting a view never writes evidence; it
+ * timestamps the card so latency is measured from when it was actually seen.
+ */
+export const reportViewRequestSchema = z.object({
+  session_id: z.string(),
+  event: viewEventSchema,
+  item_id: z.string().optional(),
+  instrument: z.string().optional(),
+});
+
+export const getGoalV2RequestSchema = z.object({ user_id: z.string() });
+
+export const goalV2ResultSchema = z.object({
+  ...versioned,
+  goal: goalV2Schema,
+});
+
+export const getPlanCardRequestSchema = z.object({ session_id: z.string() });
+
+export const planCardResultSchema = z.object({
+  ...versioned,
+  plan: planCardSchema,
+  flow: flowSchema,
+});
+
+/**
+ * One tap: drop a cell, or add one the user feels is missing. An added one
+ * enters as declared and is verified before anything is taught on it.
+ */
+export const editPlanCardRequestSchema = z.object({
+  session_id: z.string(),
+  remove_cell_ids: z.array(z.string()).optional(),
+  add_labels: z.array(z.string()).optional(),
+});
+
+export const getDeltaRequestSchema = z.object({ session_id: z.string() });
+
+export const deltaResultSchema = z.object({
+  ...versioned,
+  delta: deltaSchema,
   flow: flowSchema,
 });
 
@@ -253,6 +407,57 @@ export const attachIdentityRequestSchema = z.object({
   user_id: z.string(),
   email: z.string(),
 });
+
+/**
+ * The catalog: one entry per call, with the schema its answer is parsed by.
+ *
+ * This list is the whole API surface of the service as this client knows it.
+ * The adapters read it, and a test holds the port to it, so a call cannot
+ * exist on one side without the other noticing.
+ */
+export const TOOLS = {
+  get_flow_state: flowResultSchema,
+  get_next_item: nextItemResultSchema,
+  get_state_map: stateMapResultSchema,
+  get_state_summary: stateSummaryResultSchema,
+  get_situation_classes: situationClassesResultSchema,
+  get_roleplay_bundle: roleplayBundleResultSchema,
+  get_goal: goalsResultSchema,
+  get_day_plan: dayPlanResultSchema,
+  get_dose: doseResultSchema,
+  create_anonymous_user: createAnonymousUserResultSchema,
+  create_session: createSessionResultSchema,
+  submit_survey: submitSurveyResultSchema,
+  set_display_name: okResultSchema,
+  set_mic_permission: okResultSchema,
+  log_kai_turn: okResultSchema,
+  create_goal_draft: goalResultSchema,
+  update_goal_draft: goalResultSchema,
+  sign_goal: goalResultSchema,
+  set_situation_class: okResultSchema,
+  set_need_future: okResultSchema,
+  add_interest: okResultSchema,
+  submit_response: submitResponseResultSchema,
+  roleplay_turn: roleplayTurnResultSchema,
+  end_roleplay: endRoleplayResultSchema,
+  attach_identity: okResultSchema,
+  set_dose_target: doseResultSchema,
+  set_goal_order: goalOrderResultSchema,
+  get_interview_state: interviewStateResultSchema,
+  get_goal_v2: goalV2ResultSchema,
+  get_plan_card: planCardResultSchema,
+  get_delta: deltaResultSchema,
+  talkeo_turn: talkeoTurnResultSchema,
+  attach_artefact: attachArtefactResultSchema,
+  set_scope: setScopeResultSchema,
+  report_view: okResultSchema,
+  edit_plan_card: planCardResultSchema,
+} as const;
+
+export type ToolName = keyof typeof TOOLS;
+
+/** Every call the service catalogs, by wire name. */
+export const TOOL_NAMES = Object.keys(TOOLS) as ToolName[];
 
 export type OkResult = z.infer<typeof okResultSchema>;
 export type CreateAnonymousUserResult = z.infer<
@@ -307,3 +512,28 @@ export type EndRoleplayResult = z.infer<typeof endRoleplayResultSchema>;
 export type GetStateMapRequest = z.infer<typeof getStateMapRequestSchema>;
 export type StateMapResult = z.infer<typeof stateMapResultSchema>;
 export type AttachIdentityRequest = z.infer<typeof attachIdentityRequestSchema>;
+export type GetDayPlanRequest = z.infer<typeof getDayPlanRequestSchema>;
+export type DayPlanResult = z.infer<typeof dayPlanResultSchema>;
+export type GetDoseRequest = z.infer<typeof getDoseRequestSchema>;
+export type DoseResult = z.infer<typeof doseResultSchema>;
+export type SetDoseTargetRequest = z.infer<typeof setDoseTargetRequestSchema>;
+export type SetGoalOrderRequest = z.infer<typeof setGoalOrderRequestSchema>;
+export type GoalOrderResult = z.infer<typeof goalOrderResultSchema>;
+export type TalkeoTurnRequest = z.infer<typeof talkeoTurnRequestSchema>;
+export type TalkeoTurnResult = z.infer<typeof talkeoTurnResultSchema>;
+export type GetInterviewStateRequest = z.infer<
+  typeof getInterviewStateRequestSchema
+>;
+export type InterviewStateResult = z.infer<typeof interviewStateResultSchema>;
+export type AttachArtefactRequest = z.infer<typeof attachArtefactRequestSchema>;
+export type AttachArtefactResult = z.infer<typeof attachArtefactResultSchema>;
+export type SetScopeRequest = z.infer<typeof setScopeRequestSchema>;
+export type SetScopeResult = z.infer<typeof setScopeResultSchema>;
+export type ReportViewRequest = z.infer<typeof reportViewRequestSchema>;
+export type GetGoalV2Request = z.infer<typeof getGoalV2RequestSchema>;
+export type GoalV2Result = z.infer<typeof goalV2ResultSchema>;
+export type GetPlanCardRequest = z.infer<typeof getPlanCardRequestSchema>;
+export type PlanCardResult = z.infer<typeof planCardResultSchema>;
+export type EditPlanCardRequest = z.infer<typeof editPlanCardRequestSchema>;
+export type GetDeltaRequest = z.infer<typeof getDeltaRequestSchema>;
+export type DeltaResult = z.infer<typeof deltaResultSchema>;

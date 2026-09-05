@@ -1,4 +1,4 @@
-import type { Instrument, Item } from "../contracts";
+import type { Instrument, Item, PlanItem } from "../contracts";
 
 import { ITEM_BY_INSTRUMENT } from "./fixtures";
 
@@ -12,8 +12,10 @@ import { ITEM_BY_INSTRUMENT } from "./fixtures";
  * service picks the next item from what it has seen so far, and nothing about
  * how it picks is visible from this side.
  *
- * Two sequences, because the run has two shapes. Which one is in play is
- * decided by the service and reaches a screen only as `flow.mode`.
+ * Four sequences, for the four steps that serve items: the measuring step in
+ * its two shapes, the verification, and the lesson. Which one is in play is
+ * decided by the service and reaches a screen only as `flow.step` and
+ * `flow.mode`.
  */
 
 /** Filler for the repeated opening items. Synthetic, like every fixture. */
@@ -57,6 +59,14 @@ const ZERO_TAIL: Instrument[] = [
   "listening_choice",
 ];
 
+const LESSON: Instrument[] = [
+  "contrastive_card",
+  "word_bank",
+  "timed_recall",
+  "teach_card",
+  "assemble",
+];
+
 export function standardSequence(): Item[] {
   return [
     ...opening(),
@@ -69,4 +79,23 @@ export function standardSequence(): Item[] {
 /** What replaces the rest of the run when it changes shape. */
 export function zeroSequence(): Item[] {
   return ZERO_TAIL.map((instrument, index) => clone(instrument, 100 + index));
+}
+
+/**
+ * One meaning card per cell of today's plan: the predicted gaps, verified one
+ * by one before anything is taught on them.
+ */
+export function verificationSequence(today: PlanItem[]): Item[] {
+  return today.map((cell, index) => {
+    const item = clone("meaning_card", 200 + index);
+    return {
+      ...item,
+      payload: { ...item.payload, word: cell.label },
+    } as Item;
+  });
+}
+
+/** The short lesson: one pass through the teaching instruments. */
+export function lessonSequence(): Item[] {
+  return LESSON.map((instrument, index) => clone(instrument, 300 + index));
 }

@@ -1,0 +1,40 @@
+{
+  "get_goal_v2": {
+    "schema_version": 1,
+    "goal": {
+      "goal_id": "b2c3d4e5-0002-4000-8000-000000000002",
+      "version": 2,
+      "status": "active",
+      "name": "Pasar entrevistas de trabajo en inglés",
+      "focus": "encontrar las palabras a tiempo",
+      "description": "Entrevistas en empresas de diseño del exterior, por videollamada, con preguntas sobre proyectos propios. Entiende casi todo; se queda en blanco buscando las palabras.",
+      "expected_result": "Contar un proyecto propio en una entrevista sin quedarse en blanco.",
+      "target_date": null,
+      "situation_class_id": "job_interview",
+      "milestones": [
+        {
+          "index": 1,
+          "title": "Contar un proyecto tuyo",
+          "expected_result": "Presentarte y contar un proyecto en una charla corta usando las palabras que te faltaban.",
+          "cells": [
+            { "cell_id": "cell_0001", "label": "deadline", "why": "No la supiste en la carta y la vas a necesitar para hablar de plazos.", "origin": "inferred", "status": "verified_unknown" },
+            { "cell_id": "cell_0002", "label": "feedback", "why": "No la supiste en la carta; aparece en toda entrevista de diseño.", "origin": "inferred", "status": "verified_unknown" },
+            { "cell_id": "cell_0003", "label": "stakeholder", "why": "La usás para contar con quién trabajaste en el proyecto.", "origin": "inferred", "status": "verified_unknown" },
+            { "cell_id": "cell_0004", "label": "I was in charge of", "why": "Vos dijiste que te toca explicar tu rol; esta frase lo resuelve.", "origin": "declared", "status": "predicted" }
+          ]
+        },
+        {
+          "index": 2,
+          "title": "Responder preguntas sobre tu experiencia",
+          "expected_result": "Sostener tres preguntas seguidas sobre tu experiencia sin pedir repetir.",
+          "cells": []
+        }
+      ],
+      "artefacts": [
+        { "artefact_id": "af_0001", "kind": "text", "title": "Descripción del puesto" }
+      ],
+      "origin": "declared",
+      "signed_ts": "2026-09-05T15:10:00Z"
+    }
+  }
+}

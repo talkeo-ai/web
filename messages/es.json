@@ -106,13 +106,48 @@
       "preferText": "Prefiero texto",
       "micBlocked": "El navegador no dio el micrófono. Seguimos por texto."
     },
-    "interview": {
-      "title": "Acá va la charla con Kai",
-      "body": "Todavía no está construida. El resto del recorrido llega después."
-    },
-    "notBuilt": {
-      "title": "Esta parte todavía no está",
-      "body": "Por ahora el recorrido llega hasta acá."
+    "consent": "Para escucharte usamos {providers}.",
+    "screens": {
+      "talkeo": {
+        "title": "Acá hablás con Talkeo",
+        "body": "Todavía no está construida. El recorrido arranca acá."
+      },
+      "exercises": {
+        "title": "Los ejercicios",
+        "body": "Todavía no están construidos."
+      },
+      "verify": {
+        "title": "Vemos qué te falta",
+        "body": "Todavía no está construida."
+      },
+      "plan": {
+        "title": "Tu plan de hoy",
+        "body": "Todavía no está construido."
+      },
+      "lesson": {
+        "title": "La lección",
+        "body": "Todavía no está construida."
+      },
+      "roleplay": {
+        "title": "La práctica",
+        "body": "Todavía no está construida."
+      },
+      "delta": {
+        "title": "Lo que aprendiste hoy",
+        "body": "Todavía no está construido."
+      },
+      "result": {
+        "title": "Tu resultado",
+        "body": "Todavía no está construido."
+      },
+      "email": {
+        "title": "Guardá tu progreso",
+        "body": "Todavía no está construido."
+      },
+      "home": {
+        "title": "Tu inicio",
+        "body": "Todavía no está construido. Por ahora el recorrido termina acá."
+      }
     }
   },
   "notFound": {

@@ -1,11 +1,16 @@
 import { z } from "zod";
 
+import { servedAudioSchema } from "./artefacts";
 import {
   areaSchema,
   bandSchema,
+  cellStatusSchema,
   goalKindSchema,
   goalStatusSchema,
+  interviewEventKindSchema,
+  markActionSchema,
   modeSchema,
+  originSchema,
   roleplayModeSchema,
   roleplayVariantSchema,
   stepSchema,
@@ -125,10 +130,21 @@ export const roleplayScenarioSchema = z.object({
 });
 
 /**
+ * A per-turn objective inside the conversation, bound to a cell that was just
+ * taught. The conversation declares cells; it never invents them.
+ */
+export const missionSchema = z.object({
+  mission_id: z.string(),
+  cell_id: z.string(),
+  text: z.string(),
+});
+
+/**
  * Everything the roleplay screen needs, assembled upstream.
  *
- * `mission_words` only comes with the `code_switching` variant, which is the
- * declared easier version of the same exercise rather than a different one.
+ * `mission_words` is a kept wire field: `missions` carries the same idea with
+ * the cell each one comes from. It defaults to empty rather than being
+ * required, so a bundle recorded before missions existed still parses.
  */
 export const roleplayBundleSchema = z.object({
   bundle_id: z.string(),
@@ -137,11 +153,224 @@ export const roleplayBundleSchema = z.object({
   mode: roleplayModeSchema,
   variant: roleplayVariantSchema,
   mission_words: z.array(z.string()).nullable().optional(),
+  missions: z.array(missionSchema).default([]),
 });
 
 export const checkOutcomeSchema = z.object({
   check_id: z.string(),
   done: z.boolean(),
+});
+
+/** A mission done is a cell used. It never says a sentence was correct. */
+export const missionProgressSchema = z.object({
+  mission_id: z.string(),
+  done: z.boolean(),
+});
+
+/**
+ * What the user did not know before the lesson and used in the conversation.
+ * `used` is always a subset of `taught`. Labels, never internal ids.
+ */
+export const deltaSchema = z.object({
+  taught: z.array(z.string()),
+  used: z.array(z.string()),
+});
+
+// --- the assistant's turn, what it registers, what this client reports ---
+
+/**
+ * Fires when the spoken audio reaches `word_index`. `target` names something
+ * this client knows how to point at: an area, a card, a control.
+ */
+export const markSchema = z.object({
+  word_index: z.number().int(),
+  action: markActionSchema,
+  target: z.string(),
+});
+
+export const wordTimingSchema = z.object({
+  word_index: z.number().int(),
+  start_ms: z.number().int(),
+  end_ms: z.number().int(),
+});
+
+export const interviewEventSchema = z.object({
+  event_id: z.string(),
+  kind: interviewEventKindSchema,
+  origin: originSchema,
+  payload: z.record(z.string(), z.unknown()).default({}),
+});
+
+/**
+ * One turn of the assistant.
+ *
+ * `text` is what the screen renders and `audio` is the same text spoken;
+ * `marks` and `word_timings` are what lets the screen sync what it shows with
+ * what is heard. `events` is what the assistant registered this turn.
+ */
+export const talkeoTurnSchema = z.object({
+  turn_id: z.string(),
+  text: z.string(),
+  marks: z.array(markSchema).default([]),
+  word_timings: z.array(wordTimingSchema).default([]),
+  audio: servedAudioSchema.nullable().optional(),
+  events: z.array(interviewEventSchema).default([]),
+  closing: z.boolean().default(false),
+});
+
+/** Enough to resume mid-interview and show what was registered. Never the transcript. */
+export const interviewStateSchema = z.object({
+  turn_count: z.number().int(),
+  last_turn: talkeoTurnSchema.nullable().optional(),
+  events: z.array(interviewEventSchema).default([]),
+  closed: z.boolean().default(false),
+});
+
+// --- the goal after the interview, and the plan card ---
+
+/**
+ * One thing the user needs for a milestone. `why` is the one line the
+ * assistant can say about it. `cell_id` is opaque: nothing internal travels.
+ */
+export const goalCellSchema = z.object({
+  cell_id: z.string(),
+  label: z.string(),
+  why: z.string().nullable().optional(),
+  origin: originSchema.default("inferred"),
+  status: cellStatusSchema.default("predicted"),
+});
+
+export const milestoneSchema = z.object({
+  index: z.number().int(),
+  title: z.string(),
+  expected_result: z.string(),
+  cells: z.array(goalCellSchema).default([]),
+});
+
+export const goalArtefactSchema = z.object({
+  artefact_id: z.string(),
+  kind: z.enum(["text", "link"]),
+  title: z.string(),
+});
+
+/**
+ * The goal after the interview: what the user said, what was inferred and
+ * declared, and the milestones with their cells. Versioned, never mutated.
+ */
+export const goalV2Schema = z.object({
+  goal_id: z.string(),
+  version: z.number().int(),
+  status: goalStatusSchema,
+  name: z.string(),
+  focus: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  expected_result: z.string().nullable().optional(),
+  target_date: z.iso.date().nullable().optional(),
+  situation_class_id: z.string().nullable().optional(),
+  milestones: z.array(milestoneSchema).default([]),
+  artefacts: z.array(goalArtefactSchema).default([]),
+  origin: originSchema.default("declared"),
+  signed_ts: z.iso.datetime().nullable().optional(),
+});
+
+export const planItemSchema = z.object({
+  cell_id: z.string(),
+  label: z.string(),
+  why: z.string(),
+});
+
+export const planPracticeSchema = z.object({
+  title: z.string(),
+  setup: z.string(),
+});
+
+/**
+ * What the user sees before the lesson: the goal in their words, the few cells
+ * for today with their why, and what the practice will be.
+ */
+export const planCardSchema = z.object({
+  goal: goalV2Schema,
+  today: z.array(planItemSchema),
+  practice: planPracticeSchema,
+});
+
+// --- the day plan and the dose ---
+
+/** One of the selection steps behind a block, so a claim can be checked. */
+export const rationaleStepSchema = z.object({
+  step: z.string(),
+  detail: z.string(),
+});
+
+export const planBlockSchema = z.object({
+  index: z.number().int(),
+  kind: z.string(),
+  area: z.string(),
+  objective: z.string(),
+  surface_id: z.string(),
+  minutes: z.number().int(),
+  predicted_success: z.number().nullable().optional(),
+  is_warmup: z.boolean().default(false),
+  rationale: z.string(),
+  rationale_steps: z.array(rationaleStepSchema).default([]),
+});
+
+export const reviewColumnSchema = z.object({
+  due_count: z.number().int(),
+  blocks: z.number().int(),
+  spilled_to_tomorrow: z.number().int(),
+  cap_breached_for_warmup: z.boolean().default(false),
+  never_advanced: z.boolean().default(true),
+});
+
+/** A floor that could not be met says why; it is never silent. */
+export const floorStatusSchema = z.object({
+  area: z.string(),
+  blocks_this_week: z.number().int(),
+  satisfied: z.boolean(),
+  remedy: z.string(),
+  declared_reason: z.string().nullable().optional(),
+});
+
+export const doseSchema = z.object({
+  target_session_minutes: z.number().int(),
+  produced_minutes_today: z.number(),
+  assisted_minutes_today: z.number(),
+  streak_minutes: z.number().int(),
+  streak_days: z.number().int(),
+  deficit_minutes: z.number(),
+  weekly_blocks: z.number().int(),
+  basis: z.string(),
+});
+
+export const rangoSchema = z.object({
+  weekly_blocks: z.number().int(),
+  active: z.array(z.record(z.string(), z.unknown())).default([]),
+  queue: z.array(z.record(z.string(), z.unknown())).default([]),
+  line: z.string(),
+  basis: z.string(),
+});
+
+/**
+ * The plan for one day.
+ *
+ * `declarations` is what this run could not do; `not_in_this_plan` is what the
+ * service does not do yet. Two absences, kept apart on purpose.
+ */
+export const dayPlanSchema = z.object({
+  date: z.string(),
+  budget_minutes: z.number().int(),
+  block_minutes: z.number().int(),
+  catalog_slice: z.string(),
+  review: reviewColumnSchema,
+  blocks: z.array(planBlockSchema),
+  bar: z.record(z.string(), z.unknown()),
+  stream: z.array(z.string()).default([]),
+  dose: doseSchema,
+  rango: rangoSchema,
+  weekly_floor: z.array(floorStatusSchema).default([]),
+  declarations: z.array(z.string()).default([]),
+  not_in_this_plan: z.array(z.string()).default([]),
 });
 
 export type Flow = z.infer<typeof flowSchema>;
@@ -156,5 +385,27 @@ export type SummaryArea = z.infer<typeof summaryAreaSchema>;
 export type StateSummary = z.infer<typeof stateSummarySchema>;
 export type SessionGoalCheck = z.infer<typeof sessionGoalCheckSchema>;
 export type RoleplayScenario = z.infer<typeof roleplayScenarioSchema>;
+export type Mission = z.infer<typeof missionSchema>;
 export type RoleplayBundle = z.infer<typeof roleplayBundleSchema>;
 export type CheckOutcome = z.infer<typeof checkOutcomeSchema>;
+export type MissionProgress = z.infer<typeof missionProgressSchema>;
+export type Delta = z.infer<typeof deltaSchema>;
+export type Mark = z.infer<typeof markSchema>;
+export type WordTiming = z.infer<typeof wordTimingSchema>;
+export type InterviewEvent = z.infer<typeof interviewEventSchema>;
+export type TalkeoTurn = z.infer<typeof talkeoTurnSchema>;
+export type InterviewState = z.infer<typeof interviewStateSchema>;
+export type GoalCell = z.infer<typeof goalCellSchema>;
+export type Milestone = z.infer<typeof milestoneSchema>;
+export type GoalArtefact = z.infer<typeof goalArtefactSchema>;
+export type GoalV2 = z.infer<typeof goalV2Schema>;
+export type PlanItem = z.infer<typeof planItemSchema>;
+export type PlanPractice = z.infer<typeof planPracticeSchema>;
+export type PlanCard = z.infer<typeof planCardSchema>;
+export type RationaleStep = z.infer<typeof rationaleStepSchema>;
+export type PlanBlock = z.infer<typeof planBlockSchema>;
+export type ReviewColumn = z.infer<typeof reviewColumnSchema>;
+export type FloorStatus = z.infer<typeof floorStatusSchema>;
+export type Dose = z.infer<typeof doseSchema>;
+export type Rango = z.infer<typeof rangoSchema>;
+export type DayPlan = z.infer<typeof dayPlanSchema>;

@@ -46,5 +46,13 @@
         }
       }
     }
+  },
+  "get_delta": {
+    "schema_version": 1,
+    "delta": {
+      "taught": ["deadline", "feedback", "stakeholder"],
+      "used": ["deadline", "feedback"]
+    },
+    "flow": { "step": "delta", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
   }
 }

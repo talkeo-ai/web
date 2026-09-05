@@ -493,13 +493,48 @@
       "preferText": "I'd rather type",
       "micBlocked": "The browser didn't allow the microphone. We'll keep going in text."
     },
-    "interview": {
-      "title": "The conversation with Kai goes here",
-      "body": "Not built yet. The rest of the run comes later."
-    },
-    "notBuilt": {
-      "title": "This part isn't built yet",
-      "body": "For now, the run ends here."
+    "consent": "To hear you, we use {providers}.",
+    "screens": {
+      "talkeo": {
+        "title": "This is where you talk with Talkeo",
+        "body": "Not built yet. The run starts here."
+      },
+      "exercises": {
+        "title": "The exercises",
+        "body": "Not built yet."
+      },
+      "verify": {
+        "title": "Let's see what you're missing",
+        "body": "Not built yet."
+      },
+      "plan": {
+        "title": "Your plan for today",
+        "body": "Not built yet."
+      },
+      "lesson": {
+        "title": "The lesson",
+        "body": "Not built yet."
+      },
+      "roleplay": {
+        "title": "The practice",
+        "body": "Not built yet."
+      },
+      "delta": {
+        "title": "What you learned today",
+        "body": "Not built yet."
+      },
+      "result": {
+        "title": "Your result",
+        "body": "Not built yet."
+      },
+      "email": {
+        "title": "Save your progress",
+        "body": "Not built yet."
+      },
+      "home": {
+        "title": "Your home",
+        "body": "Not built yet. For now, the run ends here."
+      }
     }
   },
   "notFound": {

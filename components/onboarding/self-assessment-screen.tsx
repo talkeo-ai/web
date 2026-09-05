@@ -3,10 +3,11 @@ import { getTranslations } from "next-intl/server";
 import { OptionCardList } from "@/components/onboarding/option-card-list";
 import { ScreenHeading } from "@/components/onboarding/screen-heading";
 import { SELF_ASSESSMENTS } from "@/core/contracts";
-import { onboardingHref } from "@/lib/onboarding/screens";
 
 /**
- * The first question, and the easiest one there is: it is about the visitor.
+ * The first question of the earlier opening, kept while the assistant's
+ * interview replaces it. No route renders it, and the screen it links to is no
+ * longer in the table.
  *
  * The answer travels in the next screen's query string because the service
  * takes this and the next answer in a single call. Carrying it in the URL is
@@ -25,7 +26,7 @@ export async function SelfAssessmentScreen() {
 
       <OptionCardList
         options={SELF_ASSESSMENTS.map((value) => ({
-          href: `${onboardingHref("areas")}?level=${value}`,
+          href: `/onboarding/areas?level=${value}`,
           label: t(`options.${value}`),
         }))}
       />

@@ -4,27 +4,28 @@ import type { Step } from "@/core/contracts";
  * Two levels of navigation, and only one of them is ours.
  *
  * The service owns the **step**: it decides where a run is and every write it
- * answers says so. This app owns the **screens inside a step**, because some
- * steps are more than one thing to look at — the opening step asks three
- * questions and the catalog hands it over as one.
+ * answers says so. This app owns the **screens inside a step**, because a step
+ * may be more than one thing to look at.
  *
  * The screen is a URL segment rather than client state, which is what makes the
  * browser's back button work and lets a half-finished run be picked up later.
  *
  * A screen is only ever reached if its step is the one the service reports. The
- * table below is the whole mapping; nothing else derives it.
+ * table below is the whole mapping; nothing else derives it. Today every step
+ * is one screen. The steps of the earlier flow (`survey`, `kai_interview`,
+ * `kai_briefing`, `day2`) have none: no new run enters them.
  */
 export const ONBOARDING_SCREENS = {
-  "self-assessment": { step: "survey", order: 0 },
-  areas: { step: "survey", order: 1 },
-  "meet-kai": { step: "survey", order: 2 },
-  interview: { step: "kai_interview", order: 0 },
+  talkeo: { step: "talkeo_interview", order: 0 },
   exercises: { step: "items", order: 0 },
-  briefing: { step: "kai_briefing", order: 0 },
+  verify: { step: "verification", order: 0 },
+  plan: { step: "plan", order: 0 },
+  lesson: { step: "lesson", order: 0 },
   roleplay: { step: "roleplay", order: 0 },
+  delta: { step: "delta", order: 0 },
   result: { step: "verdict", order: 0 },
   email: { step: "email", order: 0 },
-  "day-two": { step: "day2", order: 0 },
+  home: { step: "home", order: 0 },
 } as const satisfies Record<string, { step: Step; order: number }>;
 
 export type OnboardingScreen = keyof typeof ONBOARDING_SCREENS;

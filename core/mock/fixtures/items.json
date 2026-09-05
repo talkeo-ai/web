@@ -189,11 +189,74 @@
         }
       }
     },
+    "meaning_card": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0014",
+        "instrument": "meaning_card",
+        "payload": {
+          "word": "deadline",
+          "example": null,
+          "audio": {
+            "kind": "audio",
+            "url": "/mock-audio/mc-0014.mp3"
+          },
+          "swipe_left_allowed": true
+        }
+      }
+    },
+    "word_bank": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0015",
+        "instrument": "word_bank",
+        "payload": {
+          "prompt_l1": "Decí: 'Estuve a cargo del diseño'",
+          "word_bank": [
+            "I",
+            "was",
+            "in",
+            "charge",
+            "of",
+            "the",
+            "design"
+          ]
+        }
+      }
+    },
+    "contrastive_card": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0016",
+        "instrument": "contrastive_card",
+        "payload": {
+          "title": "since / for",
+          "rule_l1": "'Since' marca desde cuándo; 'for' marca cuánto tiempo. En español usamos 'desde' y 'hace' para las dos ideas.",
+          "examples": [
+            "I have worked here since 2023.",
+            "I have worked here for three years."
+          ],
+          "audio": null
+        }
+      }
+    },
+    "timed_recall": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0017",
+        "instrument": "timed_recall",
+        "payload": {
+          "prompt_l1": "plazo de entrega",
+          "seconds": 8,
+          "context_sentence": "We can't move the ____ again."
+        }
+      }
+    },
     "step_done": {
       "schema_version": 1,
       "item": null,
       "flow": {
-        "step": "kai_briefing",
+        "step": "verification",
         "mode": "standard",
         "mic_granted": true,
         "display_name": "Caro"
