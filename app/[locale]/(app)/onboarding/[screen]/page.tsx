@@ -5,7 +5,9 @@ import { Suspense } from "react";
 import { ConsentLine } from "@/components/onboarding/consent-line";
 import { NotBuiltScreen } from "@/components/onboarding/not-built-screen";
 import { OnboardingFrame } from "@/components/onboarding/onboarding-frame";
+import { TalkeoScreen } from "@/components/onboarding/talkeo-screen";
 import { redirect } from "@/lib/i18n/navigation";
+import { nextTalkeoTurn } from "../actions";
 import { routing } from "@/lib/i18n/routing";
 import { readCurrentRun } from "@/lib/onboarding/current-run";
 import {
@@ -70,10 +72,18 @@ async function Screen({
     });
   }
 
+  if (screen === "talkeo") {
+    return (
+      <OnboardingFrame screen={screen}>
+        <TalkeoScreen next={nextTalkeoTurn} />
+        <ConsentLine />
+      </OnboardingFrame>
+    );
+  }
+
   return (
     <OnboardingFrame screen={screen}>
       <NotBuiltScreen screen={screen} />
-      {screen === "talkeo" ? <ConsentLine /> : null}
     </OnboardingFrame>
   );
 }

@@ -457,42 +457,6 @@
     },
     "progress": "Step {position} of {total}",
     "back": "Back",
-    "continue": "Continue",
-    "loading": "Loading",
-    "selfAssessment": {
-      "question": "How much English do you have today?",
-      "hint": "Pick whichever is closest. We measure it properly next.",
-      "options": {
-        "just_starting": "I'm just starting",
-        "words_and_phrases": "I know some words and phrases",
-        "simple_conversations": "I can hold simple conversations",
-        "varied_topics": "I can talk about a range of topics"
-      }
-    },
-    "areas": {
-      "question": "What do you want to get better at?",
-      "hint": "You can pick more than one.",
-      "all": "Everything",
-      "options": {
-        "conversation": "Conversation",
-        "pronunciation": "Pronunciation",
-        "vocabulary": "Vocabulary",
-        "grammar": "Grammar",
-        "listening": "Listening",
-        "reading": "Reading",
-        "writing": "Writing"
-      }
-    },
-    "meetKai": {
-      "title": "Now you'll talk to Kai",
-      "body": "Kai is your guide. A couple of questions, and your practice gets built around the answers.",
-      "nameLabel": "What should we call you?",
-      "namePlaceholder": "Your name",
-      "nameHint": "Optional.",
-      "useMic": "Use microphone",
-      "preferText": "I'd rather type",
-      "micBlocked": "The browser didn't allow the microphone. We'll keep going in text."
-    },
     "consent": "To hear you, we use {providers}.",
     "screens": {
       "talkeo": {
@@ -535,6 +499,12 @@
         "title": "Your home",
         "body": "Not built yet. For now, the run ends here."
       }
+    },
+    "talkeo": {
+      "scaffold": "Scaffolding",
+      "marks": "Marks in this turn",
+      "next": "Next",
+      "go": "Go on"
     }
   },
   "notFound": {

@@ -70,42 +70,6 @@
     },
     "progress": "Passo {position} de {total}",
     "back": "Voltar",
-    "continue": "Seguir",
-    "loading": "Carregando",
-    "selfAssessment": {
-      "question": "Quanto inglês você tem hoje?",
-      "hint": "Escolha o que mais se parece. Depois medimos de verdade.",
-      "options": {
-        "just_starting": "Estou começando agora",
-        "words_and_phrases": "Sei algumas palavras e frases",
-        "simple_conversations": "Consigo ter conversas simples",
-        "varied_topics": "Consigo falar sobre vários assuntos"
-      }
-    },
-    "areas": {
-      "question": "O que você quer melhorar?",
-      "hint": "Pode escolher mais de um.",
-      "all": "Tudo",
-      "options": {
-        "conversation": "Conversação",
-        "pronunciation": "Pronúncia",
-        "vocabulary": "Vocabulário",
-        "grammar": "Gramática",
-        "listening": "Escuta",
-        "reading": "Leitura",
-        "writing": "Escrita"
-      }
-    },
-    "meetKai": {
-      "title": "Agora você vai falar com o Kai",
-      "body": "O Kai é seu guia. Ele faz algumas perguntas e monta a sua prática sob medida.",
-      "nameLabel": "Como te chamamos?",
-      "namePlaceholder": "Seu nome",
-      "nameHint": "Opcional.",
-      "useMic": "Usar microfone",
-      "preferText": "Prefiro texto",
-      "micBlocked": "O navegador não liberou o microfone. Seguimos por texto."
-    },
     "consent": "Para te ouvir, usamos {providers}.",
     "screens": {
       "talkeo": {
@@ -148,6 +112,12 @@
         "title": "Seu início",
         "body": "Ainda não foi construído. Por enquanto o percurso termina aqui."
       }
+    },
+    "talkeo": {
+      "scaffold": "Andaime",
+      "marks": "Marcas deste turno",
+      "next": "Seguir",
+      "go": "Continuar"
     }
   },
   "notFound": {

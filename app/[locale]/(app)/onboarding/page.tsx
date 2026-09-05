@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { locale as localeParam } from "next/root-params";
 import { Suspense } from "react";
 
+import { StartButton } from "@/components/onboarding/start-button";
 import { Button } from "@/components/ui/button";
 import { redirect } from "@/lib/i18n/navigation";
 import { routing, type Locale } from "@/lib/i18n/routing";
@@ -44,14 +45,14 @@ export default async function OnboardingStartPage() {
           </Button>
         }
       >
-        <StartButton locale={locale} label={t("cta")} />
+        <StartOrResume locale={locale} label={t("cta")} />
       </Suspense>
     </main>
   );
 }
 
 /** Picks up a run in progress, or offers to open one. */
-async function StartButton({
+async function StartOrResume({
   locale,
   label,
 }: {
@@ -68,10 +69,6 @@ async function StartButton({
   }
 
   return (
-    <form action={startOnboarding.bind(null, locale)}>
-      <Button type="submit" size="lg" className="w-full">
-        {label}
-      </Button>
-    </form>
+    <StartButton action={startOnboarding.bind(null, locale)} label={label} />
   );
 }

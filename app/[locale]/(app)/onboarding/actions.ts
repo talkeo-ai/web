@@ -2,7 +2,7 @@
 
 import { SUPPORTED_INSTRUMENTS } from "@/components/onboarding/items/registry";
 import { core } from "@/core";
-import { isCoreError } from "@/core/contracts";
+import { isCoreError, type Step, type TalkeoTurn } from "@/core/contracts";
 import { redirect } from "@/lib/i18n/navigation";
 import type { Locale } from "@/lib/i18n/routing";
 import {
@@ -56,6 +56,34 @@ export async function startOnboarding(locale: Locale): Promise<never> {
 
   await writeOnboardingRun({ userId: user_id, sessionId: session_id });
   return redirect({ href: onboardingHref(firstScreenOf(flow.step)), locale });
+}
+
+/**
+ * Asks the assistant for its next turn.
+ *
+ * Nothing is sent up: the assistant opens the conversation and decides what
+ * comes next, and this client never scripts it. Sending what the visitor said
+ * is the other half of the interview and is not built yet.
+ *
+ * The step comes back with the turn because a closing turn moves the run on,
+ * and the screen has to know to go and look.
+ */
+export async function nextTalkeoTurn(): Promise<{
+  turn: TalkeoTurn;
+  step: Step;
+} | null> {
+  const run = await readOnboardingRun();
+  if (!run) return null;
+
+  try {
+    const { turn, flow } = await core().talkeoTurn({
+      session_id: run.sessionId,
+    });
+    return { turn, step: flow.step };
+  } catch (error) {
+    if (isCoreError(error) && error.code === "NOT_FOUND") return null;
+    throw error;
+  }
 }
 
 /**
