@@ -164,13 +164,13 @@
         "marks": [
           { "word_index": 1, "action": "highlight", "target": "area:vocabulary" },
           { "word_index": 12, "action": "reveal", "target": "card:map" },
-          { "word_index": 36, "action": "flip", "target": "card:predicted_gaps" }
+          { "word_index": 35, "action": "flip", "target": "card:predicted_gaps" }
         ],
         "word_timings": [
           { "word_index": 0, "start_ms": 0, "end_ms": 200 },
           { "word_index": 1, "start_ms": 200, "end_ms": 900 },
           { "word_index": 12, "start_ms": 4000, "end_ms": 4400 },
-          { "word_index": 36, "start_ms": 12000, "end_ms": 12500 }
+          { "word_index": 35, "start_ms": 12000, "end_ms": 12500 }
         ],
         "audio": { "kind": "audio", "url": "/mock-audio/tt-0009.mp3" },
         "events": [],
