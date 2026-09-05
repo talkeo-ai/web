@@ -96,7 +96,8 @@
 /* ─────────────────────────────────────────────────────────────────────────
    2 · Semantic tokens
    This is what components reference. They flip under `.dark` on their own,
-   which is why no component in this project carries a `dark:` prefix.
+   which is why the theme toggle's icons are the only `dark:` in the project:
+   a token can change what a thing looks like, not which thing is rendered.
    ───────────────────────────────────────────────────────────────────────── */
 :root {
   color-scheme: light;

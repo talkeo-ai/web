@@ -1,6 +1,7 @@
 "use client";
 
 import { LocaleSelector } from "@/components/locale-selector";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Link, usePathname } from "@/lib/i18n/navigation";
 import { scrollBehavior } from "@/lib/motion";
 
@@ -52,7 +53,10 @@ export function SiteHeader() {
           Talkeo
         </Link>
 
-        <LocaleSelector />
+        <div className="flex items-center gap-1 sm:gap-2">
+          <ThemeToggle />
+          <LocaleSelector />
+        </div>
       </nav>
     </div>
   );

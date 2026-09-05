@@ -5,6 +5,7 @@ import { Geist_Mono, Inter, Outfit } from "next/font/google";
 import { locale as localeParam } from "next/root-params";
 
 import { routing } from "@/lib/i18n/routing";
+import { themeBootstrapScript } from "@/lib/theme";
 
 import "../globals.css";
 
@@ -71,14 +72,18 @@ export default async function RootLayout({
   const locale = await localeParam();
 
   return (
-    // Dark is the theme, not a preference: there is no switch yet. The light
-    // tokens stay written and working, so turning this into a real toggle later
-    // is adding the control, not redoing the system.
+    // The theme is a class on this element, written before hydration by the
+    // script below, so React hydrates against a class list it did not render.
     <html
       lang={locale}
-      className={`dark ${inter.variable} ${outfit.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${inter.variable} ${outfit.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Plain inline script, first thing in the body: the parser runs it
+            where it stands. `next/script` only promises before hydration,
+            which is already after the first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>

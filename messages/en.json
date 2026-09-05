@@ -4,7 +4,8 @@
     "description": "Talkeo measures what you actually know in English — skill by skill, from how you use it — and builds today's practice from that. It shows you what it hasn't measured yet."
   },
   "nav": {
-    "language": "Site language"
+    "language": "Site language",
+    "theme": "Switch theme"
   },
   "hero": {
     "headline": "Discover your English level and improve what you're missing",

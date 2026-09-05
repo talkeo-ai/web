@@ -4,7 +4,8 @@
     "description": "Talkeo mide qué sabés de inglés —micro-skill por micro-skill, desde cómo lo usás— y con eso arma tu práctica de hoy. Y te muestra lo que todavía no midió."
   },
   "nav": {
-    "language": "Idioma"
+    "language": "Idioma",
+    "theme": "Cambiar tema"
   },
   "hero": {
     "headline": "Descubrí tu nivel de inglés y mejorá lo que te falta",

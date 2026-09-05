@@ -41,6 +41,26 @@ test("the header switches locale by navigating, not by mutating state", async ({
   await expect(page.locator("html")).toHaveAttribute("lang", "pt");
 });
 
+test("the theme survives a reload, and is on the element before paint", async ({
+  page,
+}) => {
+  // Pinned, not left to the runner's default: with no stored choice the
+  // system preference is what decides, so it is an input to this test.
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("/es");
+
+  const html = page.locator("html");
+  await expect(html).not.toHaveClass(/dark/);
+
+  await page.getByRole("button", { name: "Cambiar tema" }).click();
+  await expect(html).toHaveClass(/dark/);
+
+  // The reload is the point: the document is prerendered light, so a stored
+  // choice only holds if the bootstrap script beats the first paint.
+  await page.reload();
+  await expect(html).toHaveClass(/dark/);
+});
+
 test("the surfaces bar pages sideways and wraps at the end", async ({
   page,
 }) => {
