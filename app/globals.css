@@ -65,7 +65,7 @@
   /* Headings run in the same family as the interface. The token stays separate
      so pointing displays at a different face later is one line, not a sweep
      through every heading in the project. */
-  --font-heading: var(--font-fredoka), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
 
   /* Motion. Press sinks fast and comes back slow — that is what makes a
      button feel physical instead of flat. A highlight that follows the pointer
@@ -138,6 +138,14 @@
   --input: oklch(0.922 0 0);
   --ring: var(--color-accent-600);
 
+  /* The line that divides one band of the page from the next — the header
+     from what scrolls under it, the footer from the page above it.
+     It is its own token because the two themes need different weights and an
+     opacity modifier cannot give them: knocking a border down to 60% is
+     invisible against white and merely softer against near-black. Each theme
+     sets the weight it needs, and components use this at full strength. */
+  --separator: oklch(0.922 0 0);
+
   /* What goes on top of an accent fill. The brand green is light — 1.7:1
      against white — so text on it is dark, not white. That reads 10.9:1 on
      step 500 and 7.5:1 on step 600. It does not change with the theme,
@@ -149,9 +157,17 @@
   /* See the dark block for what the lip is and why it is opaque. */
   --cta-face: oklch(0.205 0 0);
   --cta-face-text: oklch(0.985 0 0);
+  /* Hover moves the face one step of the neutral ramp, and which way depends
+     on the theme: a near-black face on a white page lightens, a near-white
+     face on a dark page darkens. A brightness filter cannot express that —
+     one direction is right in one theme and invisible in the other. */
+  --cta-face-hover: oklch(0.269 0 0);
   --cta-lip: oklch(0.08 0 0);
   --cta-alt-border: oklch(0.87 0 0);
   --cta-alt-lip: oklch(0.82 0 0);
+  /* The outlined button's label. A step darker than body secondary, because
+     next to a near-black solid button the same grey reads as disabled. */
+  --cta-alt-text: oklch(0.371 0 0);
 
   /* The map. These three are the product, so they are tokens and not
      decoration: what you know, where you break, and what we have not
@@ -217,6 +233,11 @@
   --input: #262626;
   --ring: var(--color-accent-400);
 
+  /* Softer than the resting border, because here a divider has the whole
+     dark page behind it and a full-strength hairline would draw a box. This
+     is the weight the opacity modifiers used to land on. */
+  --separator: #262626;
+
   --on-accent: oklch(0.205 0 0);
   --accent-text: var(--color-accent-400);
 
@@ -225,9 +246,11 @@
      never translucent — a real edge does not let the page through. */
   --cta-face: #fafafa;
   --cta-face-text: #121212;
+  --cta-face-hover: #e5e5e5;
   --cta-lip: #a3a3a3;
   --cta-alt-border: #404040;
   --cta-alt-lip: #2a2a2a;
+  --cta-alt-text: #737373;
 
   --map-known: var(--color-accent-400);
   --map-breaking: #ff6467;
@@ -310,6 +333,7 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-separator: var(--separator);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
@@ -317,9 +341,11 @@
   --color-accent-text: var(--accent-text);
   --color-cta-face: var(--cta-face);
   --color-cta-face-text: var(--cta-face-text);
+  --color-cta-face-hover: var(--cta-face-hover);
   --color-cta-lip: var(--cta-lip);
   --color-cta-alt-border: var(--cta-alt-border);
   --color-cta-alt-lip: var(--cta-alt-lip);
+  --color-cta-alt-text: var(--cta-alt-text);
   --color-map-known: var(--map-known);
   --color-map-breaking: var(--map-breaking);
   --color-map-unmeasured: var(--map-unmeasured);

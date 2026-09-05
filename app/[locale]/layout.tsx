@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
-import { Fredoka, Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Inter, Outfit } from "next/font/google";
 import { locale as localeParam } from "next/root-params";
 
 import { routing } from "@/lib/i18n/routing";
@@ -18,19 +18,21 @@ const inter = Inter({
   display: "swap",
 });
 
-// Displays only, paired against the neutral face of the interface so the
-// headline reads warm and the body reads plain.
+// Displays only, paired against the neutral face of the interface.
 //
-// Rounded and wide rather than rounded and tall: a narrow face gains its
-// presence by stretching upward, which at display sizes reads as strain. This
-// one is drawn broad, so the weight has somewhere to go sideways.
-const fredoka = Fredoka({
-  variable: "--font-fredoka",
+// Geometric and drawn broad: a narrow face gains its presence by stretching
+// upward, which at display sizes reads as strain, and this one has somewhere
+// for the weight to go sideways.
+//
+// The register lives in the terminals. Rounded ones read friendly and, at any
+// weight that gives a display real presence, tip into childish; these are cut
+// flat, so the warmth has to come from the round bowls underneath rather than
+// from the endings. That is what lets one face address a company and a casual
+// learner without picking a side.
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
   display: "swap",
-  // Ships the width axis as well as weight. Without asking for it the file
-  // only carries 100%, and `font-stretch` further down silently does nothing.
-  axes: ["wdth"],
 });
 
 const geistMono = Geist_Mono({
@@ -74,7 +76,7 @@ export default async function RootLayout({
     // is adding the control, not redoing the system.
     <html
       lang={locale}
-      className={`dark ${inter.variable} ${fredoka.variable} ${geistMono.variable} h-full antialiased`}
+      className={`dark ${inter.variable} ${outfit.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>

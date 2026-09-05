@@ -18,7 +18,7 @@ export function SiteHeader() {
 
   return (
     <div className="fixed top-4 right-0 left-0 z-50 flex justify-center px-6">
-      <nav className="bg-background/90 border-border/40 flex w-full max-w-6xl items-center justify-between rounded-2xl border px-3 py-2.5 shadow-sm backdrop-blur-xl sm:px-4 sm:py-3">
+      <nav className="bg-background/90 border-separator flex w-full max-w-6xl items-center justify-between rounded-2xl border px-3 py-2.5 shadow-sm backdrop-blur-xl sm:px-4 sm:py-3">
         {/* A real link, so it is the way back from anywhere. On the home page
             there is nowhere to go, so it scrolls to the top instead — which is
             what it did everywhere before, and why deeper pages had to carry
@@ -41,7 +41,7 @@ export function SiteHeader() {
             event.preventDefault();
             window.scrollTo({ top: 0, behavior: scrollBehavior() });
           }}
-          className="text-foreground font-heading flex items-center gap-1.5 text-base font-medium [font-stretch:96%] sm:gap-2 sm:text-lg"
+          className="text-foreground font-heading flex items-center gap-1.5 text-base font-semibold sm:gap-2 sm:text-lg"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
