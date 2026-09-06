@@ -94,6 +94,12 @@
             "kind": "goal_noted",
             "origin": "declared",
             "payload": { "name": "Pasar entrevistas de trabajo en inglés", "situation_class_id": "job_interview" }
+          },
+          {
+            "event_id": "ev_t_0003b",
+            "kind": "deadline_noted",
+            "origin": "declared",
+            "payload": { "date": "2026-11-06", "note": "la entrevista es en dos meses", "situation_class_id": "job_interview" }
           }
         ],
         "closing": false

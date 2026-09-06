@@ -95,6 +95,7 @@ export const interviewEventKindSchema = z.enum([
   "belief_noted",
   "doubt_noted",
   "comment_noted",
+  "deadline_noted",
 ]);
 
 /** What this client reports about what is on screen. */
