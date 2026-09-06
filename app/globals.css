@@ -457,6 +457,17 @@ body[data-scroll-locked] {
   }
 }
 
+/* A message arriving. Opacity only, and no travel at all: a bubble that slides
+   in drags the column with it, and the column is what someone is reading. */
+@keyframes message-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Hard steps, never a fade: a caret that eases is a pulsing dot, and a caret
    is what makes arriving text read as text being written instead of a glitch. */
 @keyframes caret-blink {

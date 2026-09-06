@@ -2,20 +2,25 @@ import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { ConsentLine } from "@/components/onboarding/consent-line";
+import { ChatScreen } from "@/components/onboarding/chat-screen";
+import { ModeScreen } from "@/components/onboarding/mode-screen";
+import { NameScreen } from "@/components/onboarding/name-screen";
 import { NotBuiltScreen } from "@/components/onboarding/not-built-screen";
 import { OnboardingFrame } from "@/components/onboarding/onboarding-frame";
-import { TalkeoScreen } from "@/components/onboarding/talkeo-screen";
 import { redirect } from "@/lib/i18n/navigation";
-import { nextTalkeoTurn } from "../actions";
-import { routing } from "@/lib/i18n/routing";
+import { routing, type Locale } from "@/lib/i18n/routing";
 import { readCurrentRun } from "@/lib/onboarding/current-run";
+import { entryScreenFor } from "@/lib/onboarding/entry";
 import {
   firstScreenOf,
   isOnboardingScreen,
   onboardingHref,
   stepOf,
+  type OnboardingScreen,
 } from "@/lib/onboarding/screens";
+import { readEntryAnswers } from "@/lib/session/entry-answers";
+
+import { currentTalkeoTurn, nextTalkeoTurn, submitMode, submitName } from "../actions";
 
 /**
  * One screen of the run.
@@ -35,15 +40,13 @@ export default function OnboardingScreenPage({
   );
 }
 
-/** Holds the frame's shape so nothing jumps when the content arrives. */
+/** Holds the shape so nothing jumps when the content arrives. */
 function FrameFallback() {
   return (
     <div
       aria-hidden
-      className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-10 px-6 py-10"
-    >
-      <div className="bg-surface-tertiary h-1.5 w-full rounded-full" />
-    </div>
+      className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 py-10"
+    />
   );
 }
 
@@ -57,11 +60,16 @@ async function Screen({
   if (!hasLocale(routing.locales, locale)) notFound();
   if (!isOnboardingScreen(screen)) notFound();
 
-  // `redirect` is returned rather than called on its own line: it comes from a
-  // destructured factory, and TypeScript only narrows on a never-returning call
-  // when the callee carries an explicit annotation.
+  // The first question is the only one that works without a run: answering it
+  // is what opens one.
   const current = await readCurrentRun();
-  if (!current) return redirect({ href: "/onboarding", locale });
+  if (!current) {
+    return screen === "name" ? (
+      <NameScreen action={submitName.bind(null, locale)} />
+    ) : (
+      redirect({ href: onboardingHref("name"), locale })
+    );
+  }
 
   // The service owns the step. A screen belonging to any other one is not an
   // error to show: it is a stale link, and the answer is where the run is.
@@ -72,18 +80,41 @@ async function Screen({
     });
   }
 
-  if (screen === "talkeo") {
-    return (
-      <OnboardingFrame screen={screen}>
-        <TalkeoScreen next={nextTalkeoTurn} />
-        <ConsentLine />
-      </OnboardingFrame>
-    );
+  if (current.flow.step === "talkeo_interview") {
+    return interviewScreen(screen, locale);
   }
 
   return (
     <OnboardingFrame screen={screen}>
       <NotBuiltScreen screen={screen} />
     </OnboardingFrame>
+  );
+}
+
+/** The three screens of the interview, and the guard between them. */
+async function interviewScreen(screen: OnboardingScreen, locale: Locale) {
+  const answers = await readEntryAnswers();
+  const belongs = entryScreenFor(answers);
+
+  if (screen !== belongs) {
+    return redirect({ href: onboardingHref(belongs), locale });
+  }
+
+  if (screen === "name") {
+    return <NameScreen action={submitName.bind(null, locale)} />;
+  }
+
+  if (screen === "mode") {
+    return (
+      <ModeScreen name={answers.name} action={submitMode.bind(null, locale)} />
+    );
+  }
+
+  return (
+    <ChatScreen
+      name={answers.name}
+      current={currentTalkeoTurn}
+      next={nextTalkeoTurn}
+    />
   );
 }

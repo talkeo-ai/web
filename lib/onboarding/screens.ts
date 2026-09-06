@@ -16,7 +16,13 @@ import type { Step } from "@/core/contracts";
  * `kai_briefing`, `day2`) have none: no new run enters them.
  */
 export const ONBOARDING_SCREENS = {
-  talkeo: { step: "talkeo_interview", order: 0 },
+  // The interview opens with two questions that are not yet a conversation —
+  // asked one to a screen, because that is what makes the first thing someone
+  // sees a single question instead of a form. From `chat` on, the step stops
+  // changing screens and starts changing turns.
+  name: { step: "talkeo_interview", order: 0 },
+  mode: { step: "talkeo_interview", order: 1 },
+  chat: { step: "talkeo_interview", order: 2 },
   exercises: { step: "items", order: 0 },
   verify: { step: "verification", order: 0 },
   plan: { step: "plan", order: 0 },

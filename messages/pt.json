@@ -63,19 +63,27 @@
     "sessionMissing": "Sem sessão"
   },
   "onboarding": {
-    "start": {
-      "title": "Vamos ver onde você está",
-      "body": "Alguns minutos e você sabe o que tem de inglês, o que não tem, e por onde começar.",
-      "cta": "Começar"
+    "name": {
+      "question": "Como você se chama?",
+      "hint": "Para o Talkeo saber como te chamar.",
+      "placeholder": "Seu nome",
+      "cta": "Continuar"
+    },
+    "mode": {
+      "question": "Você pode falar agora?",
+      "questionNamed": "{name}, você pode falar agora?",
+      "hint": "O Talkeo precisa do microfone para te ouvir.",
+      "voice": "Ativar microfone",
+      "text": "Prefiro escrever"
+    },
+    "chat": {
+      "placeholder": "Escreva sua resposta",
+      "placeholderNamed": "Me conta, {name}"
     },
     "progress": "Passo {position} de {total}",
     "back": "Voltar",
     "consent": "Para te ouvir, usamos {providers}.",
     "screens": {
-      "talkeo": {
-        "title": "Aqui você fala com o Talkeo",
-        "body": "Ainda não foi construída. O percurso começa aqui."
-      },
       "exercises": {
         "title": "Os exercícios",
         "body": "Ainda não foram construídos."
@@ -112,12 +120,6 @@
         "title": "Seu início",
         "body": "Ainda não foi construído. Por enquanto o percurso termina aqui."
       }
-    },
-    "talkeo": {
-      "scaffold": "Andaime",
-      "marks": "Marcas deste turno",
-      "next": "Seguir",
-      "go": "Continuar"
     }
   },
   "notFound": {

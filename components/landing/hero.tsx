@@ -102,15 +102,19 @@ export async function Hero() {
                 re-proportioned, so the pair cannot end up stretched or
                 flattened; it is the same drawing, larger. */}
             <div className="order-3 mx-auto mt-8 flex w-full max-w-[371px] flex-col gap-[13.5px] pb-8 lg:pb-0">
-              <Button size="lg" className="text-[18px]" asChild>
+              <Button size="lg" variant="raised" className="text-[18px]" asChild>
                 <Link href="/onboarding" prefetch={false}>
                   {t("cta")}
                 </Link>
               </Button>
+              {/* The lip is applied here rather than carried by the variant:
+                  it belongs to this pair only, and its partner sitting flat
+                  beside a raised button would read as broken instead of as
+                  quieter. */}
               <Button
                 size="lg"
                 variant="secondary"
-                className="text-[18px]"
+                className="text-[18px] shadow-[0_2px_0_0_var(--cta-alt-lip)] active:translate-y-[2px] active:shadow-none"
                 asChild
               >
                 <Link href="/login" prefetch={false}>

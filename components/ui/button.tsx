@@ -45,19 +45,25 @@ const buttonVariants = cva(
       variant: {
         primary: [
           "bg-cta-face text-cta-face-text",
-          "shadow-[0_2px_0_0_var(--cta-lip)]",
           // A token and not `brightness-95`: the face is near-white in one
           // theme and near-black in the other, so a single filter moves it the
           // right way in one and imperceptibly in the other.
+          "hover:bg-cta-face-hover",
+        ],
+        // The lip, and the only place it belongs: the landing's own call to
+        // action, where the page is selling and a control that reads like an
+        // object is the point. Inside the product it is noise — every screen
+        // has one primary button and none of them need to look like a toy.
+        raised: [
+          "bg-cta-face text-cta-face-text",
+          "shadow-[0_2px_0_0_var(--cta-lip)]",
           "hover:bg-cta-face-hover",
           "active:translate-y-[2px] active:shadow-none",
         ],
         secondary: [
           "text-cta-alt-text bg-transparent",
           "border-cta-alt-border border",
-          "shadow-[0_2px_0_0_var(--cta-alt-lip)]",
           "hover:bg-surface-secondary hover:text-foreground",
-          "active:translate-y-[2px] active:shadow-none",
         ],
         ghost: "text-foreground hover:bg-surface-secondary",
       },

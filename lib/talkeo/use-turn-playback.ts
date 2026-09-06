@@ -27,8 +27,20 @@ import { buildTimeline } from "@/lib/talkeo/timeline";
 
 export type TurnPlayback = {
   lines: TurnLine[];
-  /** How many lines have been reached. Never goes backwards within a turn. */
+  /** How many sentences have been reached. Never goes backwards in a turn. */
   revealedLines: number;
+  /** How many words the voice has reached. The unit a renderer that cares
+   *  about visual lines needs, since a sentence is not one. */
+  revealedWords: number;
+  /**
+   * Whether the whole turn is on screen.
+   *
+   * Not the same as `done`, and the difference is seconds: the text runs ahead
+   * of the voice, so it finishes being written long before the voice finishes
+   * saying it. This is what a composer should wait for — waiting for `done`
+   * leaves the reply readable and the send button dead.
+   */
+  written: boolean;
   done: boolean;
 };
 
@@ -42,9 +54,22 @@ export type TurnPlaybackOptions = {
   voice?: HTMLAudioElement | null;
 };
 
-type Progress = { turnId: string | null; lines: number; done: boolean };
+/** How much faster the text arrives than the voice saying it. */
+const TEXT_SPEED = 3.2;
 
-const NOT_STARTED: Progress = { turnId: null, lines: 0, done: false };
+type Progress = {
+  turnId: string | null;
+  lines: number;
+  words: number;
+  done: boolean;
+};
+
+const NOT_STARTED: Progress = {
+  turnId: null,
+  lines: 0,
+  words: 0,
+  done: false,
+};
 
 export function useTurnPlayback(
   turn: TalkeoTurn | null,
@@ -68,7 +93,7 @@ export function useTurnPlayback(
   // effect: an effect would paint the previous turn's tail for a frame first,
   // and this is the shape React documents for state derived from a prop.
   if (progress.turnId !== turnId) {
-    setProgress({ turnId, lines: 0, done: false });
+    setProgress({ turnId, lines: 0, words: 0, done: false });
   }
 
   // Read through a ref so a caller that rebuilds the callback every render
@@ -101,6 +126,7 @@ export function useTurnPlayback(
     let timeline = buildTimeline(words, turn.word_timings);
     let nextMark = 0;
     let nextLine = 0;
+    let nextWord = 0;
     let frame = 0;
     let syntheticStart: number | null = null;
     let cancelled = false;
@@ -122,6 +148,18 @@ export function useTurnPlayback(
         nextLine += 1;
       }
 
+      // The text runs ahead of the clock. Reading is faster than speech and a
+      // model writes faster than either, so tying the words to the voice makes
+      // a turn feel like it is being dictated to you.
+      //
+      // Marks and lines stay on the clock: they are what the voice points at,
+      // and pointing early at something not yet said is worse than late.
+      const written = elapsed * TEXT_SPEED;
+      while (nextWord < words.length) {
+        if (timeline.startOf(nextWord) > written) break;
+        nextWord += 1;
+      }
+
       while (nextMark < marks.length) {
         const mark = marks[nextMark]!;
         if (timeline.startOf(mark.word_index) > elapsed) break;
@@ -135,9 +173,10 @@ export function useTurnPlayback(
         // there in one step, so the tail is flushed rather than left behind.
         while (nextMark < marks.length) onMarkRef.current?.(marks[nextMark++]!);
         nextLine = lines.length;
+        nextWord = words.length;
       }
 
-      setProgress({ turnId, lines: nextLine, done: finished });
+      setProgress({ turnId, lines: nextLine, words: nextWord, done: finished });
       if (!finished) frame = requestAnimationFrame(step);
     };
 
@@ -174,10 +213,15 @@ export function useTurnPlayback(
 
   const empty = !turn || lines.length === 0;
   const settled = empty || reduced;
+  const wordCount = lines.reduce((total, line) => total + line.words.length, 0);
+
+  const revealedWords = settled ? wordCount : progress.words;
 
   return {
     lines,
     revealedLines: settled ? lines.length : progress.lines,
+    revealedWords,
+    written: settled || revealedWords >= wordCount,
     done: settled ? true : progress.done,
   };
 }

@@ -450,19 +450,27 @@
     "sessionMissing": "No session"
   },
   "onboarding": {
-    "start": {
-      "title": "Let's find out where you are",
-      "body": "A few minutes and you'll know what you have in English, what you don't, and where to start.",
-      "cta": "Start"
+    "name": {
+      "question": "What's your name?",
+      "hint": "So Talkeo knows what to call you.",
+      "placeholder": "Your name",
+      "cta": "Continue"
+    },
+    "mode": {
+      "question": "Can you speak right now?",
+      "questionNamed": "{name}, can you speak right now?",
+      "hint": "Talkeo needs the microphone to hear you.",
+      "voice": "Turn on the microphone",
+      "text": "I'd rather write"
+    },
+    "chat": {
+      "placeholder": "Type your answer",
+      "placeholderNamed": "Tell me, {name}"
     },
     "progress": "Step {position} of {total}",
     "back": "Back",
     "consent": "To hear you, we use {providers}.",
     "screens": {
-      "talkeo": {
-        "title": "This is where you talk with Talkeo",
-        "body": "Not built yet. The run starts here."
-      },
       "exercises": {
         "title": "The exercises",
         "body": "Not built yet."
@@ -499,12 +507,6 @@
         "title": "Your home",
         "body": "Not built yet. For now, the run ends here."
       }
-    },
-    "talkeo": {
-      "scaffold": "Scaffolding",
-      "marks": "Marks in this turn",
-      "next": "Next",
-      "go": "Go on"
     }
   },
   "notFound": {
