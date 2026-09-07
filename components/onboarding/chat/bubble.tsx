@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { TurnText } from "@/components/talkeo/turn-text";
 import { splitLines } from "@/lib/talkeo/lines";
+import { stripVoiceTags } from "@/lib/talkeo/voice-tags";
 import { MESSAGE_IN_MS } from "@/lib/onboarding/motion";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +74,9 @@ export function Bubble({
  * handover is where a jump would land.
  */
 export function TalkeoSaid({ text }: { text: string }) {
-  const lines = splitLines(text);
+  // Same stripping as while it played, or a settled turn shows the delivery
+  // marks that the live one hid.
+  const lines = splitLines(stripVoiceTags(text).text);
   const words = lines.reduce((total, line) => total + line.words.length, 0);
 
   return (

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import type { Mark, TalkeoTurn } from "@/core/contracts";
 import { prefersReducedMotion, subscribeReducedMotion } from "@/lib/motion";
 import { splitLines, splitWords, type TurnLine } from "@/lib/talkeo/lines";
+import { stripVoiceTags } from "@/lib/talkeo/voice-tags";
 import { buildTimeline } from "@/lib/talkeo/timeline";
 
 /**
@@ -75,7 +76,12 @@ export function useTurnPlayback(
   turn: TalkeoTurn | null,
   { onMark, voice }: TurnPlaybackOptions = {},
 ): TurnPlayback {
-  const text = turn?.text ?? "";
+  // Stripped once, and everything downstream counts against the result. The
+  // delivery marks are extra tokens: leave one in and every index after it
+  // lands a word late, which puts the marks and the reveal out of step with
+  // what is being said.
+  const raw = turn?.text ?? "";
+  const text = useMemo(() => stripVoiceTags(raw).text, [raw]);
   const lines = useMemo(() => splitLines(text), [text]);
   const turnId = turn?.turn_id ?? null;
 
@@ -120,7 +126,7 @@ export function useTurnPlayback(
       return;
     }
 
-    const words = splitWords(turn.text);
+    const words = splitWords(text);
     const url = turn.audio?.url;
     const audio = url ? voice : null;
     let timeline = buildTimeline(words, turn.word_timings);
@@ -207,7 +213,8 @@ export function useTurnPlayback(
       audio?.pause();
     };
     // The turn's identity, the motion preference and the element are the whole
-    // input; the lines and words are derived from the first.
+    // input; the lines, the words and the stripped text are derived from the
+    // first.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turnId, reduced, voice]);
 
