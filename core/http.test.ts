@@ -75,12 +75,12 @@ describe("the HTTP adapter", () => {
   });
 
   it("parses the assistant's turn, timings and marks included", async () => {
-    answering(200, talkeo.talkeo_turn.opening);
+    answering(200, talkeo.talkeo_turn.scope_confirmed);
     const core = createHttpCore(BASE_URL);
 
     const { turn, flow } = await core.talkeoTurn({ session_id: "s_1" });
 
-    expect(turn.turn_id).toBe("tt_0001");
+    expect(turn.turn_id).toBe("tt_0002");
     expect(turn.marks.length).toBeGreaterThan(0);
     expect(turn.word_timings.length).toBeGreaterThan(0);
     expect(turn.audio?.url).toMatch(/^\/mock-audio\//);

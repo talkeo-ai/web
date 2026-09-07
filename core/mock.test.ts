@@ -160,6 +160,11 @@ describe("the mock adapter", () => {
     const mic = await core.setMicPermission({ session_id, granted: true });
     expect(mic.flow.step).toBe("talkeo_interview");
 
+    // The name is a screen's answer, not something the assistant hears: it is
+    // asked before the conversation starts, so the run is told outright.
+    const named = await core.setDisplayName({ user_id, name: "Ana" });
+    expect(named.flow.display_name).toBe("Ana");
+
     const closed = await sitThroughTheInterview(core, session_id);
     expect(closed.step).toBe("items");
     expect(closed.display_name).toBeTruthy();
@@ -170,7 +175,7 @@ describe("the mock adapter", () => {
     expect(resumed.state.turn_count).toBe(7);
     expect(resumed.state.events.map((event) => event.kind)).toEqual(
       expect.arrayContaining([
-        "name_heard",
+        "stage_entered",
         "scope_set",
         "goal_noted",
         "artefact_attached",

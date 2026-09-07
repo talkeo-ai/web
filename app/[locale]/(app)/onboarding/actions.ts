@@ -54,7 +54,7 @@ export async function startOnboarding(locale: Locale): Promise<never> {
     if (resumed) return redirect({ href: onboardingHref(resumed), locale });
   }
 
-  const flow = await openRun(locale);
+  const { flow } = await openRun(locale);
   return redirect({ href: onboardingHref(firstScreenOf(flow.step)), locale });
 }
 
@@ -74,8 +74,9 @@ async function openRun(locale: Locale) {
     },
   });
 
-  await writeOnboardingRun({ userId: user_id, sessionId: session_id });
-  return flow;
+  const run = { userId: user_id, sessionId: session_id };
+  await writeOnboardingRun(run);
+  return { ...run, flow };
 }
 
 /**
@@ -97,8 +98,13 @@ export async function submitName(
 
   await writeEntryName(name);
 
-  const existing = await readOnboardingRun();
-  if (!existing) await openRun(locale);
+  const existing = (await readOnboardingRun()) ?? (await openRun(locale));
+
+  // The service is told the name here rather than hearing it in the
+  // conversation. It is asked on a screen now, so nothing later in the run has
+  // any reason to ask again — and a run whose flow has no name would have the
+  // assistant introducing itself to somebody it has already been introduced to.
+  await core().setDisplayName({ user_id: existing.userId, name });
 
   redirect({ href: onboardingHref("mode"), locale });
 }

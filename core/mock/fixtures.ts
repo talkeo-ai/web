@@ -85,16 +85,20 @@ export const STATE_SUMMARY: StateSummary = stateSummarySchema.parse(
 const interviewTurns = talkeoFile.talkeo_turn;
 
 /**
- * The interview as recorded, in the order the assistant says it: from the
- * opening to the turn that closes the interview and starts the exercises.
+ * The interview as recorded, in the order the assistant says it.
+ *
+ * It starts at the scope, not at a welcome. The name and how they want to
+ * answer are asked before the conversation, by the two screens that lead into
+ * it, so there is nothing left for the assistant to open with — and a fixture
+ * that greeted them anyway would be asking twice.
  */
 export const TALKEO_INTERVIEW_TURNS: TalkeoTurn[] = [
-  interviewTurns.opening,
-  interviewTurns.ask_name,
-  interviewTurns.confirm_name,
-  interviewTurns.scope_and_why,
-  interviewTurns.goal_noted,
-  interviewTurns.interest_noted,
+  interviewTurns.scope_open,
+  interviewTurns.scope_confirmed,
+  interviewTurns.goal_drafted,
+  interviewTurns.goals_more,
+  interviewTurns.history,
+  interviewTurns.about_you,
   interviewTurns.closing,
 ].map((entry) => talkeoTurnSchema.parse(entry.turn));
 
