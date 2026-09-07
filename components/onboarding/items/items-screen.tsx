@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { CardDeck, type DeckCard } from "@/components/onboarding/items/card-deck";
 import { RenderItem } from "@/components/onboarding/items/renderers";
@@ -33,11 +33,15 @@ export type ReportView = (
  * showing is exactly what gets reported.
  */
 export function ItemsScreen({
+  heading,
   next,
   answer,
   report,
   onStep,
 }: {
+  /** What this stage is, said above the deck. Rendered upstream, on the
+   *  server: it is two strings and it never changes while the deck runs. */
+  heading?: ReactNode;
   next: FetchItem;
   answer: AnswerItem;
   /** Reported, never awaited: a card must not wait on it to appear or leave. */
@@ -125,8 +129,10 @@ export function ItemsScreen({
     <div
       data-slot="items-screen"
       data-done={done ? "" : undefined}
-      className="mx-auto flex h-full w-full max-w-md items-center px-6"
+      className="mx-auto flex h-full w-full max-w-md flex-col justify-center px-6"
     >
+      {done ? null : heading}
+
       {/* No spinner and no skeleton card. Between two cards the deck shows its
           plate, which is the same thing it shows while one is being answered —
           so nothing appears, flashes and goes. */}

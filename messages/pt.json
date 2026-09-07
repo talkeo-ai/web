@@ -95,6 +95,16 @@
         "dontKnow": "Não sei"
       }
     },
+    "stages": {
+      "items": {
+        "title": "Vamos medir seu nível!",
+        "hint": "Deslize para a direita se conhece a palavra, para a esquerda se não."
+      },
+      "verification": {
+        "title": "Vamos confirmar o que você sabe",
+        "hint": "Diga o que cada uma significa. Se não souber, deslize para a esquerda."
+      }
+    },
     "progress": "Passo {position} de {total}",
     "back": "Voltar",
     "consent": "Para te ouvir, usamos {providers}.",

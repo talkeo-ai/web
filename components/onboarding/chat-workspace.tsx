@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { ChatScreen } from "@/components/onboarding/chat-screen";
 import { ItemsScreen } from "@/components/onboarding/items/items-screen";
+import { StageHeading } from "@/components/onboarding/stage-heading";
 // Imported rather than passed down: these take no locale and belong to the
 // panel, not to the page that mounts it. A client component importing an
 // action gets a reference to it, which is the same thing a prop would carry.
@@ -224,8 +225,9 @@ export function ChatWorkspace({
           handleProps={handleProps}
           onDock={setDock}
         >
-          {step === "items" ? (
+          {step === "items" || step === "verification" ? (
             <ItemsScreen
+              heading={<StageHeading stage={step} />}
               next={nextItem}
               answer={answerItem}
               report={reportItemView}

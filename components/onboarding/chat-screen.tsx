@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 
 import { ChatHeader } from "@/components/onboarding/chat/chat-header";
@@ -14,17 +15,7 @@ import {
   type FetchTurn,
 } from "@/lib/onboarding/use-conversation";
 import { useFollowingScroll } from "@/lib/onboarding/use-following-scroll";
-
-/**
- * The seven turns the interview takes, from the script.
- *
- * ⚠ The total is the script's, not the service's. The stage travels as an
- * event on the turn (`STAGE_ENTERED`), which the contract mirror does not carry
- * yet; `flow.step` says `talkeo_interview` for the whole interview, so there is
- * nothing to ask. A bar filling against a number the client made up is the one
- * thing a progress bar must not be, and this stops the day the event lands.
- */
-const INTERVIEW_TURNS = 7;
+import { INTERVIEW_STAGES, stageOf } from "@/lib/onboarding/stage";
 
 /**
  * The conversation, assembled.
@@ -98,10 +89,22 @@ function Conversation({
     : t("placeholder");
   const canSend = written && !pending;
 
-  // How much of the interview is behind you, counted in turns the assistant
-  // has taken. See `INTERVIEW_TURNS` for why the total is what it is.
-  const saidByTalkeo =
+  // How far along the interview is.
+  //
+  // The turn says so when it says so, and until then the number of turns the
+  // assistant has taken stands in for it. The two are not the same measure,
+  // which is why the stage wins whenever there is one — and why it is kept
+  // rather than read fresh each render: a turn that reports no stage must not
+  // drop the bar back to counting.
+  const [stage, setStage] = useState<number | null>(null);
+  const reported = stageOf(turn);
+  if (reported !== null && (stage === null || reported > stage)) {
+    setStage(reported);
+  }
+
+  const turnsTaken =
     said.filter((entry) => entry.from === "talkeo").length + (turn ? 1 : 0);
+  const position = Math.min(stage ?? turnsTaken, INTERVIEW_STAGES);
 
   // Only used by the panel's composer, and only what Talkeo said: this is for
   // re-reading what you were asked, not what you answered.
@@ -113,8 +116,8 @@ function Conversation({
   return (
     <div data-slot="chat-screen" className="flex min-h-0 flex-1 flex-col">
       <ChatHeader
-        position={saidByTalkeo}
-        total={INTERVIEW_TURNS}
+        position={position}
+        total={INTERVIEW_STAGES}
         label={t("title")}
       />
 

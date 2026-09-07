@@ -482,6 +482,16 @@
         "dontKnow": "I don't know it"
       }
     },
+    "stages": {
+      "items": {
+        "title": "Let's measure your level",
+        "hint": "Swipe right if you know the word, left if you don't."
+      },
+      "verification": {
+        "title": "Let's confirm what you know",
+        "hint": "Say what each one means. If you don't know it, swipe left."
+      }
+    },
     "progress": "Step {position} of {total}",
     "back": "Back",
     "consent": "To hear you, we use {providers}.",
