@@ -82,6 +82,19 @@
       "placeholderNamed": "Me conta, {name}",
       "latest": "Último turno"
     },
+    "items": {
+      "lexicalYesno": {
+        "question": "Você conhece esta palavra?",
+        "yes": "Conheço",
+        "no": "Não conheço"
+      },
+      "meaningCard": {
+        "ask": "Diga o que significa. Se não souber, deslize para a esquerda.",
+        "placeholder": "O que significa",
+        "send": "Enviar",
+        "dontKnow": "Não sei"
+      }
+    },
     "progress": "Passo {position} de {total}",
     "back": "Voltar",
     "consent": "Para te ouvir, usamos {providers}.",

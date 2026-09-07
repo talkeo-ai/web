@@ -82,6 +82,19 @@
       "placeholderNamed": "Contame, {name}",
       "latest": "Último turno"
     },
+    "items": {
+      "lexicalYesno": {
+        "question": "¿Conocés esta palabra?",
+        "yes": "La conozco",
+        "no": "No la conozco"
+      },
+      "meaningCard": {
+        "ask": "Decí qué significa. Si no la sabés, deslizá a la izquierda.",
+        "placeholder": "Qué significa",
+        "send": "Enviar",
+        "dontKnow": "No la sé"
+      }
+    },
     "progress": "Paso {position} de {total}",
     "back": "Atrás",
     "consent": "Para escucharte usamos {providers}.",

@@ -4,6 +4,15 @@ import { useTranslations } from "next-intl";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { ChatScreen } from "@/components/onboarding/chat-screen";
+import { ItemsScreen } from "@/components/onboarding/items/items-screen";
+// Imported rather than passed down: these take no locale and belong to the
+// panel, not to the page that mounts it. A client component importing an
+// action gets a reference to it, which is the same thing a prop would carry.
+import {
+  answerItem,
+  nextItem,
+  reportItemView,
+} from "@/app/[locale]/(app)/onboarding/actions";
 import {
   CLOSE_MS,
   CONTENT_IN_MS,
@@ -215,14 +224,23 @@ export function ChatWorkspace({
           handleProps={handleProps}
           onDock={setDock}
         >
-          <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
-            <p className="font-heading text-lg font-semibold">
-              {t(`screens.${screen}.title`)}
-            </p>
-            <p className="text-text-secondary max-w-sm text-sm">
-              {t(`screens.${screen}.body`)}
-            </p>
-          </div>
+          {step === "items" ? (
+            <ItemsScreen
+              next={nextItem}
+              answer={answerItem}
+              report={reportItemView}
+              onStep={setStep}
+            />
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
+              <p className="font-heading text-lg font-semibold">
+                {t(`screens.${screen}.title`)}
+              </p>
+              <p className="text-text-secondary max-w-sm text-sm">
+                {t(`screens.${screen}.body`)}
+              </p>
+            </div>
+          )}
         </WorkPanel>
       ) : null}
 

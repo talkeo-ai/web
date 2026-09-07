@@ -2,7 +2,15 @@
 
 import { SUPPORTED_INSTRUMENTS } from "@/components/onboarding/items/registry";
 import { core } from "@/core";
-import { isCoreError, type Step, type TalkeoTurn } from "@/core/contracts";
+import {
+  isCoreError,
+  type Instrument,
+  type Item,
+  type ItemResponse,
+  type Step,
+  type TalkeoTurn,
+  type ViewEvent,
+} from "@/core/contracts";
 import { redirect } from "@/lib/i18n/navigation";
 import type { Locale } from "@/lib/i18n/routing";
 import { NAME_MAX } from "@/lib/onboarding/entry";
@@ -62,7 +70,7 @@ async function openRun(locale: Locale) {
       // visitor has allowed. Permission is its own question, asked by the
       // assistant and reported separately.
       artefacts: ["text", "audio"],
-      supported_instruments: SUPPORTED_INSTRUMENTS,
+      supported_instruments: [...SUPPORTED_INSTRUMENTS],
     },
   });
 
@@ -155,6 +163,70 @@ export async function nextTalkeoTurn(): Promise<TalkeoTurnOnScreen | null> {
     if (isCoreError(error) && error.code === "NOT_FOUND") return null;
     throw error;
   }
+}
+
+export type ItemOnScreen = { item: Item | null; step: Step | null };
+
+/**
+ * The next exercise, or the news that the step is over.
+ *
+ * A null item is not an empty queue: the run moved on, and the step that comes
+ * back with it is where to. Which phase of the measurement this is, and why
+ * this item and not another, is not something a screen can see or needs to.
+ */
+export async function nextItem(): Promise<ItemOnScreen | null> {
+  const run = await readOnboardingRun();
+  if (!run) return null;
+
+  const { item, flow } = await core().getNextItem({
+    session_id: run.sessionId,
+  });
+
+  // A null item comes back with the step it moved on to, and both travel: the
+  // screen has no other way to learn that the measurement is over.
+  return { item: item ?? null, step: flow?.step ?? null };
+}
+
+/**
+ * An attempt.
+ *
+ * What comes back is an acknowledgement and where the run is — never whether
+ * the answer was right. There is no score to show during a measurement, and
+ * nothing here could show one if there were.
+ */
+export async function answerItem(
+  itemId: string,
+  response: ItemResponse,
+): Promise<Step | null> {
+  const run = await readOnboardingRun();
+  if (!run) return null;
+
+  const { flow } = await core().submitResponse({
+    session_id: run.sessionId,
+    item_id: itemId,
+    response,
+  });
+
+  return flow.step;
+}
+
+/**
+ * What is on screen right now. Never evidence, and never awaited by a screen:
+ * a card must not wait on a report to appear or to leave.
+ */
+export async function reportItemView(
+  event: ViewEvent,
+  item: { item_id: string; instrument: Instrument },
+): Promise<void> {
+  const run = await readOnboardingRun();
+  if (!run) return;
+
+  await core().reportView({
+    session_id: run.sessionId,
+    event,
+    item_id: item.item_id,
+    instrument: item.instrument,
+  });
 }
 
 /**

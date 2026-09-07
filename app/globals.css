@@ -562,6 +562,38 @@ body[data-scroll-locked] {
   }
 }
 
+/* A card leaving the deck once it has been answered.
+   One set of keyframes for both sides: where it goes is passed in, so a card
+   flicked left and one flicked right are the same movement mirrored, and a
+   card that was dragged carries on from wherever the pointer left it instead
+   of snapping back to centre first. */
+@keyframes card-out {
+  from {
+    transform: translate3d(var(--card-from-x, 0), 0, 0)
+      rotate(var(--card-from-rotate, 0deg));
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(var(--card-to-x), 0, 0)
+      rotate(var(--card-to-rotate));
+    opacity: 0;
+  }
+}
+
+/* And the one under it, arriving. It does not slide up into place: it was
+   already there, behind, and what changes is that it is now the card being
+   played. */
+@keyframes card-in {
+  from {
+    transform: scale(var(--card-behind-scale));
+    opacity: 0.72;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
 /* Hard steps, never a fade: a caret that eases is a pulsing dot, and a caret
    is what makes arriving text read as text being written instead of a glitch. */
 @keyframes caret-blink {

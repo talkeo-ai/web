@@ -469,6 +469,19 @@
       "placeholderNamed": "Tell me, {name}",
       "latest": "Latest turn"
     },
+    "items": {
+      "lexicalYesno": {
+        "question": "Do you know this word?",
+        "yes": "I know it",
+        "no": "I don't"
+      },
+      "meaningCard": {
+        "ask": "Say what it means. If you don't know it, swipe left.",
+        "placeholder": "What it means",
+        "send": "Send",
+        "dontKnow": "I don't know it"
+      }
+    },
     "progress": "Step {position} of {total}",
     "back": "Back",
     "consent": "To hear you, we use {providers}.",

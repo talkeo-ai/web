@@ -42,6 +42,32 @@ export const CONTENT_BLUR_PX = 6;
 export const MESSAGE_IN_MS = 620;
 
 /**
+ * A card leaving the deck, and the one under it taking its place.
+ *
+ * They are one movement and share a clock: the card that has been answered
+ * tips away and fades while the one behind rises the last stretch to full
+ * size. Run apart, the deck looks like it is dealing itself rather than being
+ * played.
+ *
+ * The card behind starts at 94%. Less and it reads as a second, smaller card;
+ * more and there is nothing to see under the top one.
+ */
+export const CARD_OUT_MS = 380;
+export const CARD_IN_MS = 300;
+export const CARD_BEHIND_SCALE = 0.94;
+
+/**
+ * How far a card has to be dragged before letting go answers with it.
+ *
+ * Short enough that a flick counts, long enough that a card cannot be answered
+ * by brushing past it. Below it the card springs back and nothing was said.
+ */
+export const CARD_COMMIT_PX = 110;
+
+/** The travel a direction that is not on offer is allowed before it stops. */
+export const CARD_RESIST_PX = 56;
+
+/**
  * The floor on how fast an answer may arrive.
  *
  * The fixture answers in no time, so without this the reply lands on top of
