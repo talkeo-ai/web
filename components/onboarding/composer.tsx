@@ -57,6 +57,10 @@ export function Composer({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Escape") {
+      event.currentTarget.blur();
+      return;
+    }
     if (event.key !== "Enter" || event.shiftKey) return;
     event.preventDefault();
     send();

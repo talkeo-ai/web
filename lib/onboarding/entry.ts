@@ -1,5 +1,33 @@
+import type { Step } from "@/core/contracts";
 import type { OnboardingScreen } from "@/lib/onboarding/screens";
 import type { EntryAnswers } from "@/lib/session/entry-answers";
+
+/**
+ * The steps that happen *beside* the conversation rather than instead of it.
+ *
+ * These are the ones the assistant can still be spoken to in, so leaving the
+ * chat to do them would mean leaving Talkeo mid-sentence. The screen stays
+ * `chat` and the work opens in the panel next to it.
+ *
+ * The rest — the verdict, the email, home — are somewhere the run arrives at,
+ * and those are pages.
+ */
+const BESIDE_THE_CHAT: readonly Step[] = [
+  "items",
+  "verification",
+  "plan",
+  "lesson",
+  "roleplay",
+];
+
+export function worksBesideChat(step: Step): boolean {
+  return BESIDE_THE_CHAT.includes(step);
+}
+
+/** Whether `chat` is a legitimate place to be for a run on this step. */
+export function chatHolds(step: Step): boolean {
+  return step === "talkeo_interview" || worksBesideChat(step);
+}
 
 /**
  * Longer than this is not a name, and the field stops before it gets there.

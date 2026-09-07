@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { redirect } from "@/lib/i18n/navigation";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { readCurrentRun } from "@/lib/onboarding/current-run";
-import { entryScreenFor } from "@/lib/onboarding/entry";
+import { entryScreenFor, worksBesideChat } from "@/lib/onboarding/entry";
 import { firstScreenOf, onboardingHref } from "@/lib/onboarding/screens";
 import { readEntryAnswers } from "@/lib/session/entry-answers";
 
@@ -36,11 +36,15 @@ async function WhereverTheRunIs({ locale }: { locale: Locale }) {
   const current = await readCurrentRun();
   const answers = await readEntryAnswers();
 
-  const screen = current
-    ? current.flow.step === "talkeo_interview"
+  const screen = !current
+    ? "name"
+    : current.flow.step === "talkeo_interview"
       ? entryScreenFor(answers)
-      : firstScreenOf(current.flow.step)
-    : "name";
+      : // The steps that happen beside the conversation come back to it, not
+        // to a screen of their own.
+        worksBesideChat(current.flow.step)
+        ? "chat"
+        : firstScreenOf(current.flow.step);
 
   // Returned rather than called on its own line: it comes from a destructured
   // factory, and TypeScript only narrows on a never-returning call when the

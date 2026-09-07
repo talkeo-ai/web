@@ -2,7 +2,7 @@ import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { ChatScreen } from "@/components/onboarding/chat-screen";
+import { ChatWorkspace } from "@/components/onboarding/chat-workspace";
 import { ModeScreen } from "@/components/onboarding/mode-screen";
 import { NameScreen } from "@/components/onboarding/name-screen";
 import { NotBuiltScreen } from "@/components/onboarding/not-built-screen";
@@ -10,7 +10,11 @@ import { OnboardingFrame } from "@/components/onboarding/onboarding-frame";
 import { redirect } from "@/lib/i18n/navigation";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { readCurrentRun } from "@/lib/onboarding/current-run";
-import { entryScreenFor } from "@/lib/onboarding/entry";
+import {
+  chatHolds,
+  entryScreenFor,
+  worksBesideChat,
+} from "@/lib/onboarding/entry";
 import {
   firstScreenOf,
   isOnboardingScreen,
@@ -71,16 +75,25 @@ async function Screen({
     );
   }
 
+  const step = current.flow.step;
+
+  // `chat` is the exception to the table: it holds every step the assistant
+  // can still be spoken to in, because those happen in the panel beside the
+  // conversation rather than on a screen of their own.
+  if (screen === "chat" && chatHolds(step)) {
+    return interviewScreen(screen, locale);
+  }
+
   // The service owns the step. A screen belonging to any other one is not an
   // error to show: it is a stale link, and the answer is where the run is.
-  if (stepOf(screen) !== current.flow.step) {
+  if (stepOf(screen) !== step) {
     return redirect({
-      href: onboardingHref(firstScreenOf(current.flow.step)),
+      href: onboardingHref(worksBesideChat(step) ? "chat" : firstScreenOf(step)),
       locale,
     });
   }
 
-  if (current.flow.step === "talkeo_interview") {
+  if (step === "talkeo_interview") {
     return interviewScreen(screen, locale);
   }
 
@@ -111,7 +124,7 @@ async function interviewScreen(screen: OnboardingScreen, locale: Locale) {
   }
 
   return (
-    <ChatScreen
+    <ChatWorkspace
       name={answers.name}
       current={currentTalkeoTurn}
       next={nextTalkeoTurn}

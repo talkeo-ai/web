@@ -77,8 +77,10 @@
       "text": "Prefiro escrever"
     },
     "chat": {
+      "title": "Onboarding",
       "placeholder": "Escreva sua resposta",
-      "placeholderNamed": "Me conta, {name}"
+      "placeholderNamed": "Me conta, {name}",
+      "latest": "Último turno"
     },
     "progress": "Passo {position} de {total}",
     "back": "Voltar",
@@ -120,6 +122,12 @@
         "title": "Seu início",
         "body": "Ainda não foi construído. Por enquanto o percurso termina aqui."
       }
+    },
+    "panel": {
+      "show": "Mostrar o painel",
+      "hide": "Ocultar o painel",
+      "expand": "Tela cheia",
+      "restore": "Sair da tela cheia"
     }
   },
   "notFound": {

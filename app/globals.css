@@ -107,6 +107,11 @@
   --surface-secondary: oklch(0.973 0 0);
   --surface-tertiary: oklch(0.922 0 0);
   --surface-quaternary: oklch(0.87 0 0);
+  /* The one step *below* the page, for a surface that is set into it rather
+     than resting on it — a panel of work held inside the app. The rest of the
+     ramp climbs, because things that float have to be lighter than what they
+     float over; this one is the opposite and needs its own value. */
+  --surface-sunken: oklch(0.978 0 0);
 
   --foreground: oklch(0.145 0 0);
   --text-secondary: oklch(0.556 0 0);
@@ -203,6 +208,10 @@
   --surface-secondary: #171717;
   --surface-tertiary: #262626;
   --surface-quaternary: #404040;
+  /* Just below #121212. Far enough to read as set in, close enough that the
+     eye takes it as the same material — and nowhere near black, which smears
+     on OLED and is what the root already avoids. */
+  --surface-sunken: #101010;
 
   --foreground: #fafafa;
   --text-secondary: #737373;
@@ -314,6 +323,7 @@
   --color-surface-secondary: var(--surface-secondary);
   --color-surface-tertiary: var(--surface-tertiary);
   --color-surface-quaternary: var(--surface-quaternary);
+  --color-surface-sunken: var(--surface-sunken);
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
 
@@ -382,6 +392,16 @@
   }
 }
 
+/* The gutter above is reserved whether or not the document scrolls, which is
+   the point: it stops the page jumping sideways between a short route and a
+   long one. A screen that fills the viewport and scrolls inside itself never
+   scrolls the document at all, so there the reservation is just a dead strip
+   down the right-hand edge — visible as a margin the panel does not have. */
+html:has([data-slot="chat-workspace"]) {
+  scrollbar-gutter: auto;
+  overflow: hidden;
+}
+
 /* When a popover opens, the library underneath Radix locks the page and pads
    the body to make up for the scrollbar it just hid. `scrollbar-gutter: stable`
    already reserves that space permanently, so the compensation is not correcting
@@ -389,6 +409,32 @@
 body[data-scroll-locked] {
   margin-right: 0 !important;
   padding-right: 0 !important;
+}
+
+/* A scrollbar that is there when it is needed and quiet the rest of the time.
+   The track stays empty and the thumb is a pill inset from the edge by a
+   transparent border, which is what keeps it off the content without
+   reserving a gutter of its own. Firefox gets the two properties it has;
+   everything else gets the real geometry. */
+.scroll-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.scroll-quiet::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.scroll-quiet::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-quiet::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border: 4px solid transparent;
+  background-clip: padding-box;
+  border-radius: 9999px;
+}
+.scroll-quiet:hover::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
 }
 
 /* Only opacity and transform: both are composited, so nothing here triggers
@@ -455,6 +501,54 @@ body[data-scroll-locked] {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.4);
   }
+}
+
+/* Letting the conversation run off its own edges instead of being cut by them.
+   Two things make a fade look cheap, and both are answered here.
+
+   `transparent` is `rgba(0, 0, 0, 0)`, so fading to it drags the mix through
+   black — a dirty band across a light page and a muddy one on a dark. Every
+   stop is the same colour at a different alpha instead, mixed in oklab, so
+   nothing but the alpha ever moves.
+
+   And the alphas follow a curve rather than a line. A linear ramp has a
+   visible end: the point where it reaches zero is an edge you can see even
+   though nothing is drawn there. Easing out puts most of the travel in the
+   first half and lets the tail arrive at nothing without announcing it. */
+.fade-edge-top,
+.fade-edge-bottom {
+  --fade-1: color-mix(in oklab, var(--background) 94%, transparent);
+  --fade-2: color-mix(in oklab, var(--background) 78%, transparent);
+  --fade-3: color-mix(in oklab, var(--background) 54%, transparent);
+  --fade-4: color-mix(in oklab, var(--background) 28%, transparent);
+  --fade-5: color-mix(in oklab, var(--background) 9%, transparent);
+  --fade-0: color-mix(in oklab, var(--background) 0%, transparent);
+}
+
+.fade-edge-top {
+  background-image: linear-gradient(
+    to bottom,
+    var(--background) 0%,
+    var(--fade-1) 14%,
+    var(--fade-2) 30%,
+    var(--fade-3) 48%,
+    var(--fade-4) 66%,
+    var(--fade-5) 84%,
+    var(--fade-0) 100%
+  );
+}
+
+.fade-edge-bottom {
+  background-image: linear-gradient(
+    to top,
+    var(--background) 0%,
+    var(--fade-1) 14%,
+    var(--fade-2) 30%,
+    var(--fade-3) 48%,
+    var(--fade-4) 66%,
+    var(--fade-5) 84%,
+    var(--fade-0) 100%
+  );
 }
 
 /* A message arriving. Opacity only, and no travel at all: a bubble that slides

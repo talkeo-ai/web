@@ -77,8 +77,10 @@
       "text": "Prefiero escribir"
     },
     "chat": {
+      "title": "Onboarding",
       "placeholder": "Escribí tu respuesta",
-      "placeholderNamed": "Contame, {name}"
+      "placeholderNamed": "Contame, {name}",
+      "latest": "Último turno"
     },
     "progress": "Paso {position} de {total}",
     "back": "Atrás",
@@ -120,6 +122,12 @@
         "title": "Tu inicio",
         "body": "Todavía no está construido. Por ahora el recorrido termina acá."
       }
+    },
+    "panel": {
+      "show": "Mostrar el panel",
+      "hide": "Ocultar el panel",
+      "expand": "Pantalla completa",
+      "restore": "Salir de pantalla completa"
     }
   },
   "notFound": {
