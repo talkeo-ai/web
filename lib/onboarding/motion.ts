@@ -1,0 +1,52 @@
+/**
+ * Every duration the onboarding animates against, in one place.
+ *
+ * They were measured against each other, not chosen apart: the panel's
+ * contents wait for its edge, a reply waits for the message before it, the
+ * chat that floats over the exercise moves on the panel's clock. Spread across
+ * the components that use them, tuning the rhythm meant chasing imports
+ * between siblings — and two of them were already importing a third to stay in
+ * step.
+ *
+ * The easings stay in `globals.css`, where the rest of the design tokens are.
+ * These are timings, and a component reads them as numbers.
+ */
+
+/** The track opening: long enough to read as the column giving way. */
+export const OPEN_MS = 320;
+
+/**
+ * Closing is slower than opening, which is the opposite of the usual rule.
+ *
+ * The rule is for things that leave: something arriving has to be noticed and
+ * something going does not. This is not something leaving — it is the
+ * conversation coming back, and the whole column has to re-find its place.
+ * Hurried, it reads as the panel being snatched away.
+ */
+export const CLOSE_MS = 420;
+
+/**
+ * The panel's contents settle a beat behind its edge, and leave ahead of it.
+ *
+ * Arriving with the edge means arriving while the box is still a sliver, so
+ * the eye is asked to read something that is mostly clipped. Leaving is faster
+ * and starts at once — the room is being taken back, and contents that linger
+ * get scraped off by the closing edge.
+ */
+export const CONTENT_IN_MS = 260;
+export const CONTENT_IN_DELAY_MS = 80;
+export const CONTENT_OUT_MS = 140;
+export const CONTENT_BLUR_PX = 6;
+
+/** A message fading into the transcript. */
+export const MESSAGE_IN_MS = 620;
+
+/**
+ * The floor on how fast an answer may arrive.
+ *
+ * The fixture answers in no time, so without this the reply lands on top of
+ * your own message while that is still fading in — two entrances overlapping
+ * from different starting points, which is what reads as inconsistent. It is
+ * also just true of anything real: a turn takes a moment to come back.
+ */
+export const MIN_ANSWER_MS = MESSAGE_IN_MS + 120;

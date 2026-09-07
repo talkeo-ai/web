@@ -2,6 +2,12 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
+import {
+  CONTENT_BLUR_PX,
+  CONTENT_IN_DELAY_MS,
+  CONTENT_IN_MS,
+  CONTENT_OUT_MS,
+} from "@/lib/onboarding/motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -79,22 +85,6 @@ export type PanelHandleProps = {
   onPointerMove: (event: React.PointerEvent) => void;
   onPointerUp: (event: React.PointerEvent) => void;
 };
-
-/**
- * The contents settle a beat behind the window, and leave ahead of it.
- *
- * Arriving with the edge means arriving while the box is still a sliver, so
- * the eye is asked to read something that is mostly clipped. Waiting until the
- * opening is underway and then resolving out of blur reads as the panel
- * bringing something with it.
- *
- * Leaving is faster and starts at once — the room is being taken back, and
- * contents that linger get scraped off by the closing edge.
- */
-export const CONTENT_IN_MS = 260;
-export const CONTENT_IN_DELAY_MS = 80;
-export const CONTENT_OUT_MS = 140;
-export const CONTENT_BLUR_PX = 6;
 
 export function WorkPanel({
   title,

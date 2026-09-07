@@ -5,7 +5,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { ChatScreen } from "@/components/onboarding/chat-screen";
 import {
+  CLOSE_MS,
   CONTENT_IN_MS,
+  OPEN_MS,
+} from "@/lib/onboarding/motion";
+import {
   CollapseIcon,
   ExpandIcon,
   PanelButton,
@@ -18,17 +22,6 @@ import { firstScreenOf } from "@/lib/onboarding/screens";
 
 type FetchTurn = () => Promise<{ turn: TalkeoTurn; step: Step } | null>;
 
-/** Long enough to read as the column giving way rather than as a cut. */
-const OPEN_MS = 320;
-/**
- * Closing is slower than opening, which is the opposite of the usual rule.
- *
- * The rule is for things that leave: something arriving has to be noticed and
- * something going does not. This is not something leaving — it is the
- * conversation coming back, and the whole column has to re-find its place.
- * Hurried, it reads as the panel being snatched away.
- */
-const CLOSE_MS = 420;
 
 type Layout = "closed" | "side" | "full";
 
