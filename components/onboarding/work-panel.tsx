@@ -157,11 +157,10 @@ export function WorkPanel({
             .join(", "),
         }}
       >
-        {/* Set into the page rather than resting on it: the exercise is held
-            inside the app, not floating over it. Flush to the edges, with one
-            hairline down its left — at this little contrast the fill alone
-            could pass for a rendering artefact. */}
-        <div className="bg-surface-sunken border-separator relative flex min-h-0 flex-1 flex-col overflow-hidden border-l">
+        {/* The same surface as the page, edge included: no seam between the
+            conversation and the work beside it. What separates them is the gap
+            and the cards, not a change of fill. */}
+        <div className="bg-background border-background relative flex min-h-0 flex-1 flex-col overflow-hidden border-l">
           {/* No rule under it: the panel already sits on its own surface, and a
               line there draws a box around a header that is mostly empty. The
               right side is left clear for the controls, which live outside the

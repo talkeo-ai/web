@@ -153,7 +153,9 @@ function Conversation({
           conversation's state, and those are in different trees. */}
       {dock
         ? createPortal(
-            <div className="pointer-events-auto w-full max-w-xl">
+            // The same measure as the composer in the column, so the control
+            // does not change size depending on where it is being used.
+            <div className="pointer-events-auto w-full max-w-3xl">
               {/* One line of what was just said, and a way to read the rest.
                   Without it this is a place to talk into with no sign of who is
                   listening — and the answer to the exercise is usually in the

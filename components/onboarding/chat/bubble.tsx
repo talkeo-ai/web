@@ -19,11 +19,20 @@ export function Bubble({
   from,
   children,
   arriving = true,
+  signed = true,
 }: {
   from: "talkeo" | "you";
   children: ReactNode;
   /** False once it is only history: it already faded in when it was new. */
   arriving?: boolean;
+  /**
+   * False where the bubble is alone and nobody else could have said it.
+   *
+   * The signature is there to tell two voices apart in a column of them. On
+   * its own, under a header that already says what it is, it is a label on the
+   * only thing in the box.
+   */
+  signed?: boolean;
 }) {
   return (
     <div
@@ -58,7 +67,7 @@ export function Bubble({
       }
     >
       {children}
-      {from === "talkeo" ? (
+      {from === "talkeo" && signed ? (
         <p className="text-text-tertiary mt-1.5 text-xs font-medium">Talkeo</p>
       ) : null}
     </div>
@@ -73,14 +82,20 @@ export function Bubble({
  * height would not have to match the one the clip had just settled on, and the
  * handover is where a jump would land.
  */
-export function TalkeoSaid({ text }: { text: string }) {
+export function TalkeoSaid({
+  text,
+  signed = true,
+}: {
+  text: string;
+  signed?: boolean;
+}) {
   // Same stripping as while it played, or a settled turn shows the delivery
   // marks that the live one hid.
   const lines = splitLines(stripVoiceTags(text).text);
   const words = lines.reduce((total, line) => total + line.words.length, 0);
 
   return (
-    <Bubble from="talkeo" arriving={false}>
+    <Bubble from="talkeo" arriving={false} signed={signed}>
       <TurnText lines={lines} revealedWords={words} className={TALKEO_BODY} />
     </Bubble>
   );
