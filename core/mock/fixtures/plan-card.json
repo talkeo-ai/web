@@ -1,0 +1,62 @@
+{
+  "get_plan_card": {
+    "schema_version": 1,
+    "plan": {
+      "goal": {
+        "goal_id": "b2c3d4e5-0002-4000-8000-000000000002",
+        "version": 2,
+        "status": "active",
+        "name": "Pasar entrevistas de trabajo en inglés",
+        "focus": "encontrar las palabras a tiempo",
+        "description": "Entrevistas en empresas de diseño del exterior, por videollamada, con preguntas sobre proyectos propios.",
+        "expected_result": "Contar un proyecto propio en una entrevista sin quedarse en blanco.",
+        "target_date": null,
+        "situation_class_id": "job_interview",
+        "milestones": [],
+        "artefacts": [],
+        "origin": "declared",
+        "signed_ts": "2026-09-05T15:10:00Z"
+      },
+      "today": [
+        { "cell_id": "cell_0001", "label": "deadline", "why": "No la supiste en la carta y la vas a necesitar para hablar de plazos." },
+        { "cell_id": "cell_0002", "label": "feedback", "why": "No la supiste en la carta; aparece en toda entrevista de diseño." },
+        { "cell_id": "cell_0003", "label": "stakeholder", "why": "La usás para contar con quién trabajaste en el proyecto." }
+      ],
+      "practice": {
+        "title": "Contá un proyecto tuyo",
+        "setup": "Una entrevista corta por un puesto de diseño. Tu objetivo: presentarte y contar un proyecto, usando lo que acabás de aprender."
+      }
+    },
+    "flow": { "step": "plan", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "edit_plan_card": {
+    "schema_version": 1,
+    "plan": {
+      "goal": {
+        "goal_id": "b2c3d4e5-0002-4000-8000-000000000002",
+        "version": 3,
+        "status": "active",
+        "name": "Pasar entrevistas de trabajo en inglés",
+        "focus": "encontrar las palabras a tiempo",
+        "description": "Entrevistas en empresas de diseño del exterior, por videollamada, con preguntas sobre proyectos propios.",
+        "expected_result": "Contar un proyecto propio en una entrevista sin quedarse en blanco.",
+        "target_date": null,
+        "situation_class_id": "job_interview",
+        "milestones": [],
+        "artefacts": [],
+        "origin": "declared",
+        "signed_ts": "2026-09-05T15:10:00Z"
+      },
+      "today": [
+        { "cell_id": "cell_0001", "label": "deadline", "why": "No la supiste en la carta y la vas a necesitar para hablar de plazos." },
+        { "cell_id": "cell_0002", "label": "feedback", "why": "No la supiste en la carta; aparece en toda entrevista de diseño." },
+        { "cell_id": "cell_0005", "label": "portfolio", "why": "La agregaste vos; la verificamos antes de enseñarla." }
+      ],
+      "practice": {
+        "title": "Contá un proyecto tuyo",
+        "setup": "Una entrevista corta por un puesto de diseño. Tu objetivo: presentarte y contar un proyecto, usando lo que acabás de aprender."
+      }
+    },
+    "flow": { "step": "plan", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  }
+}

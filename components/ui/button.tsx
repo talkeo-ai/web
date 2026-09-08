@@ -10,6 +10,12 @@ import { cn } from "@/lib/utils";
  * keeps the face's own corner radius. Blur would turn it into a cast shadow,
  * which reads as the control floating rather than as having a side.
  *
+ * The lip is 2px, and the depth is the whole register of the control. Twice
+ * this reads as a game piece; none of it reads as a link in a box. Labels run
+ * in sentence case for the same reason: caps plus letterspacing on a deep
+ * button is the house style of something you play rather than something you
+ * work in.
+ *
  * Pressing moves the face down by exactly the lip's height and removes the
  * lip, so the button lands flush against the page. The travel and the fade
  * have to match, or the face detaches from its own edge mid-press.
@@ -21,9 +27,9 @@ import { cn } from "@/lib/utils";
 const buttonVariants = cva(
   [
     "relative inline-flex shrink-0 items-center justify-center gap-2",
-    "font-heading font-medium tracking-wide uppercase whitespace-nowrap",
+    "font-heading font-semibold whitespace-nowrap",
     "cursor-pointer outline-none select-none",
-    "transition-[transform,box-shadow,background-color,border-color,color,filter]",
+    "transition-[transform,box-shadow,background-color,border-color,color]",
     "duration-(--duration-press-out) ease-(--ease-standard)",
     "hover:duration-(--duration-highlight-in)",
     "active:duration-(--duration-press-in)",
@@ -39,16 +45,25 @@ const buttonVariants = cva(
       variant: {
         primary: [
           "bg-cta-face text-cta-face-text",
-          "shadow-[0_4px_0_0_var(--cta-lip)]",
-          "hover:brightness-95",
-          "active:translate-y-[4px] active:shadow-none",
+          // A token and not `brightness-95`: the face is near-white in one
+          // theme and near-black in the other, so a single filter moves it the
+          // right way in one and imperceptibly in the other.
+          "hover:bg-cta-face-hover",
+        ],
+        // The lip, and the only place it belongs: the landing's own call to
+        // action, where the page is selling and a control that reads like an
+        // object is the point. Inside the product it is noise — every screen
+        // has one primary button and none of them need to look like a toy.
+        raised: [
+          "bg-cta-face text-cta-face-text",
+          "shadow-[0_2px_0_0_var(--cta-lip)]",
+          "hover:bg-cta-face-hover",
+          "active:translate-y-[2px] active:shadow-none",
         ],
         secondary: [
-          "text-text-secondary bg-transparent",
-          "border-cta-alt-border border-2",
-          "shadow-[0_4px_0_0_var(--cta-alt-lip)]",
+          "text-cta-alt-text bg-transparent",
+          "border-cta-alt-border border",
           "hover:bg-surface-secondary hover:text-foreground",
-          "active:translate-y-[4px] active:shadow-none",
         ],
         ghost: "text-foreground hover:bg-surface-secondary",
       },
@@ -56,10 +71,23 @@ const buttonVariants = cva(
       // scale: a wide control keeps its proportion around 0.13 of its own
       // width, and past that it stops reading as a button and starts reading
       // as a panel you can click.
+      //
+      // The label runs a step larger than the box would suggest. Sentence case
+      // gave back the width that caps and letterspacing were spending, and the
+      // presence has to come from somewhere: it comes from type size, not from
+      // a taller control.
+      //
+      // `lg` states its box in `em` rather than in rem steps, and the numbers
+      // are the ones it already rendered: 3em, 2em and 1.044em are 48px, 32px
+      // and 16.7px at the 16px label. Nothing moves by writing them this way —
+      // what it buys is that overriding the type size scales the control with
+      // it, so making this pair bigger is one value and cannot distort the
+      // shape. The other two keep their fixed boxes: they sit in dense
+      // layouts, where a control that grows with its label is a nuisance.
       size: {
-        sm: "h-10 rounded-xl px-5 text-[13px]",
-        md: "h-11 rounded-2xl px-6 text-[14px]",
-        lg: "h-12 rounded-2xl px-8 text-[15px]",
+        sm: "h-10 rounded-xl px-5 text-[14px]",
+        md: "h-11 rounded-2xl px-6 text-[15px]",
+        lg: "h-[3em] rounded-[1.044em] px-[2em] text-[16px]",
       },
     },
     defaultVariants: {

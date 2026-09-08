@@ -1,0 +1,138 @@
+{
+  "get_day_plan": {
+    "standard": {
+      "schema_version": 1,
+      "plan": {
+        "date": "2026-09-01",
+        "budget_minutes": 36,
+        "block_minutes": 12,
+        "catalog_slice": "day-plan-v1",
+        "review": {
+          "due_count": 14,
+          "blocks": 1,
+          "spilled_to_tomorrow": 2,
+          "cap_breached_for_warmup": false,
+          "never_advanced": true
+        },
+        "blocks": [
+          {
+            "index": 0,
+            "kind": "review",
+            "area": "vocabulary",
+            "objective": "recuperar 12 casillas vencidas",
+            "surface_id": "srs_recall_written",
+            "minutes": 12,
+            "predicted_success": 0.81,
+            "is_warmup": true,
+            "rationale": "Repaso · lo puso el piso del sistema (el calendario de espaciado, gap 11 d). El repaso vencido ES el warm-up, y nada se adelanta: lo que no entró queda para mañana.",
+            "rationale_steps": []
+          },
+          {
+            "index": 1,
+            "kind": "general",
+            "area": "vocabulary",
+            "objective": "vocabulary: form_meaning_p",
+            "surface_id": "srs_recall_written",
+            "minutes": 12,
+            "predicted_success": 0.79,
+            "is_warmup": false,
+            "rationale": "general · superficie repetición espaciada con recuerdo escrito (srs_recall_written). Diagnóstico: se_oxido (held at 0.86 and 24 d passed) · not computable: lo_evita, se_rompe_en_vivo. Dosis: dosis mínima 5 min ≤ bloque 12 min. Desempate: strength F (retrieval practice, g=0.50) · not served in the recent window.",
+            "rationale_steps": [
+              {"step": "matriz", "detail": "form_meaning_p → written_productive: srs_recall_written, cloze_sentence"},
+              {"step": "banda", "detail": "your vocabulary band A2: srs_recall_written, cloze_sentence"},
+              {"step": "diagnostico", "detail": "se_oxido (held at 0.86 and 24 d passed) · not computable: lo_evita, se_rompe_en_vivo"},
+              {"step": "dosis", "detail": "block 12 min: srs_recall_written 5min, cloze_sentence 6min"},
+              {"step": "alineacion", "detail": "emits form_meaning_p: srs_recall_written, cloze_sentence"},
+              {"step": "desempate", "detail": "strength F (retrieval practice, g=0.50) · not served in the recent window"}
+            ]
+          }
+        ],
+        "bar": {
+          "kind": "global",
+          "by_area": [{"area": "vocabulary", "band": "A2", "measured_share": 0.12, "gray_share": 0.88}],
+          "note": "barra específica pendiente: necesita las casillas declaradas del contrato de goal, que todavía no existen"
+        },
+        "stream": ["The Futur"],
+        "dose": {
+          "target_session_minutes": 20,
+          "produced_minutes_today": 8.0,
+          "assisted_minutes_today": 0.0,
+          "streak_minutes": 46,
+          "streak_days": 3,
+          "deficit_minutes": 52.0,
+          "weekly_blocks": 11,
+          "basis": "measured"
+        },
+        "rango": {
+          "weekly_blocks": 11,
+          "active": [{"goal_id": "g-1", "kind": "specific", "cost_blocks": 3}],
+          "queue": [],
+          "line": "con tu ritmo entran 1",
+          "basis": "measured"
+        },
+        "weekly_floor": [
+          {"area": "vocabulary", "blocks_this_week": 2, "satisfied": true, "remedy": "surface", "declared_reason": null}
+        ],
+        "declarations": [],
+        "not_in_this_plan": ["situation readiness (blocked on its spike)"]
+      }
+    },
+    "floor_breach": {
+      "schema_version": 1,
+      "plan": {
+        "date": "2026-09-01",
+        "budget_minutes": 12,
+        "block_minutes": 12,
+        "catalog_slice": "day-plan-v1",
+        "review": {"due_count": 0, "blocks": 0, "spilled_to_tomorrow": 0, "cap_breached_for_warmup": false, "never_advanced": true},
+        "blocks": [],
+        "bar": {"kind": "global", "by_area": [], "note": "barra específica pendiente"},
+        "stream": [],
+        "dose": {"target_session_minutes": 12, "produced_minutes_today": 0.0, "assisted_minutes_today": 0.0, "streak_minutes": 0, "streak_days": 0, "deficit_minutes": 84.0, "weekly_blocks": 7, "basis": "declared_target"},
+        "rango": {"weekly_blocks": 7, "active": [], "queue": [], "line": "con tu ritmo entran 0 (según tu objetivo declarado — todavía no hay ritmo medido)", "basis": "declared_target"},
+        "weekly_floor": [
+          {"area": "pronunciation", "blocks_this_week": 0, "satisfied": false, "remedy": "none", "declared_reason": "piso semanal INCUMPLIDO en pronunciation: sin superficie viable a tu banda, sin escalón declarado y sin modo semilla"}
+        ],
+        "declarations": ["piso semanal INCUMPLIDO en pronunciation: sin superficie viable a tu banda, sin escalón declarado y sin modo semilla"],
+        "not_in_this_plan": ["the external anchor"]
+      }
+    }
+  },
+  "get_dose": {
+    "schema_version": 1,
+    "dose": {
+      "target_session_minutes": 20,
+      "produced_minutes_today": 8.0,
+      "assisted_minutes_today": 2.0,
+      "streak_minutes": 46,
+      "streak_days": 3,
+      "deficit_minutes": 52.0,
+      "weekly_blocks": 11,
+      "basis": "measured"
+    }
+  },
+  "set_dose_target": {
+    "schema_version": 1,
+    "dose": {
+      "target_session_minutes": 30,
+      "produced_minutes_today": 8.0,
+      "assisted_minutes_today": 0.0,
+      "streak_minutes": 46,
+      "streak_days": 3,
+      "deficit_minutes": 52.0,
+      "weekly_blocks": 17,
+      "basis": "measured"
+    }
+  },
+  "set_goal_order": {
+    "schema_version": 1,
+    "order": ["g-2", "g-1"],
+    "rango": {
+      "weekly_blocks": 11,
+      "active": [{"goal_id": "g-2", "kind": "specific", "cost_blocks": 3}],
+      "queue": [{"goal_id": "g-1", "kind": "specific", "cost_blocks": 3, "reason": "el rango está lleno"}],
+      "line": "con tu ritmo entran 1",
+      "basis": "measured"
+    }
+  }
+}

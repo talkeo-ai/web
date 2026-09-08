@@ -51,27 +51,26 @@ export async function Hero() {
                 so without a width of its own this box collapses against its
                 own auto margins. */}
             <div className="@container order-1 mx-auto w-full max-w-lg text-center">
-              {/* Loose leading on purpose, and it is the whole effect: a
-                  rounded display packed tight reads as a logo, while the same
-                  face given air reads as a sentence someone is saying to you.
+              {/* Tight leading and a hair of negative tracking: a display set
+                  loose reads as a poster and set close reads as a statement,
+                  and the two numbers do the same job — moving one without the
+                  other leaves the block either cramped or unglued.
 
-                  500 and not the bold this face was drawn around: light text on
-                  a dark surface blooms, so the stroke gains weight the
-                  reference never had. Matching it means correcting downward.
+                  600, and the same 600 every other display on the site runs at.
+                  Light text on a dark surface blooms, so the stroke gains
+                  weight the reference never had and the instinct to reach for
+                  700 is worth resisting; below this the face reads thin at
+                  display size, which is the failure mode it was chosen against.
 
-                  Condensed to 96% on the width axis. This face is drawn broad,
-                  and at display sizes broad reads as stretched — the correction
-                  belongs on the axis itself, not on tracking, which would only
-                  move the letters closer without narrowing them.
+                  The size is two lines expressed as arithmetic: the longest
+                  headline needs some multiple of its own font size in width to
+                  break in two, and the size sits just under that ceiling.
+                  Change the copy or the face and the multiple moves with it —
+                  `hero-headline.spec.ts` is what says so, and a rendered page is
+                  the only place it can be checked, because it depends on the
+                  font's real metrics.
 
-                  The size is two lines expressed as arithmetic. Measured at
-                  96%, the longest headline needs 14.53x its own font size of
-                  width to break in two; the other locales need 12.57 and 11.66.
-                  So the ceiling on the size is width / 14.53, and 6.7cqw sits
-                  just under that with about 3% to spare. Change the copy and
-                  this number changes with it — `hero-headline.spec.ts` says so.
-
-                  That 14.53 is 7% wider than the headline alone would need, and
+                  The ceiling carries some slack on purpose, and
                   the difference buys the break: the English copy joins "and" to
                   the word after it with a non-breaking space, so the
                   conjunction cannot be left hanging at the end of a line.
@@ -82,7 +81,7 @@ export async function Hero() {
                   this stops reading as a display face at all. It binds under
                   ~300px of container, where two lines are no longer possible at
                   any size worth setting. */}
-              <h1 className="text-foreground font-heading text-[clamp(20px,6.7cqw,38px)] leading-[1.4] font-medium text-balance [font-stretch:96%]">
+              <h1 className="text-foreground font-heading text-[clamp(20px,6.7cqw,38px)] leading-[1.18] font-semibold tracking-[-0.02em] text-balance">
                 {t("headline")}
               </h1>
             </div>
@@ -93,14 +92,31 @@ export async function Hero() {
                 `mt-8` and a tight gap — the pair belongs to what precedes it
                 (the orb on mobile, the headline on desktop), and to each other
                 more than to it. `pb-8` keeps the pair off the row below on
-                mobile; the centered desktop grid never reaches it. */}
-            <div className="order-3 mx-auto mt-8 flex w-full max-w-[330px] flex-col gap-3 pb-8 lg:pb-0">
-              <Button size="lg" asChild>
+                mobile; the centered desktop grid never reaches it.
+
+                The pair reads small next to the headline it answers, so it is
+                scaled — and scaled as one object. Every number here is the
+                shape it already had times 1.125: the column, the gap, and the
+                label, which carries the control's own height, padding and
+                radius with it because `lg` states them in `em`. Nothing is
+                re-proportioned, so the pair cannot end up stretched or
+                flattened; it is the same drawing, larger. */}
+            <div className="order-3 mx-auto mt-8 flex w-full max-w-[371px] flex-col gap-[13.5px] pb-8 lg:pb-0">
+              <Button size="lg" variant="raised" className="text-[18px]" asChild>
                 <Link href="/onboarding" prefetch={false}>
                   {t("cta")}
                 </Link>
               </Button>
-              <Button size="lg" variant="secondary" asChild>
+              {/* The lip is applied here rather than carried by the variant:
+                  it belongs to this pair only, and its partner sitting flat
+                  beside a raised button would read as broken instead of as
+                  quieter. */}
+              <Button
+                size="lg"
+                variant="secondary"
+                className="text-[18px] shadow-[0_2px_0_0_var(--cta-alt-lip)] active:translate-y-[2px] active:shadow-none"
+                asChild
+              >
                 <Link href="/login" prefetch={false}>
                   {t("signIn")}
                 </Link>
@@ -123,7 +139,7 @@ export async function Hero() {
                   href="/onboarding"
                   prefetch={false}
                   aria-label={t("cta")}
-                  className="bg-surface-secondary border-border focus-visible:ring-ring focus-visible:ring-offset-background relative block h-full w-full overflow-hidden rounded-full border shadow-2xl focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:outline-none"
+                  className="bg-surface-secondary border-border focus-visible:ring-ring focus-visible:ring-offset-background shadow-raised relative block h-full w-full overflow-hidden rounded-full border focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:outline-none"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img

@@ -1,0 +1,17 @@
+{
+  "bad_id": {
+    "error": { "code": "BAD_ID", "message": "goal_id does not exist" }
+  },
+  "invalid_input": {
+    "error": { "code": "INVALID_INPUT", "message": "scope_areas must be a non-empty list of areas or [\"all\"]" }
+  },
+  "flow_mismatch": {
+    "error": { "code": "FLOW_MISMATCH", "message": "submit_survey is not valid at step 'roleplay'" }
+  },
+  "conflict": {
+    "error": { "code": "CONFLICT", "message": "goal was modified by a newer version" }
+  },
+  "not_found": {
+    "error": { "code": "NOT_FOUND", "message": "session_id not found" }
+  }
+}
