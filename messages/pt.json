@@ -80,7 +80,9 @@
       "title": "Onboarding",
       "placeholder": "Escreva sua resposta",
       "placeholderNamed": "Me conta, {name}",
-      "latest": "Último turno"
+      "latest": "Último turno",
+      "showChat": "A conversa",
+      "hideChat": "Agora"
     },
     "items": {
       "lexicalYesno": {

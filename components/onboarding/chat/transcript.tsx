@@ -51,7 +51,7 @@ export function Transcript({
             supposed to be arriving gently. */}
         <div
           ref={column}
-          className="mx-auto flex w-full max-w-3xl flex-col px-6 pt-4 pb-10"
+          className="mx-auto flex w-full max-w-3xl flex-col pt-4 pr-4 pb-10 pl-6"
         >
           {said.map((entry) => (
             <div key={entry.id} className="pt-8 first:pt-0">

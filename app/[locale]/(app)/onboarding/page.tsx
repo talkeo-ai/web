@@ -5,10 +5,12 @@ import { Suspense } from "react";
 
 import { redirect } from "@/lib/i18n/navigation";
 import { routing, type Locale } from "@/lib/i18n/routing";
+import { OpenRun } from "@/components/onboarding/open-run";
 import { readCurrentRun } from "@/lib/onboarding/current-run";
-import { entryScreenFor, worksBesideChat } from "@/lib/onboarding/entry";
+import { worksBesideChat } from "@/lib/onboarding/entry";
 import { firstScreenOf, onboardingHref } from "@/lib/onboarding/screens";
-import { readEntryAnswers } from "@/lib/session/entry-answers";
+
+import { startOnboarding } from "./actions";
 
 /**
  * The way in, and nothing more than that.
@@ -34,12 +36,15 @@ export default async function OnboardingIndexPage() {
 
 async function WhereverTheRunIs({ locale }: { locale: Locale }) {
   const current = await readCurrentRun();
-  const answers = await readEntryAnswers();
 
-  const screen = !current
-    ? "name"
-    : current.flow.step === "talkeo_interview"
-      ? entryScreenFor(answers)
+  // No run yet: the conversation cannot start without one, and a page cannot
+  // write the cookies that open it. An action can, and it navigates on its own
+  // once it has.
+  if (!current) return <OpenRun start={startOnboarding.bind(null, locale)} />;
+
+  const screen =
+    current.flow.step === "talkeo_interview"
+      ? "chat"
       : // The steps that happen beside the conversation come back to it, not
         // to a screen of their own.
         worksBesideChat(current.flow.step)

@@ -1,5 +1,4 @@
 import type { Step } from "@/core/contracts";
-import type { OnboardingScreen } from "@/lib/onboarding/screens";
 import type { EntryAnswers } from "@/lib/session/entry-answers";
 
 /**
@@ -39,15 +38,14 @@ export function chatHolds(step: Step): boolean {
 export const NAME_MAX = 40;
 
 /**
- * Which of the interview's three screens someone belongs on.
+ * What the entrance still has to ask.
  *
- * The service owns the step; this decides only where inside it. It is a
- * function of what has been answered rather than of where they navigated, so
- * a typed URL, a stale link and the back button all land in the same place —
- * and skipping ahead is not something the address bar can do.
+ * It is no longer a question of which screen: the assistant asks both, in the
+ * conversation, and the panel beside it holds the control for whichever one is
+ * open. What this decides is which control that is.
  */
-export function entryScreenFor(answers: EntryAnswers): OnboardingScreen {
+export function entryAsks(answers: EntryAnswers): "name" | "mode" | null {
   if (!answers.name) return "name";
   if (!answers.mode) return "mode";
-  return "chat";
+  return null;
 }

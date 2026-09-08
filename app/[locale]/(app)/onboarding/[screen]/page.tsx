@@ -3,28 +3,21 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { ChatWorkspace } from "@/components/onboarding/chat-workspace";
-import { ModeScreen } from "@/components/onboarding/mode-screen";
-import { NameScreen } from "@/components/onboarding/name-screen";
 import { NotBuiltScreen } from "@/components/onboarding/not-built-screen";
 import { OnboardingFrame } from "@/components/onboarding/onboarding-frame";
 import { redirect } from "@/lib/i18n/navigation";
-import { routing, type Locale } from "@/lib/i18n/routing";
+import { routing } from "@/lib/i18n/routing";
 import { readCurrentRun } from "@/lib/onboarding/current-run";
-import {
-  chatHolds,
-  entryScreenFor,
-  worksBesideChat,
-} from "@/lib/onboarding/entry";
+import { chatHolds, entryAsks, worksBesideChat } from "@/lib/onboarding/entry";
 import {
   firstScreenOf,
   isOnboardingScreen,
   onboardingHref,
   stepOf,
-  type OnboardingScreen,
 } from "@/lib/onboarding/screens";
 import { readEntryAnswers } from "@/lib/session/entry-answers";
 
-import { currentTalkeoTurn, nextTalkeoTurn, submitMode, submitName } from "../actions";
+import { currentTalkeoTurn, nextTalkeoTurn } from "../actions";
 
 /**
  * One screen of the run.
@@ -64,16 +57,10 @@ async function Screen({
   if (!hasLocale(routing.locales, locale)) notFound();
   if (!isOnboardingScreen(screen)) notFound();
 
-  // The first question is the only one that works without a run: answering it
-  // is what opens one.
+  // The conversation is where a run starts now, so reaching it without one is
+  // a trip through the door, which is what opens it.
   const current = await readCurrentRun();
-  if (!current) {
-    return screen === "name" ? (
-      <NameScreen action={submitName.bind(null, locale)} />
-    ) : (
-      redirect({ href: onboardingHref("name"), locale })
-    );
-  }
+  if (!current) return redirect({ href: "/onboarding", locale });
 
   const step = current.flow.step;
 
@@ -81,7 +68,7 @@ async function Screen({
   // can still be spoken to in, because those happen in the panel beside the
   // conversation rather than on a screen of their own.
   if (screen === "chat" && chatHolds(step)) {
-    return interviewScreen(screen, locale);
+    return conversation();
   }
 
   // The service owns the step. A screen belonging to any other one is not an
@@ -94,7 +81,7 @@ async function Screen({
   }
 
   if (step === "talkeo_interview") {
-    return interviewScreen(screen, locale);
+    return conversation();
   }
 
   return (
@@ -104,28 +91,21 @@ async function Screen({
   );
 }
 
-/** The three screens of the interview, and the guard between them. */
-async function interviewScreen(screen: OnboardingScreen, locale: Locale) {
+/**
+ * The conversation, and everything that happens beside it.
+ *
+ * There are no screens inside the interview any more: the name and how they
+ * want to answer are turns like the rest, and what is still unanswered decides
+ * which control the panel shows, not which URL they are on.
+ */
+async function conversation() {
   const answers = await readEntryAnswers();
-  const belongs = entryScreenFor(answers);
-
-  if (screen !== belongs) {
-    return redirect({ href: onboardingHref(belongs), locale });
-  }
-
-  if (screen === "name") {
-    return <NameScreen action={submitName.bind(null, locale)} />;
-  }
-
-  if (screen === "mode") {
-    return (
-      <ModeScreen name={answers.name} action={submitMode.bind(null, locale)} />
-    );
-  }
 
   return (
     <ChatWorkspace
       name={answers.name}
+      mode={answers.mode}
+      asks={entryAsks(answers)}
       current={currentTalkeoTurn}
       next={nextTalkeoTurn}
     />

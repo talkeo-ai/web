@@ -42,6 +42,22 @@ export const CONTENT_BLUR_PX = 6;
 export const MESSAGE_IN_MS = 620;
 
 /**
+ * How long the entrance leaves a finished question on screen before the
+ * control that answers it arrives.
+ *
+ * The text runs well ahead of the voice, so "finished being written" is not
+ * "finished being read" — and swapping on the last word takes the sentence
+ * away from somebody who is still on the second line.
+ *
+ * It scales with the sentence rather than being one number: the beat a
+ * four-word question needs is not the beat a thirty-word one needs, and a
+ * fixed pause is either a stall on the short one or a snatch on the long one.
+ */
+export function entryHoldMs(words: number): number {
+  return 700 + words * 90;
+}
+
+/**
  * A card leaving the deck, and the one under it taking its place.
  *
  * They are one movement and share a clock: the card that has been answered

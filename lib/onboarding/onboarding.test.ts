@@ -1,24 +1,24 @@
 import { describe, expect, it } from "vitest";
 
 import type { TalkeoTurn } from "@/core/contracts";
-import { chatHolds, entryScreenFor, worksBesideChat } from "@/lib/onboarding/entry";
+import { chatHolds, entryAsks, worksBesideChat } from "@/lib/onboarding/entry";
 import { INTERVIEW_STAGES, stageOf } from "@/lib/onboarding/stage";
 
-describe("which screen an answer belongs on", () => {
+describe("what the entrance still has to ask", () => {
   it("asks for the name first", () => {
-    expect(entryScreenFor({ name: null, mode: null })).toBe("name");
+    expect(entryAsks({ name: null, mode: null })).toBe("name");
   });
 
   it("does not let a mode chosen without a name skip the question", () => {
-    expect(entryScreenFor({ name: null, mode: "voice" })).toBe("name");
+    expect(entryAsks({ name: null, mode: "voice" })).toBe("name");
   });
 
   it("asks how they want to answer once it has a name", () => {
-    expect(entryScreenFor({ name: "Ana", mode: null })).toBe("mode");
+    expect(entryAsks({ name: "Ana", mode: null })).toBe("mode");
   });
 
-  it("hands over to the conversation once both are answered", () => {
-    expect(entryScreenFor({ name: "Ana", mode: "text" })).toBe("chat");
+  it("has nothing left to ask once both are answered", () => {
+    expect(entryAsks({ name: "Ana", mode: "text" })).toBeNull();
   });
 });
 

@@ -80,7 +80,9 @@
       "title": "Onboarding",
       "placeholder": "Escribí tu respuesta",
       "placeholderNamed": "Contame, {name}",
-      "latest": "Último turno"
+      "latest": "Último turno",
+      "showChat": "La charla",
+      "hideChat": "Ahora"
     },
     "items": {
       "lexicalYesno": {

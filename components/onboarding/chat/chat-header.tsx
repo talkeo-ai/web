@@ -22,7 +22,7 @@ export function ChatHeader({
 }) {
   return (
     <header className="flex h-11 shrink-0 items-center">
-      <div className="mx-auto w-full max-w-3xl px-6">
+      <div className="mx-auto w-full max-w-3xl pr-4 pl-6">
         <ProgressBar position={position} total={total} label={label} />
       </div>
     </header>

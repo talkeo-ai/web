@@ -87,35 +87,25 @@ async function openRun(locale: Locale) {
  * on a button press ahead of it is what removes the screen that only said
  * "press to begin".
  */
-export async function submitName(
-  locale: Locale,
-  formData: FormData,
-): Promise<void> {
-  const name = String(formData.get("name") ?? "")
-    .trim()
-    .slice(0, NAME_MAX);
-  if (!name) return;
+export async function answerName(name: string): Promise<void> {
+  const trimmed = name.trim().slice(0, NAME_MAX);
+  if (!trimmed) return;
 
-  await writeEntryName(name);
+  await writeEntryName(trimmed);
 
-  const existing = (await readOnboardingRun()) ?? (await openRun(locale));
+  const run = await readOnboardingRun();
+  if (!run) return;
 
-  // The service is told the name here rather than hearing it in the
-  // conversation. It is asked on a screen now, so nothing later in the run has
-  // any reason to ask again — and a run whose flow has no name would have the
-  // assistant introducing itself to somebody it has already been introduced to.
-  await core().setDisplayName({ user_id: existing.userId, name });
-
-  redirect({ href: onboardingHref("mode"), locale });
+  // Reported outright rather than left for the conversation to hear. The
+  // assistant asked for it and a control answered, so there is nothing to
+  // infer — and a run whose flow has no name would have Talkeo introducing
+  // itself to somebody it has already met.
+  await core().setDisplayName({ user_id: run.userId, name: trimmed });
 }
 
-/** Takes how they want to answer, and hands them to the conversation. */
-export async function submitMode(
-  locale: Locale,
-  mode: EntryMode,
-): Promise<void> {
+/** How they want to answer. Still the front's alone; the flow has no field. */
+export async function answerMode(mode: EntryMode): Promise<void> {
   await writeEntryMode(mode);
-  redirect({ href: onboardingHref("chat"), locale });
 }
 
 export type TalkeoTurnOnScreen = { turn: TalkeoTurn; step: Step };

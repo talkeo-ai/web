@@ -599,6 +599,22 @@ body[data-scroll-locked] {
   }
 }
 
+/* Something being put in place rather than switched on.
+   Ten pixels is the whole travel: far enough that the eye reads a direction,
+   short enough that nothing is ever read while it is moving. Paired with a
+   decelerating curve it lands rather than stops, which is the difference
+   between an element arriving and an element appearing. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Hard steps, never a fade: a caret that eases is a pulsing dot, and a caret
    is what makes arriving text read as text being written instead of a glitch. */
 @keyframes caret-blink {

@@ -1,11 +1,61 @@
 {
   "talkeo_turn": {
+    "entrance_name": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0000",
+        "text": "[happy] Hola, qué bueno tenerte acá. Voy a armarte tu primera clase de inglés, pero antes charlemos un rato. [pause] ¿Cómo te llamás?",
+        "marks": [{ "word_index": 18, "action": "reveal", "target": "control:name" }],
+        "word_timings": [],
+        "events": [
+          {
+            "event_id": "ev_stage_1",
+            "kind": "stage_entered",
+            "origin": "inferred",
+            "payload": { "stage": 1 }
+          }
+        ],
+        "closing": false
+      },
+      "flow": {
+        "step": "talkeo_interview",
+        "mode": "standard",
+        "mic_granted": false,
+        "display_name": null
+      }
+    },
+    "entrance_mode": {
+      "schema_version": 1,
+      "turn": {
+        "turn_id": "tt_0000b",
+        "text": "[happy] Un gusto. ¿Querés contestarme hablando o escribiendo?",
+        "marks": [{ "word_index": 2, "action": "reveal", "target": "control:mode" }],
+        "word_timings": [],
+        "events": [
+          {
+            "event_id": "ev_stage_1b",
+            "kind": "stage_entered",
+            "origin": "inferred",
+            "payload": { "stage": 1 }
+          }
+        ],
+        "closing": false
+      },
+      "flow": {
+        "step": "talkeo_interview",
+        "mode": "standard",
+        "mic_granted": false,
+        "display_name": null
+      }
+    },
     "scope_open": {
       "schema_version": 1,
       "turn": {
         "turn_id": "tt_0001",
         "text": "[warm] Un gusto. [curious] ¿En qué te gustaría mejorar tu inglés? Marcá una o varias opciones, o decímelo y yo lo hago por vos.",
-        "marks": [],
+        "marks": [
+          { "word_index": 9, "action": "reveal", "target": "control:scope" }
+        ],
         "word_timings": [
           {
             "word_index": 0,

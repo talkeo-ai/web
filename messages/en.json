@@ -467,7 +467,9 @@
       "title": "Onboarding",
       "placeholder": "Type your answer",
       "placeholderNamed": "Tell me, {name}",
-      "latest": "Latest turn"
+      "latest": "Latest turn",
+      "showChat": "The chat",
+      "hideChat": "Now"
     },
     "items": {
       "lexicalYesno": {

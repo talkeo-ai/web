@@ -70,7 +70,7 @@ export function Composer({
     <div
       data-slot="composer"
       className={cn(
-        "bg-surface-secondary flex items-end gap-2 rounded-[1.4rem] py-2 pr-2 pl-5",
+        "bg-surface-secondary flex items-end gap-2 rounded-[1.4rem] py-2 pr-2 pl-4",
         // The same three states as `ui/input`, on the same tokens: the two are
         // the only places anyone types, and a field that changes character
         // between screens reads as two different products.
