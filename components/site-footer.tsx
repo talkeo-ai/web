@@ -26,11 +26,11 @@ export async function SiteFooter() {
   const actions = await getTranslations("hero");
 
   return (
-    <footer className="bg-surface-secondary border-border/60 border-t">
+    <footer className="bg-surface-secondary border-separator border-t">
       <div className="mx-auto max-w-6xl px-6 py-14 lg:px-8 lg:py-16">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="max-w-xs">
-            <div className="text-foreground font-heading flex items-center gap-2 text-lg font-medium [font-stretch:96%]">
+            <div className="text-foreground font-heading flex items-center gap-2 text-lg font-semibold">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.png"
@@ -66,8 +66,8 @@ export async function SiteFooter() {
         {/* Languages as a plain row of links, not a menu: down here there is
             room to show every option at once, and a list you can read beats a
             control you have to open. */}
-        <div className="border-border/60 mt-12 border-t pt-8">
-          <h2 className="text-foreground font-heading text-sm font-medium [font-stretch:96%]">
+        <div className="border-separator mt-12 border-t pt-8">
+          <h2 className="text-foreground font-heading text-sm font-semibold">
             {t("language")}
           </h2>
           <ul className="mt-4 flex flex-wrap gap-x-7 gap-y-3">
@@ -102,7 +102,7 @@ function FooterColumn({
 }) {
   return (
     <div>
-      <h2 className="text-foreground font-heading text-sm font-medium [font-stretch:96%]">
+      <h2 className="text-foreground font-heading text-sm font-semibold">
         {title}
       </h2>
       <ul className="mt-4 flex flex-col gap-3">{children}</ul>

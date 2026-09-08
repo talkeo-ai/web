@@ -1,0 +1,276 @@
+{
+  "get_next_item": {
+    "lexical_yesno": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0001",
+        "instrument": "lexical_yesno",
+        "payload": {
+          "word": "improve"
+        }
+      }
+    },
+    "elicited_imitation": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0002",
+        "instrument": "elicited_imitation",
+        "payload": {
+          "audio": {
+            "kind": "audio",
+            "url": "/mock-audio/ei-0002.mp3"
+          },
+          "max_seconds": 15
+        }
+      }
+    },
+    "ctest": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0003",
+        "instrument": "ctest",
+        "payload": {
+          "text": "Design interviews usually start with a short introduction. The interviewer wants to kn____ about your last pro____ and how you wo____ with a team.",
+          "gaps": [
+            {
+              "gap_id": "g1",
+              "prefix": "kn"
+            },
+            {
+              "gap_id": "g2",
+              "prefix": "pro"
+            },
+            {
+              "gap_id": "g3",
+              "prefix": "wo"
+            }
+          ]
+        }
+      }
+    },
+    "writing_prompt": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0004",
+        "instrument": "writing_prompt",
+        "payload": {
+          "prompt": "Describe your last project in two or three sentences.",
+          "min_words": 20,
+          "max_words": 40
+        }
+      }
+    },
+    "listening_choice": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0005",
+        "instrument": "listening_choice",
+        "payload": {
+          "audio": {
+            "kind": "audio",
+            "url": "/mock-audio/lc-0005.mp3"
+          },
+          "question": null,
+          "options": [
+            "project",
+            "product",
+            "process"
+          ]
+        }
+      }
+    },
+    "speech_read_aloud": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0006",
+        "instrument": "speech_read_aloud",
+        "payload": {
+          "text": "I have five years of experience in product design. My last project was a mobile app for a bank.",
+          "max_seconds": 30
+        }
+      }
+    },
+    "speech_timed_qa": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0007",
+        "instrument": "speech_timed_qa",
+        "payload": {
+          "question_text": "What do you do for work?",
+          "question_audio": {
+            "kind": "audio",
+            "url": "/mock-audio/qa-0007.mp3"
+          },
+          "seconds_to_answer": 10
+        }
+      }
+    },
+    "speech_description": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0008",
+        "instrument": "speech_description",
+        "payload": {
+          "prompt": "Describe what you see in the image.",
+          "image_url": "/mock-img/desc-0008.jpg",
+          "max_seconds": 45
+        }
+      }
+    },
+    "recall_typed": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0009",
+        "instrument": "recall_typed",
+        "payload": {
+          "prompt": "La palabra en inglés para 'plazo de entrega'",
+          "context_sentence": "We can't move the ____ again."
+        }
+      }
+    },
+    "translate_to_en": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0010",
+        "instrument": "translate_to_en",
+        "payload": {
+          "source_text": "Hace tres años que trabajo como diseñadora."
+        }
+      }
+    },
+    "teach_card": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0011",
+        "instrument": "teach_card",
+        "payload": {
+          "front_text": "experience",
+          "example": "I have experience in design.",
+          "audio": {
+            "kind": "audio",
+            "url": "/mock-audio/tc-0011.mp3"
+          }
+        }
+      }
+    },
+    "assemble": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0012",
+        "instrument": "assemble",
+        "payload": {
+          "target_text": "Tengo experiencia internacional en diseño.",
+          "word_bank": [
+            "I",
+            "have",
+            "international",
+            "experience",
+            "in",
+            "design"
+          ]
+        }
+      }
+    },
+    "grapheme_audio_choice": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0013",
+        "instrument": "grapheme_audio_choice",
+        "payload": {
+          "audio": {
+            "kind": "audio",
+            "url": "/mock-audio/ga-0013.mp3"
+          },
+          "options": [
+            "experience",
+            "experiment",
+            "expensive"
+          ]
+        }
+      }
+    },
+    "meaning_card": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0014",
+        "instrument": "meaning_card",
+        "payload": {
+          "word": "deadline",
+          "example": null,
+          "audio": {
+            "kind": "audio",
+            "url": "/mock-audio/mc-0014.mp3"
+          },
+          "swipe_left_allowed": true
+        }
+      }
+    },
+    "word_bank": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0015",
+        "instrument": "word_bank",
+        "payload": {
+          "prompt_l1": "Decí: 'Estuve a cargo del diseño'",
+          "word_bank": [
+            "I",
+            "was",
+            "in",
+            "charge",
+            "of",
+            "the",
+            "design"
+          ]
+        }
+      }
+    },
+    "contrastive_card": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0016",
+        "instrument": "contrastive_card",
+        "payload": {
+          "title": "since / for",
+          "rule_l1": "'Since' marca desde cuándo; 'for' marca cuánto tiempo. En español usamos 'desde' y 'hace' para las dos ideas.",
+          "examples": [
+            "I have worked here since 2023.",
+            "I have worked here for three years."
+          ],
+          "audio": null
+        }
+      }
+    },
+    "timed_recall": {
+      "schema_version": 1,
+      "item": {
+        "item_id": "it_0017",
+        "instrument": "timed_recall",
+        "payload": {
+          "prompt_l1": "plazo de entrega",
+          "seconds": 8,
+          "context_sentence": "We can't move the ____ again."
+        }
+      }
+    },
+    "step_done": {
+      "schema_version": 1,
+      "item": null,
+      "flow": {
+        "step": "verification",
+        "mode": "standard",
+        "mic_granted": true,
+        "display_name": "Caro"
+      }
+    }
+  },
+  "submit_response": {
+    "schema_version": 1,
+    "accepted": true,
+    "flow": {
+      "step": "items",
+      "mode": "standard",
+      "mic_granted": true,
+      "display_name": "Caro"
+    }
+  }
+}

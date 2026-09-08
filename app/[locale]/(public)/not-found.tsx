@@ -17,7 +17,7 @@ export default async function NotFound() {
           <p className="text-text-tertiary font-mono text-[13px] tracking-[0.8px] uppercase">
             404
           </p>
-          <h1 className="text-foreground font-heading mt-3 text-[28px] leading-[1.3] font-medium [font-stretch:96%]">
+          <h1 className="text-foreground font-heading mt-3 text-[28px] leading-[1.3] font-semibold tracking-[-0.02em]">
             {t("title")}
           </h1>
         </div>

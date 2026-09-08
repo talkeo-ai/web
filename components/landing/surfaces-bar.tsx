@@ -80,7 +80,7 @@ export function SurfacesBar() {
   }, []);
 
   return (
-    <section className="border-border/60 border-t">
+    <section className="border-separator border-t">
       {/* Tighter at phone sizes: the row shares the first screen with the
           whole hero there, so it keeps its story in about two-thirds of the
           height it gets on desktop. */}
