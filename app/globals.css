@@ -203,9 +203,14 @@
 
   /* The root is not pure black: that smears on OLED and flattens everything.
      Card surfaces sit *lighter* than the root, so they read as floating above
-     it rather than sinking into it. */
+     it rather than sinking into it.
+
+     The three steps are evenly spaced, ten points apart. They were not: the
+     first step was five and the second fifteen, so everything on it — the
+     composer, the assistant's bubble — sat close enough to the page to read as
+     the page with a border drawn on it. */
   --background: #121212;
-  --surface-secondary: #171717;
+  --surface-secondary: #1c1c1c;
   --surface-tertiary: #262626;
   --surface-quaternary: #404040;
   /* Just below #121212. Far enough to read as set in, close enough that the
@@ -218,8 +223,8 @@
   --text-tertiary: #525252;
 
   --card: #262626;
-  /* Midpoint of --surface-secondary (#171717) and --card (#262626). */
-  --card-quiet: #1f1f1f;
+  /* Midpoint of --surface-secondary (#1c1c1c) and --card (#262626). */
+  --card-quiet: #212121;
   --card-foreground: #fafafa;
   --popover: #262626;
   --popover-foreground: #fafafa;
