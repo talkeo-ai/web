@@ -2,7 +2,6 @@
 
 import { TurnText } from "@/components/talkeo/turn-text";
 import { VIEW_SWITCH_MS } from "@/lib/onboarding/motion";
-import type { FocusShows } from "@/lib/onboarding/view-machine";
 import type { TurnPlayback } from "@/lib/talkeo/use-turn-playback";
 
 import { TALKEO_BODY } from "./bubble";
@@ -25,18 +24,19 @@ import { TALKEO_BODY } from "./bubble";
  * animation is its own piece of work and is not this one.
  */
 export function FocusView({
-  shows,
   playback,
   surface,
 }: {
-  shows: FocusShows;
   playback: TurnPlayback;
   surface: React.ReactNode;
 }) {
-  // Pulled here out of the chat, the turn is already behind them on the other
-  // view; repeating it would be the same words twice on two screens.
-  const saying =
-    shows === "the turn" && !surface && playback.lines.length > 0;
+  // ⚠ This used to also ask the view machine whether it was showing "the
+  // surface" — the state for somebody pulled here out of the chat. That is
+  // already said by there BEING a surface, and asking twice meant that between
+  // the pull and the surface being ready the view rendered NEITHER: a turn
+  // arrived, the beat had not passed, and the screen was blank while Talkeo
+  // talked. Seen 9/sep on the turn that says "te anoté en el sistema".
+  const saying = !surface && playback.lines.length > 0;
 
   return (
     <div

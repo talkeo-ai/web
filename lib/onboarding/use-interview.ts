@@ -381,14 +381,30 @@ export function useInterview(
   /** They answered on the surface. What that means depends on which one it is. */
   const answerSurface = useCallback(
     (answer: { field: string; value: string; confirms: boolean }) => {
+      // ⚠ Answering is answering, whichever surface it was — and only answering:
+      // an edit that does not confirm is not one. The two below used to return
+      // before saying so, and the view never heard that the surface was done, so
+      // somebody pulled here out of the chat stayed in focus for the rest of the
+      // conversation on a `shows` that suppressed every turn.
+      if (answer.confirms) {
+        dispatch({ kind: "view", event: { kind: "confirmed the surface" } });
+      }
       if (surface?.kind === "name") {
         dispatch({ kind: "named", name: answer.value });
-        send({ text: answer.value, edits: [] });
+        dispatch({ kind: "confirmed", card: "name" });
+        // Only when it is new to the service. Confirming a name Talkeo already
+        // read out of what they said is them agreeing, not them answering
+        // again — sending it would be a second turn saying what the first one
+        // already said.
+        if (answer.value !== conversation.name) {
+          send({ text: answer.value, edits: [] });
+        }
         return;
       }
       if (surface?.kind === "mode") {
         const mode = answer.value === "speak" ? "speak" : "text";
         if (mode === "speak") setInCall(true);
+        dispatch({ kind: "confirmed", card: "mode" });
         send({ mode, edits: [] });
         return;
       }
@@ -406,10 +422,9 @@ export function useInterview(
         dispatch({ kind: "edited", edit });
         return;
       }
-      dispatch({ kind: "view", event: { kind: "confirmed the surface" } });
       send({ edits: [...flush(outbox).edits, edit] });
     },
-    [outbox, send, surface],
+    [outbox, send, surface, conversation.name],
   );
 
   const touchSurface = useCallback(

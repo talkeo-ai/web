@@ -140,7 +140,6 @@ function Screen({
             />
           ) : (
             <FocusView
-              shows={view.shows}
               playback={playback}
               surface={
                 showing ? (
