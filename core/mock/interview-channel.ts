@@ -16,10 +16,12 @@ import { INTERVIEW_STAGES, TALKEO_INTERVIEW_TURNS } from "./fixtures";
  * it stands in for. Three things it reproduces on purpose, because each one is a
  * way a screen written against a friendlier fixture breaks against the service:
  *
- * - **The entrance streams no text.** Stage 1 is fixed copy that never reaches a
- *   model, so it arrives as `turn_started` then `turn_done` with nothing in
- *   between. A screen that appends deltas and never renders the result shows two
- *   blank screens at the start of every single interview.
+ * - **Every turn streams its text, the entrance included.** Stage 1 is fixed
+ *   copy that never reaches a model, and it used to arrive as `turn_started`
+ *   then `turn_done` with nothing in between — so the screen was blank for the
+ *   whole greeting and the words landed once it had finished being said. The
+ *   service hands that copy over the same way it hands over a model's, and a
+ *   copy turn and a model turn are now one shape rather than two.
  * - **Answering takes time.** The service is about a second to its first word,
  *   so this is too. A fixture that answers instantly is what makes a screen grow
  *   an artificial floor to stop the reply landing on top of the question.
@@ -99,9 +101,6 @@ export function openMockInterview(): InterviewChannel {
     return 1;
   };
 
-  /** Mock rule: stage 1 is the entrance, and the entrance is fixed copy. */
-  const isFixedCopy = (turn: TalkeoTurn) => stageOf(turn) === 1;
-
   const runTurn = async () => {
     if (running || closed) return;
     running = true;
@@ -132,19 +131,17 @@ export function openMockInterview(): InterviewChannel {
       await wait(FIRST_FRAGMENT_MS);
       if (closed) return;
 
-      if (!isFixedCopy(turn)) {
-        for (const word of visible.split(/(?<=\s)/)) {
-          if (closed) return;
-          queue.push({ kind: "text", turn_id: turn.turn_id, delta: word });
-          await wait(FRAGMENT_MS);
-        }
-        if (turn.word_timings.length) {
-          queue.push({
-            kind: "word_timings",
-            turn_id: turn.turn_id,
-            timings: turn.word_timings,
-          });
-        }
+      for (const word of visible.split(/(?<=\s)/)) {
+        if (closed) return;
+        queue.push({ kind: "text", turn_id: turn.turn_id, delta: word });
+        await wait(FRAGMENT_MS);
+      }
+      if (turn.word_timings.length) {
+        queue.push({
+          kind: "word_timings",
+          turn_id: turn.turn_id,
+          timings: turn.word_timings,
+        });
       }
 
       // Their edit comes back as the card it produced, the way the service
