@@ -218,12 +218,57 @@ export const talkeoTurnSchema = z.object({
   closing: z.boolean().default(false),
 });
 
+/**
+ * What the person changed on a card, by hand, on screen.
+ *
+ * It travels with their next turn rather than through a door of its own, because
+ * that is what it is: an edit reaches the assistant as part of the turn, exactly
+ * as if they had said it, and is never asked about again.
+ *
+ * `confirms` is them pressing the card's own confirm, which settles the stage —
+ * so the assistant does not ask in words for a yes it already has. It can arrive
+ * with `field` and `value` empty: agreeing with what is already on screen is not
+ * an edit, and it still settles.
+ */
+export const cardEditSchema = z.object({
+  card: z.string(),
+  field: z.string().default(""),
+  value: z.string().default(""),
+  confirms: z.boolean().default(false),
+});
+
+/**
+ * One card as it stands right now, rather than as the event that last changed it.
+ *
+ * `card_updated` is the right shape for drawing a card as it fills and the wrong
+ * one for answering "what is on screen": a screen that reloads would have to
+ * replay every event of the conversation to find out. `body` is the card's own
+ * shape and differs per card.
+ */
+export const interviewCardSchema = z.object({
+  card: z.string(),
+  state: z.string(),
+  body: z.record(z.string(), z.unknown()).default({}),
+});
+
 /** Enough to resume mid-interview and show what was registered. Never the transcript. */
 export const interviewStateSchema = z.object({
   turn_count: z.number().int(),
   last_turn: talkeoTurnSchema.nullable().optional(),
   events: z.array(interviewEventSchema).default([]),
   closed: z.boolean().default(false),
+  /**
+   * Where the conversation is, and how long it is.
+   *
+   * `stages_total` comes from the service because a screen that hard-codes it
+   * keeps drawing 5/7 after the interview grows an eighth stage — and because
+   * the first stage never announces itself, so a bar drawn before the first
+   * turn has nothing else to go on. Defaulted, so a recording made before the
+   * service sent them still parses.
+   */
+  stage: z.number().int().default(0),
+  stages_total: z.number().int().default(0),
+  cards: z.array(interviewCardSchema).default([]),
 });
 
 // --- the goal after the interview, and the plan card ---
@@ -394,6 +439,8 @@ export type Mark = z.infer<typeof markSchema>;
 export type WordTiming = z.infer<typeof wordTimingSchema>;
 export type InterviewEvent = z.infer<typeof interviewEventSchema>;
 export type TalkeoTurn = z.infer<typeof talkeoTurnSchema>;
+export type CardEdit = z.infer<typeof cardEditSchema>;
+export type InterviewCard = z.infer<typeof interviewCardSchema>;
 export type InterviewState = z.infer<typeof interviewStateSchema>;
 export type GoalCell = z.infer<typeof goalCellSchema>;
 export type Milestone = z.infer<typeof milestoneSchema>;

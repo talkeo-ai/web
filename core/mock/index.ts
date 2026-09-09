@@ -6,6 +6,7 @@ import {
   type Goal,
   type GoalV2,
   type Instrument,
+  type InterviewCard,
   type InterviewEvent,
   type Item,
   type Mission,
@@ -23,6 +24,7 @@ import {
   GOAL_ARTEFACT,
   GOAL_DRAFT,
   GOAL_V2,
+  INTERVIEW_STAGES,
   PLAN_CARD,
   RANGO_AFTER_REORDER,
   ROLEPLAY_BUNDLE,
@@ -162,6 +164,40 @@ function register(session: MockSession, turn: TalkeoTurn): void {
       session.goal_name = typeof name === "string" ? name : GOAL_V2.name;
     }
   }
+}
+
+/**
+ * Which stage the conversation reached, from the last one that announced itself.
+ *
+ * Mock rule: the service holds this and answers it directly. Here the events are
+ * the only record there is, so it is read back off them — which is exactly the
+ * replaying-the-whole-conversation that `cards` on the state exists to spare a
+ * real screen.
+ */
+function stageReached(events: readonly InterviewEvent[]): number {
+  let stage = 1;
+  for (const event of events) {
+    if (event.kind !== "stage_entered") continue;
+    const at = event.payload.stage;
+    if (typeof at === "number") stage = at;
+  }
+  return stage;
+}
+
+/** Every card as it stands, latest state per card. */
+function cardsOnScreen(events: readonly InterviewEvent[]): InterviewCard[] {
+  const cards = new Map<string, InterviewCard>();
+  for (const event of events) {
+    if (event.kind !== "card_updated") continue;
+    const { card, state, body } = event.payload;
+    if (typeof card !== "string") continue;
+    cards.set(card, {
+      card,
+      state: typeof state === "string" ? state : "draft",
+      body: (body ?? {}) as InterviewCard["body"],
+    });
+  }
+  return [...cards.values()];
 }
 
 /** The goal as the interview left it, over the recorded one. */
@@ -331,6 +367,12 @@ export function createMockCore(): CorePort {
           last_turn: interview.turns.at(-1) ?? null,
           events: [...interview.events],
           closed: interview.closed,
+          // Mock rule: where the conversation is, read back out of the events
+          // rather than counted. The service knows its own stage; here the last
+          // `stage_entered` is the only thing that does.
+          stage: stageReached(interview.events),
+          stages_total: INTERVIEW_STAGES,
+          cards: cardsOnScreen(interview.events),
         },
         flow: flowOf(requireSession(session_id)),
       };

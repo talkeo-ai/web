@@ -7,6 +7,7 @@
         "text": "[happy] Hola, qué bueno tenerte acá. Voy a armarte tu primera clase de inglés, pero antes charlemos un rato. [pause] ¿Cómo te llamás?",
         "marks": [{ "word_index": 18, "action": "reveal", "target": "control:name" }],
         "word_timings": [],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0000.mp3" },
         "events": [
           {
             "event_id": "ev_stage_1",
@@ -31,6 +32,7 @@
         "text": "[happy] Un gusto. ¿Querés contestarme hablando o escribiendo?",
         "marks": [{ "word_index": 2, "action": "reveal", "target": "control:mode" }],
         "word_timings": [],
+        "audio": { "kind": "audio", "url": "/mock-audio/tt-0000b.mp3" },
         "events": [
           {
             "event_id": "ev_stage_1b",
@@ -618,7 +620,42 @@
           }
         }
       ],
-      "closed": true
+      "closed": true,
+      "stage": 7,
+      "stages_total": 7,
+      "cards": [
+        {
+          "card": "first_goal",
+          "state": "confirmed",
+          "body": {
+            "goal": "Seguir las reuniones con el cliente y responder con soltura",
+            "work_on": ["Seguir el hilo cuando hablan rápido", "Responder sin preparar la frase"],
+            "context": [],
+            "confirmed": true,
+            "version": 1
+          }
+        },
+        {
+          "card": "starting_point",
+          "state": "confirmed",
+          "body": {
+            "path": ["Colegio", "Una app un par de meses"],
+            "comfortable": "Leer y escribir mails",
+            "wants_to_work": "Hablar sin quedarme trabada",
+            "sees_self": "Entiendo bastante, hablar me cuesta",
+            "declined": []
+          }
+        },
+        {
+          "card": "about_you",
+          "state": "confirmed",
+          "body": {
+            "does": ["Diseño de producto"],
+            "follows": ["The Futur"],
+            "declined": []
+          }
+        }
+      ]
     },
     "flow": {
       "step": "items",

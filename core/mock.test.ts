@@ -10,6 +10,7 @@ import {
   type Step,
 } from "./contracts";
 import { createMockCore } from "./mock";
+import { INTERVIEW_STAGES, TALKEO_INTERVIEW_TURNS } from "./mock/fixtures";
 import { resetMockStore } from "./mock/session-state";
 import type { CorePort } from "./port";
 
@@ -172,7 +173,14 @@ describe("the mock adapter", () => {
     // Resuming reads what the interview registered, never the transcript.
     const resumed = await core.getInterviewState({ session_id });
     expect(resumed.state.closed).toBe(true);
-    expect(resumed.state.turn_count).toBe(7);
+    // Every recorded turn, counted against the recording rather than a number
+    // typed here: the script grew from seven turns to nine when the entrance
+    // became two of its own, and a literal would have gone quietly stale.
+    expect(resumed.state.turn_count).toBe(TALKEO_INTERVIEW_TURNS.length);
+    // And it says where it got to, so a screen that reloads can draw progress
+    // without inventing a total.
+    expect(resumed.state.stages_total).toBe(INTERVIEW_STAGES);
+    expect(resumed.state.stage).toBe(INTERVIEW_STAGES);
     expect(resumed.state.events.map((event) => event.kind)).toEqual(
       expect.arrayContaining([
         "stage_entered",

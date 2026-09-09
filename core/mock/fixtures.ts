@@ -4,6 +4,7 @@ import {
   goalArtefactSchema,
   goalSchema,
   goalV2Schema,
+  interviewStateSchema,
   itemSchema,
   planCardSchema,
   rangoSchema,
@@ -103,6 +104,17 @@ export const TALKEO_INTERVIEW_TURNS: TalkeoTurn[] = [
   interviewTurns.about_you,
   interviewTurns.closing,
 ].map((entry) => talkeoTurnSchema.parse(entry.turn));
+
+/**
+ * How many stages the interview has, read off the recording rather than typed in.
+ *
+ * The service reports it for exactly this reason: a number the client keeps for
+ * itself is a progress bar that keeps drawing 5/7 after the interview grows an
+ * eighth stage.
+ */
+export const INTERVIEW_STAGES = interviewStateSchema.parse(
+  talkeoFile.get_interview_state.state,
+).stages_total;
 
 /** What the assistant says when spoken to while an exercise is on screen. */
 export const TALKEO_TURN_DURING_ITEMS: TalkeoTurn = talkeoTurnSchema.parse(

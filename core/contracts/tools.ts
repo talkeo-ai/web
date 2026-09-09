@@ -13,6 +13,7 @@ import {
 } from "./enums";
 import { instrumentSchema, itemResponseSchema, itemSchema } from "./items";
 import {
+  cardEditSchema,
   checkOutcomeSchema,
   dayPlanSchema,
   deltaSchema,
@@ -299,6 +300,11 @@ export const endRoleplayResultSchema = z.object({
 export const talkeoTurnRequestSchema = z.object({
   session_id: z.string(),
   artefact: uploadArtefactSchema.nullable().optional(),
+  /**
+   * An edit the person made on a card before answering. It may come with an
+   * artefact — they fixed the card and then said something — or on its own.
+   */
+  card_edit: cardEditSchema.nullable().optional(),
 });
 
 export const talkeoTurnResultSchema = z.object({

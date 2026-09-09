@@ -98,13 +98,16 @@ export const interviewEventKindSchema = z.enum([
   "deadline_noted",
   "source_noted",
   /**
-   * The interview reached a new stage, carrying its number and its name.
+   * A card changed: which one, what state it is in, and what is in it now.
    *
-   * ⚠ Listed ahead of the service sending it. The kinds are a closed set, so a
-   * turn carrying one that is missing here fails to parse and the whole turn is
-   * lost — an unknown event has to be a value that is already accepted, not a
-   * surprise. The wire spelling is assumed to match the rest of this list.
+   * ⚠ It was missing here while the service was already sending it, and the
+   * kinds are a closed set — so every turn that touched a card, which is most
+   * of them, failed to parse and was lost whole. That is the failure mode this
+   * list has: an event nobody listed does not degrade, it takes the turn with
+   * it.
    */
+  "card_updated",
+  /** The interview reached a new stage, carrying its number and its name. */
   "stage_entered",
 ]);
 
