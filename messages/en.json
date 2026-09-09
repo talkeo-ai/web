@@ -458,7 +458,6 @@
     },
     "mode": {
       "question": "How would you like to answer?",
-      "questionNamed": "{name}, how would you like to answer?",
       "hint": "Talkeo needs the microphone to hear you.",
       "voice": "Turn on the microphone",
       "text": "I'd rather write"

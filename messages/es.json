@@ -71,7 +71,6 @@
     },
     "mode": {
       "question": "¿Cómo querés responder?",
-      "questionNamed": "{name}, ¿cómo querés responder?",
       "hint": "Talkeo necesita el micrófono para escucharte.",
       "voice": "Activar micrófono",
       "text": "Prefiero escribir"

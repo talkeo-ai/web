@@ -103,9 +103,13 @@ export function step(
     conversation,
     view,
     surface,
-    // A new turn takes the surface off until the beat after it. Reaching a turn
-    // with nothing to put up leaves it ready, so nothing waits on a beat for a
-    // surface that is not coming.
+    // A new turn takes the surface off until the beat after that turn has been
+    // said, and it does so whether or not there is one up: a card can land
+    // mid-turn and bring a surface with it, and that one waits like any other
+    // rather than inheriting an open gate from before the turn.
+    //
+    // With nothing to put up it stays open, so nothing is ever holding a beat
+    // for a surface that is not coming.
     surfaceReady: startedTalking(action)
       ? false
       : state.surfaceReady || surface === null,

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { openInterview, type InterviewChannel } from "@/core/channel";
-import type { CardEdit } from "@/core/contracts";
+import type { CardEdit, Mark, TalkeoTurn } from "@/core/contracts";
 import {
   CAPTURE_MIME,
   CAPTURE_RATE,
@@ -11,6 +11,7 @@ import {
   type Microphone,
 } from "@/lib/audio/microphone";
 import { claimVoiceOnFirstGesture, voice } from "@/lib/audio/voice";
+import { useTurnPlayback } from "@/lib/talkeo/use-turn-playback";
 
 import type { OpenedInterview } from "@/app/[locale]/(app)/onboarding/actions";
 
@@ -18,7 +19,13 @@ import type { Said } from "./conversation";
 import { flush } from "./outbox";
 import { nothingYet, step } from "./machine";
 import { SURFACE_AFTER_MS } from "./motion";
-import { forget, joinFrames, recall, remember } from "./persistence";
+import {
+  forget,
+  joinFrames,
+  recall,
+  remember,
+  type RememberedTurn,
+} from "./persistence";
 import type { View } from "./view-machine";
 
 /**
@@ -55,7 +62,7 @@ function shareInterview(sessionId: string): InterviewChannel {
 }
 
 /** The one turn the service hands back on a resume, as a thread of one. */
-function lastSaid(opened: OpenedInterview): Said[] {
+function threadOf(opened: OpenedInterview): Said[] {
   const said = opened.lastTurn;
   if (!said) return [];
   return [
@@ -69,6 +76,29 @@ function lastSaid(opened: OpenedInterview): Said[] {
   ];
 }
 
+/**
+ * The last thing Talkeo said, in the shape playback reads.
+ *
+ * Focus shows one turn, so between turns it shows the one before — otherwise the
+ * screen empties every time somebody answers, which reads as the conversation
+ * having ended. It is also what a reload replays: §9 asks for the last turn to
+ * come back "as if it had just been produced", and coming back as the turn being
+ * said is exactly that.
+ */
+function lastTold(thread: Said[]): TalkeoTurn | null {
+  const said = [...thread].reverse().find((entry) => entry.from === "talkeo");
+  if (!said) return null;
+  return {
+    turn_id: said.id,
+    text: said.text,
+    marks: (said.marks ?? []) as Mark[],
+    word_timings: said.timings ?? [],
+    audio: null,
+    events: [],
+    closing: false,
+  };
+}
+
 function releaseInterview(sessionId: string): void {
   const open = channels.get(sessionId);
   if (!open) return;
@@ -80,7 +110,13 @@ function releaseInterview(sessionId: string): void {
     still.channel.close();
   }, 0);
 }
-export function useInterview(opened: OpenedInterview) {
+export function useInterview(
+  opened: OpenedInterview,
+  // Handed each mark as the voice reaches its word. It comes from the component
+  // tree rather than being built here: what a mark DOES is a screen's business,
+  // and this file has no opinion about highlighting.
+  { onMark }: { onMark?: (mark: Mark) => void } = {},
+) {
   const [state, dispatch] = useReducer(step, nothingYet);
   const [inCall, setInCall] = useState(false);
   const [micMuted, setMicMuted] = useState(false);
@@ -100,6 +136,15 @@ export function useInterview(opened: OpenedInterview) {
     rate: 0,
     of: [],
   });
+  // What was already in the cache when this mount read it.
+  //
+  // ⚠ Without it, coming back WIPED the audio it had just come back for. The
+  // write below runs whenever the thread changes, and restoring changes it — at
+  // which point no socket message has arrived, so there are no frames for the
+  // turn and it stored `null` over a good recording. The first re-entry played
+  // (the buffer was already in hand); the second was silent, and nothing said
+  // why.
+  const held = useRef<{ turn: string; was: RememberedTurn } | null>(null);
 
   const { conversation, surface, surfaceReady, outbox } = state;
   const { sessionId } = opened;
@@ -111,6 +156,11 @@ export function useInterview(opened: OpenedInterview) {
     void (async () => {
       const kept = await recall(sessionId);
       if (!live) return;
+      const thread = kept?.thread ?? threadOf(opened);
+      const told = lastTold(thread);
+      if (kept?.lastTurn && told) {
+        held.current = { turn: told.turn_id, was: kept.lastTurn };
+      }
       dispatch({
         kind: "restored",
         // The service's side is authoritative and arrives with the session; the
@@ -118,7 +168,7 @@ export function useInterview(opened: OpenedInterview) {
         // the service. With no copy — another browser, cleared storage — the
         // last turn is still known, and one turn is a better place to come back
         // to than a blank screen.
-        thread: kept?.thread ?? lastSaid(opened),
+        thread,
         cards: opened.cards,
         stage: opened.stage,
         stagesTotal: opened.stagesTotal,
@@ -205,17 +255,25 @@ export function useInterview(opened: OpenedInterview) {
     const said = [...conversation.thread]
       .reverse()
       .find((entry) => entry.from === "talkeo");
+    if (!said) return;
     const kept = frames.current;
+    const mine = kept.turn === said.id;
+    // Ours if we heard it arrive, otherwise whatever the cache already had for
+    // the same turn. Never `null`: writing that is throwing away a recording
+    // this run simply was not there for.
+    const audio = mine
+      ? { audio: joinFrames(kept.of), sampleRate: kept.rate }
+      : held.current?.turn === said.id
+        ? held.current.was
+        : null;
     void remember({
       sessionId,
       thread: conversation.thread,
-      lastTurn: said
-        ? {
-            text: said.text,
-            audio: kept.turn === said.id ? joinFrames(kept.of) : null,
-            sampleRate: kept.rate,
-          }
-        : null,
+      lastTurn: {
+        text: said.text,
+        audio: audio?.audio ?? null,
+        sampleRate: audio?.sampleRate ?? 0,
+      },
     });
   }, [sessionId, conversation.thread, conversation.closed]);
 
@@ -272,16 +330,48 @@ export function useInterview(opened: OpenedInterview) {
     dispatch({ kind: "listening", on: false });
   }, [conversation.answering, conversation.listening]);
 
-  // --- the beat before a surface appears -----------------------------------
+  // --- the turn being said, and the beat after it --------------------------
 
+  /** The turn in flight, in the shape playback reads. Rebuilt as it grows. */
+  const live: TalkeoTurn | null = useMemo(
+    () =>
+      conversation.turn
+        ? {
+            turn_id: conversation.turn.id,
+            text: conversation.turn.text,
+            marks: [],
+            word_timings: conversation.turn.timings,
+            audio: null,
+            events: [],
+            closing: false,
+          }
+        : null,
+    [conversation.turn],
+  );
+
+  const told = useMemo(() => lastTold(conversation.thread), [conversation.thread]);
+  const playback = useTurnPlayback(live ?? told, { onMark, playhead: player });
+
+  /**
+   * The surface appears once the turn it belongs to has been SAID.
+   *
+   * ⚠ The three conditions are three different things and it needs all of them.
+   * `told` is that Talkeo has spoken at all — the surface is one of the ways to
+   * answer its question, never a question of its own, so it cannot precede one.
+   * `conversation.turn` is that the stream is over. `playback.done` is that the
+   * VOICE is, which is the one that was missing: gated on the stream alone, the
+   * surface went up 400 ms after the words arrived and sat there for the eight
+   * seconds it took to say them.
+   */
   useEffect(() => {
-    if (conversation.turn || surfaceReady || !surface) return;
+    if (!told || conversation.turn || !playback.done) return;
+    if (surfaceReady || !surface) return;
     const waiting = setTimeout(
       () => dispatch({ kind: "surface ready" }),
       SURFACE_AFTER_MS,
     );
     return () => clearTimeout(waiting);
-  }, [conversation.turn, surfaceReady, surface]);
+  }, [told, conversation.turn, playback.done, surfaceReady, surface]);
 
   // --- what the screens do -------------------------------------------------
 
@@ -375,6 +465,8 @@ export function useInterview(opened: OpenedInterview) {
 
   return {
     ...state,
+    live,
+    playback,
     inCall,
     micMuted,
     voiceOn,

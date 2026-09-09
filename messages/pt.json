@@ -71,7 +71,6 @@
     },
     "mode": {
       "question": "Como você quer responder?",
-      "questionNamed": "{name}, como você quer responder?",
       "hint": "O Talkeo precisa do microfone para te ouvir.",
       "voice": "Ativar microfone",
       "text": "Prefiro escrever"

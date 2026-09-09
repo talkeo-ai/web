@@ -80,11 +80,11 @@ export function Surface({
 /**
  * The shell every surface sits in.
  *
- * ⚠ `title` is a LABEL and not a question, and the surfaces that answer a
- * question Talkeo just asked do not pass one. The turn above says "¿cómo te
- * llamás?"; a heading underneath repeating it is the same question twice on one
- * screen, which is the repetition this whole pattern exists to avoid. A card has
- * a title because a card is a record and needs saying what it is.
+ * The title is the question, in the surface's own words. It reads as a repeat
+ * only while the turn that asked it is still on screen — which is why the two
+ * are never up at once. Talkeo asks, finishes, and then this replaces it; by
+ * then the question is gone and the surface has to carry it, or somebody who
+ * looked away is answering a field with no question above it.
  */
 function Frame({
   title,
@@ -136,7 +136,7 @@ function NameSurface({
   const written = value.trim();
 
   return (
-    <Frame hint={t("name.hint")} target="control:name">
+    <Frame title={t("name.question")} hint={t("name.hint")} target="control:name">
       <form
         className="flex flex-col gap-3"
         onSubmit={(event) => {
@@ -175,7 +175,7 @@ function ModeSurface({
 }) {
   const t = useTranslations("onboarding");
   return (
-    <Frame target="control:mode">
+    <Frame title={t("mode.question")} target="control:mode">
       <div className="flex flex-col gap-3">
         <Button
           size="lg"
@@ -225,7 +225,11 @@ function ScopeSurface({
   };
 
   return (
-    <Frame hint={t("scope.hint")} target="control:scope">
+    <Frame
+      title={t("surfaces.scope.title")}
+      hint={t("scope.hint")}
+      target="control:scope"
+    >
       <div className="flex flex-col gap-2">
         {AREAS.map((area) => {
           const on = picked.includes(area);
