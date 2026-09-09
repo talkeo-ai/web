@@ -226,7 +226,7 @@ function ScopeSurface({
 
   return (
     <Frame
-      title={t("surfaces.scope.title")}
+      title={t("scope.title")}
       hint={t("scope.hint")}
       target="control:scope"
     >

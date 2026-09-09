@@ -66,6 +66,12 @@ test("the message goes before the surface arrives, never beside it", async ({
   await expect(
     page.getByRole("heading", { name: /Cómo te llamás/ }),
   ).toBeVisible();
+
+  // ⚠ No raw key ever reaches a screen. A namespace applied twice —
+  // `t("surfaces.scope.title")` inside a `t` already scoped to
+  // `onboarding.surfaces` — put `onboarding.surfaces.surfaces.scope.title` on
+  // screen as the surface's title, and nothing failed. Seen 9/sep.
+  await expect(page.locator("body")).not.toContainText("onboarding.");
 });
 
 test("answering on the surface moves the conversation on", async ({ page }) => {
