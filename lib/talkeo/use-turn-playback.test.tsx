@@ -179,113 +179,106 @@ describe("playing a turn", () => {
   });
 });
 
-/** Enough of an element to drive a clock and record what was asked of it. */
-function fakeVoice() {
-  const listeners = new Map<string, () => void>();
+/** Where the voice says it has got to. Nothing else about it is this hook's. */
+function fakePlayhead() {
   return {
-    src: "",
-    preload: "",
-    paused: true,
-    currentTime: 0,
-    duration: Number.NaN,
-    plays: 0,
-    pauses: 0,
-    addEventListener(type: string, fn: () => void) {
-      listeners.set(type, fn);
-    },
-    removeEventListener(type: string) {
-      listeners.delete(type);
-    },
-    emit(type: string) {
-      listeners.get(type)?.();
-    },
-    play() {
-      this.paused = false;
-      this.plays += 1;
-      return Promise.resolve();
-    },
-    pause() {
-      this.paused = true;
-      this.pauses += 1;
+    ms: null as number | null,
+    currentTimeMs(): number | null {
+      return this.ms;
     },
   };
 }
 
-describe("speaking through the shared element", () => {
-  it("puts the turn's own file on it and plays", () => {
-    const voice = fakeVoice();
-    const turn = turnOf({ audio: { kind: "audio", url: "/mock-audio/x.mp3" } });
-
-    renderHook(() =>
-      useTurnPlayback(turn, { voice: voice as unknown as HTMLAudioElement }),
+describe("a turn whose text is still arriving", () => {
+  it("keeps its place while the text grows under it", () => {
+    // ⚠ The service streams a turn in fragments, so the text this is revealing
+    // gets longer several times a second. The loop has to be rebuilt over each
+    // longer version — and a clock that started inside it would go back to zero
+    // every time, leaving the turn stuck on its first line for ever.
+    const { result, rerender } = renderHook(
+      ({ text }: { text: string }) => useTurnPlayback(turnOf({ text })),
+      { initialProps: { text: "Hola, qué bueno" } },
     );
 
-    expect(voice.src).toBe("/mock-audio/x.mp3");
-    expect(voice.plays).toBe(1);
+    // The clock starts on the first frame, so it takes one to be running.
+    tick();
+    tick(1200);
+    const revealed = result.current.revealedWords;
+    expect(revealed).toBeGreaterThan(1);
+
+    rerender({ text: "Hola, qué bueno tenerte acá. Empecemos." });
+    tick(0);
+    expect(result.current.revealedWords).toBeGreaterThanOrEqual(revealed);
+
+    tick(2000);
+    expect(result.current.revealedWords).toBeGreaterThan(revealed);
   });
 
-  it("takes the clock off the file, not off the frames", () => {
+  it("starts over for a different turn", () => {
+    const { result, rerender } = renderHook(
+      ({ id }: { id: string }) => useTurnPlayback(turnOf({ turn_id: id })),
+      { initialProps: { id: "tt_1" } },
+    );
+
+    tick();
+    tick(4000);
+    const reached = result.current.revealedWords;
+    expect(reached).toBeGreaterThan(1);
+
+    // Back to the beginning rather than carrying on where the last one got to.
+    // The first word is at zero on any clock, so one is the floor, not none.
+    rerender({ id: "tt_2" });
+    tick(0);
+    expect(result.current.revealedWords).toBeLessThan(reached);
+  });
+});
+
+describe("following the voice", () => {
+  it("takes the clock off the voice, not off the frames", () => {
     const onMark = vi.fn();
-    const voice = fakeVoice();
-    const turn = turnOf({
-      marks: [POINT_AT_VOICE],
-      audio: { kind: "audio", url: "/mock-audio/x.mp3" },
-    });
+    const playhead = fakePlayhead();
 
     renderHook(() =>
-      useTurnPlayback(turn, {
+      useTurnPlayback(turnOf({ marks: [POINT_AT_VOICE] }), {
         onMark,
-        voice: voice as unknown as HTMLAudioElement,
+        playhead,
       }),
     );
 
-    // The frame clock has not moved at all; the file has.
-    voice.currentTime = 5.3;
+    // The frame clock has not moved at all; the voice has.
+    playhead.ms = 5300;
     tick();
 
     expect(onMark).toHaveBeenCalledTimes(1);
     expect(onMark).toHaveBeenCalledWith(POINT_AT_VOICE);
   });
 
-  it("stretches a turn with no timings to the file's measured length", () => {
-    const voice = fakeVoice();
+  it("does not run on ahead when the voice stalls", () => {
+    // The clock counts what has been HEARD. A frame that arrives late holds the
+    // words with it, which is the whole reason it is that clock and not a timer.
+    const playhead = fakePlayhead();
     const { result } = renderHook(() =>
-      useTurnPlayback(
-        turnOf({
-          word_timings: [],
-          audio: { kind: "audio", url: "/mock-audio/x.mp3" },
-        }),
-        { voice: voice as unknown as HTMLAudioElement },
-      ),
+      useTurnPlayback(turnOf({}), { playhead }),
     );
 
-    voice.duration = 30;
-    voice.emit("loadedmetadata");
-
-    // On cadence alone this turn runs about eight seconds, so without the
-    // file's own length it would have been over long ago.
-    voice.currentTime = 20;
+    playhead.ms = 200;
     tick();
-    expect(result.current.done).toBe(false);
+    const early = result.current.revealedWords;
 
-    voice.currentTime = 30;
-    tick();
-    expect(result.current.done).toBe(true);
+    tick(4000);
+    expect(result.current.revealedWords).toBe(early);
   });
 
-  it("does not let a silent turn inherit the last one's playhead", () => {
-    const voice = fakeVoice();
-    voice.paused = false;
-    voice.currentTime = 9;
-
-    renderHook(() =>
-      useTurnPlayback(turnOf({ audio: null }), {
-        voice: voice as unknown as HTMLAudioElement,
-      }),
+  it("runs on its own clock when nothing is speaking", () => {
+    // A muted conversation, and the fixture. Silence must not freeze the turn on
+    // its first line: a reader has no way to tell that from a screen that broke.
+    const playhead = fakePlayhead();
+    const { result } = renderHook(() =>
+      useTurnPlayback(turnOf({}), { playhead }),
     );
 
-    expect(voice.pauses).toBeGreaterThan(0);
-    expect(voice.src).toBe("");
+    tick(4000);
+    expect(result.current.revealedWords).toBeGreaterThan(0);
   });
 });
 

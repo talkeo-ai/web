@@ -12,18 +12,19 @@ import { buildTimeline } from "@/lib/talkeo/timeline";
  * Plays one turn: reveals its lines and fires its marks as the voice reaches
  * the words they sit on.
  *
- * Where the clock comes from depends on what the turn carries, and all four
- * combinations happen for real:
+ * Where the clock comes from depends on what is speaking, and all of these
+ * happen for real:
  *
- * - audio and timings — the file drives, which is the shape once a voice ships;
- * - audio without timings — the file still drives, and the cadence is scaled to
- *   its measured length;
- * - timings without audio — a frame loop stands in for the voice;
- * - neither — the cadence carries it, which is every turn today.
+ * - a voice and timings — the voice drives and the timings place the words,
+ *   which is the shape when the service is speaking;
+ * - a voice without timings — the voice still drives, at the measured cadence;
+ * - timings without a voice — a frame loop stands in for it, which is a muted
+ *   conversation and the fixture;
+ * - neither — the cadence carries it on its own.
  *
- * The file is also allowed to fail. A URL can 404, and playback can be refused
- * outright where no press has claimed it; both fall back to the loop rather
- * than leaving the turn frozen on its first line.
+ * The voice is also allowed to be absent or to stall. Every one of those cases
+ * falls back to the loop rather than leaving the turn frozen on its first line:
+ * a person reading a screen that stopped has no idea whether it broke.
  */
 
 export type TurnPlayback = {
@@ -48,12 +49,22 @@ export type TurnPlayback = {
 export type TurnPlaybackOptions = {
   onMark?: (mark: Mark) => void;
   /**
-   * The element to speak through — `voiceElement()` in a screen, nothing in a
-   * test. Passed rather than mounted: the same element carries every turn, so
-   * that one press can unlock all of them.
+   * Whatever is speaking the turn, asked only for where it has got to.
+   *
+   * A playhead rather than a media element: the service streams raw audio frames
+   * and there is no file to load, so what speaks is an audio graph. All this
+   * needs from it is a clock — and it has to be the clock of what has been
+   * HEARD, not of what was sent, or the words run ahead of the voice whenever a
+   * frame is late.
+   *
+   * Nothing here starts or stops it. Passed nothing, the turn plays on its own
+   * synthetic clock, which is what a muted conversation and a test both get.
    */
-  voice?: HTMLAudioElement | null;
+  playhead?: Playhead | null;
 };
+
+/** Where the voice has got to. Implemented by `lib/audio/playback.ts`. */
+export type Playhead = { currentTimeMs(): number | null };
 
 /** How much faster the text arrives than the voice saying it. */
 const TEXT_SPEED = 3.2;
@@ -74,7 +85,7 @@ const NOT_STARTED: Progress = {
 
 export function useTurnPlayback(
   turn: TalkeoTurn | null,
-  { onMark, voice }: TurnPlaybackOptions = {},
+  { onMark, playhead }: TurnPlaybackOptions = {},
 ): TurnPlayback {
   // Stripped once, and everything downstream counts against the result. The
   // delivery marks are extra tokens: leave one in and every index after it
@@ -109,12 +120,23 @@ export function useTurnPlayback(
     onMarkRef.current = onMark;
   }, [onMark]);
 
-  // This effect drives the element it was handed — sets its source, starts it,
-  // stops it. A media element is an external system and that is what an effect
-  // is for; the rule is about values React owns, which a DOM node is not.
-  // eslint-disable-next-line react-hooks/immutability
+  // When this turn's clock started, kept across the loop being rebuilt.
+  //
+  // ⚠ A turn's text GROWS while it is being said — the service streams it in
+  // fragments — so the loop has to be rebuilt over the longer text each time,
+  // and a start time that lived inside it would go back to zero on every
+  // fragment. The turn would then never get past its first line, at any speed.
+  const clockStart = useRef<{ turn: string | null; at: number } | null>(null);
+
+  // The frame loop that walks the turn. It drives nothing outside itself: what
+  // is speaking is only ever ASKED where it has got to, which is why this no
+  // longer has to reach into a DOM node to do its job.
   useEffect(() => {
     if (!turn || lines.length === 0) return;
+
+    // A different turn starts its own clock. Here rather than during render,
+    // where a ref may not be read.
+    if (clockStart.current?.turn !== turnId) clockStart.current = null;
 
     // Played in the order the voice meets them, not the order they arrived in.
     const marks = [...turn.marks].sort((a, b) => a.word_index - b.word_index);
@@ -127,22 +149,21 @@ export function useTurnPlayback(
     }
 
     const words = splitWords(text);
-    const url = turn.audio?.url;
-    const audio = url ? voice : null;
-    let timeline = buildTimeline(words, turn.word_timings);
+    const timeline = buildTimeline(words, turn.word_timings);
     let nextMark = 0;
     let nextLine = 0;
     let nextWord = 0;
     let frame = 0;
-    let syntheticStart: number | null = null;
     let cancelled = false;
 
     const elapsedMs = () => {
-      if (audio && !audio.paused && audio.currentTime > 0) {
-        return audio.currentTime * 1000;
-      }
-      syntheticStart ??= performance.now();
-      return performance.now() - syntheticStart;
+      // The voice's own clock while there is one. It counts what has been
+      // heard, so a late frame slows the words down with it rather than letting
+      // them run on ahead.
+      const heard = playhead?.currentTimeMs() ?? null;
+      if (heard !== null && heard > 0) return heard;
+      clockStart.current ??= { turn: turnId, at: performance.now() };
+      return performance.now() - clockStart.current.at;
     };
 
     const step = () => {
@@ -186,37 +207,21 @@ export function useTurnPlayback(
       if (!finished) frame = requestAnimationFrame(step);
     };
 
-    const onMetadata = () => {
-      if (!audio || !Number.isFinite(audio.duration)) return;
-      timeline = buildTimeline(words, turn.word_timings, audio.duration * 1000);
-    };
-
-    if (audio && url) {
-      audio.addEventListener("loadedmetadata", onMetadata);
-      audio.src = url;
-      try {
-        void audio.play()?.catch(() => {});
-      } catch {
-        // Nothing to hear; the loop still runs.
-      }
-    } else {
-      // A turn with no audio must not inherit the previous one's playhead.
-      voice?.pause();
-    }
-
     frame = requestAnimationFrame(step);
 
     return () => {
       cancelled = true;
       cancelAnimationFrame(frame);
-      audio?.removeEventListener("loadedmetadata", onMetadata);
-      audio?.pause();
     };
-    // The turn's identity, the motion preference and the element are the whole
-    // input; the lines, the words and the stripped text are derived from the
-    // first.
+    // `text` is in here because a turn's text GROWS: the service streams it in
+    // fragments, and the loop has to be rebuilt over the longer one to reveal
+    // any of it. Progress survives that — the words are held in state and the
+    // clock in a ref, both keyed to the turn rather than to the loop.
+    //
+    // The lines and the marks are derived from the text, and the words from the
+    // lines, so listing them would restart it twice for one change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [turnId, reduced, voice]);
+  }, [turnId, text, reduced, playhead]);
 
   const empty = !turn || lines.length === 0;
   const settled = empty || reduced;
