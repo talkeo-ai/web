@@ -41,11 +41,20 @@ test("the header switches locale by navigating, not by mutating state", async ({
   await expect(page.locator("html")).toHaveAttribute("lang", "pt");
 });
 
-test("switching language keeps the theme", async ({ page }) => {
+test("switching language keeps the theme, and says nothing to the console", async ({
+  page,
+}) => {
   // ⚠ The class comes from a script that runs when the PARSER reaches it, and a
   // language switch is a client navigation: no document is parsed, React
   // re-renders the root layout, and the class list goes back to what the server
   // wrote — light. Reloading was the only way back. Seen 9/sep.
+  // A console error is not a detail here: Next puts its error overlay over the
+  // whole page for one, so the app reads as broken even when it is not.
+  const complained: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") complained.push(message.text());
+  });
+
   await page.goto("/es");
   await page.evaluate(() => localStorage.setItem("talkeo-theme", "dark"));
   await page.reload();
@@ -56,6 +65,7 @@ test("switching language keeps the theme", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/pt$/);
   await expect(page.locator("html")).toHaveClass(/dark/);
+  expect(complained).toEqual([]);
 });
 
 test("the surfaces bar pages sideways and wraps at the end", async ({
