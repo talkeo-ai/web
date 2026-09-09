@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { Composer } from "./composer";
 import { ExitDialog } from "./exit-dialog";
 import { FocusView } from "./focus-view";
+import { MicNotice } from "./mic-notice";
 import { ProgressBar } from "./progress-bar";
 import { Surface } from "./surface";
 import { Transcript } from "./transcript";
@@ -145,6 +146,7 @@ function Screen({
                 showing ? (
                   <Surface
                     surface={showing}
+                    refusal={run.micRefusal}
                     onTouch={run.touchSurface}
                     onAnswer={run.answerSurface}
                   />
@@ -180,10 +182,8 @@ function Screen({
       {inChat ? (
         <div className="w-full px-4 pt-8 pb-4">
           <div className="mx-auto w-full max-w-3xl">
-            {run.micTrouble ? (
-              <p className="text-text-secondary mb-2 text-sm">
-                {t("voice.noMic")}
-              </p>
+            {run.micRefusal ? (
+              <MicNotice refusal={run.micRefusal} className="mb-2" />
             ) : null}
             <Composer
               placeholder={

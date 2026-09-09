@@ -6,9 +6,9 @@ import type { InterviewChannel } from "@/core/channel";
 import type { CardEdit, Mark, TalkeoTurn } from "@/core/contracts";
 import {
   CAPTURE_MIME,
-  CAPTURE_RATE,
   openMicrophone,
   type Microphone,
+  type MicRefusal,
 } from "@/lib/audio/microphone";
 import { claimVoiceOnFirstGesture, voice } from "@/lib/audio/voice";
 import { useTurnPlayback } from "@/lib/talkeo/use-turn-playback";
@@ -88,11 +88,14 @@ export function useInterview(
   const [inCall, setInCall] = useState(false);
   const [micMuted, setMicMuted] = useState(false);
   const [voiceOn, setVoiceOn] = useState(true);
-  const [micTrouble, setMicTrouble] = useState("");
+  /** Why the microphone did not open, or empty. Cleared by it opening. */
+  const [micRefusal, setMicRefusal] = useState<MicRefusal | "">("");
 
   const player = useMemo(() => voice(), []);
   const channel = useRef<InterviewChannel | null>(null);
   const microphone = useRef<Microphone | null>(null);
+  /** Whether this screen is still here, for a permission prompt that outlives it. */
+  const alive = useRef(true);
   // The turn's frames as they arrive, so the last one can be put back after a
   // reload rather than paid for a second time.
   const frames = useRef<{ turn: string; rate: number; of: ArrayBuffer[] }>({
@@ -255,29 +258,51 @@ export function useInterview(
 
   // --- the microphone ------------------------------------------------------
 
+  /**
+   * Ask for the microphone. **From a click handler and nowhere else.**
+   *
+   * ⚠ This used to be an effect keyed on `inCall`: the press set the state, React
+   * committed, and `getUserMedia` ran a render later with the gesture long gone.
+   * WebKit refuses that without ever raising the prompt, and the refusal it
+   * gives is `NotAllowedError` — the same one a person says no with. So somebody
+   * who was never asked was told they had declined.
+   *
+   * Returns whether it opened, because the caller has a decision to make about
+   * it: nothing settles the answer mode until this is true.
+   */
+  const askForMicrophone = useCallback(async () => {
+    if (microphone.current) return true;
+    const opened = await openMicrophone();
+    if (!alive.current) {
+      // They left while the prompt was up. Closing it here is what stops the
+      // recording indicator staying on for a call nobody is in.
+      if (opened.ok) opened.microphone.close();
+      return false;
+    }
+    if (!opened.ok) {
+      setMicRefusal(opened.refusal);
+      return false;
+    }
+    setMicRefusal("");
+    microphone.current = opened.microphone;
+    opened.microphone.onFrame((frame) => channel.current?.sendAudio(frame));
+    opened.microphone.mute(micMuted);
+    setInCall(true);
+    return true;
+  }, [micMuted]);
+
+  const dropMicrophone = useCallback(() => {
+    microphone.current?.close();
+    microphone.current = null;
+  }, []);
+
   useEffect(() => {
-    if (!inCall) return;
-    let live = true;
-
-    void (async () => {
-      const opened = await openMicrophone();
-      if (!live) return;
-      if (!opened.ok) {
-        setMicTrouble(opened.why);
-        setInCall(false);
-        return;
-      }
-      setMicTrouble("");
-      microphone.current = opened.microphone;
-      opened.microphone.onFrame((frame) => channel.current?.sendAudio(frame));
-    })();
-
+    alive.current = true;
     return () => {
-      live = false;
-      microphone.current?.close();
-      microphone.current = null;
+      alive.current = false;
+      dropMicrophone();
     };
-  }, [inCall]);
+  }, [dropMicrophone]);
 
   useEffect(() => {
     microphone.current?.mute(micMuted);
@@ -293,10 +318,14 @@ export function useInterview(
    */
   const theirTurn = !conversation.answering && !conversation.closed;
   useEffect(() => {
-    if (!inCall || !theirTurn || conversation.listening) return;
+    const open = microphone.current;
+    // The microphone and not `inCall`: listening for a device that never opened
+    // is a turn the service waits out with nothing arriving.
+    if (!inCall || !open || !theirTurn || conversation.listening) return;
     channel.current?.listenStart({
       mime: CAPTURE_MIME,
-      sampleRate: CAPTURE_RATE,
+      // The rate it actually gave, which is not always the one we asked for.
+      sampleRate: open.sampleRate,
     });
     dispatch({ kind: "listening", on: true });
   }, [inCall, theirTurn, conversation.listening]);
@@ -403,9 +432,26 @@ export function useInterview(
       }
       if (surface?.kind === "mode") {
         const mode = answer.value === "speak" ? "speak" : "text";
-        if (mode === "speak") setInCall(true);
-        dispatch({ kind: "confirmed", card: "mode" });
-        send({ mode, edits: [] });
+        if (mode === "text") {
+          dispatch({ kind: "confirmed", card: "mode" });
+          send({ mode, edits: [] });
+          return;
+        }
+        // ⚠ Nothing is settled until the microphone is actually open.
+        //
+        // `chose_mode` used to go out on the press, before `getUserMedia` had
+        // even been called — so the service was told "this person speaks" and
+        // then the microphone refused. The view followed the service into
+        // focus, which is the view with no composer, and the failure notice
+        // lived inside the composer's block. They ended up in a view with no
+        // input, no microphone and nothing on screen saying why.
+        //
+        // Only chat if they ASK for chat: a failure leaves the question open.
+        void askForMicrophone().then((open) => {
+          if (!open) return;
+          dispatch({ kind: "confirmed", card: "mode" });
+          send({ mode: "speak", edits: [] });
+        });
         return;
       }
       if (!surface?.card) return;
@@ -424,7 +470,7 @@ export function useInterview(
       }
       send({ edits: [...flush(outbox).edits, edit] });
     },
-    [outbox, send, surface, conversation.name],
+    [outbox, send, surface, conversation.name, askForMicrophone],
   );
 
   const touchSurface = useCallback(
@@ -450,9 +496,13 @@ export function useInterview(
   const hangUp = useCallback(() => {
     setInCall(false);
     setMicMuted(false);
+    // Released here rather than by an effect's cleanup: leaving a call is them
+    // asking for the device back, and a render later is long enough to notice
+    // the browser still saying it is recording.
+    dropMicrophone();
     channel.current?.listenStop();
     dispatch({ kind: "listening", on: false });
-  }, []);
+  }, [dropMicrophone]);
 
   return {
     ...state,
@@ -461,14 +511,15 @@ export function useInterview(
     inCall,
     micMuted,
     voiceOn,
-    micTrouble,
+    micRefusal,
     say,
     answerSurface,
     touchSurface,
     switchView,
     toggleVoice,
     toggleMic: () => setMicMuted((on) => !on),
-    startCall: () => setInCall(true),
+    /** Asks for the microphone. Call it from a click handler. */
+    startCall: askForMicrophone,
     hangUp,
   };
 }

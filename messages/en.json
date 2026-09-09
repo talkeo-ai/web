@@ -474,8 +474,18 @@
     "voice": {
       "mute": "Mute Talkeo",
       "unmute": "Unmute Talkeo",
-      "notHeard": "I did not catch that. Try again.",
-      "noMic": "I could not use the microphone, so let's keep writing."
+      "notHeard": "I did not catch that. Try again."
+    },
+    "mic": {
+      "denied": "You did not give me permission to use the microphone.",
+      "blocked": "Your browser has the microphone blocked for this site. You can change it from the lock in the address bar.",
+      "missing": "I could not find a microphone.",
+      "busy": "Another app is using the microphone.",
+      "insecure": "I cannot ask for the microphone here.",
+      "broken": "Something broke on my side while opening the microphone.",
+      "unknown": "I could not open the microphone.",
+      "again": "Press again to ask for it, or choose to write.",
+      "orWrite": "You can keep writing."
     },
     "exit": {
       "leave": "Leave",

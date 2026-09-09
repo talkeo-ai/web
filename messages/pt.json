@@ -87,8 +87,18 @@
     "voice": {
       "mute": "Silenciar o Talkeo",
       "unmute": "Ouvir o Talkeo",
-      "notHeard": "Não te ouvi. Tente de novo.",
-      "noMic": "Não consegui usar o microfone, então seguimos escrevendo."
+      "notHeard": "Não te ouvi. Tente de novo."
+    },
+    "mic": {
+      "denied": "Você não me deu permissão para usar o microfone.",
+      "blocked": "Seu navegador tem o microfone bloqueado para este site. Dá para mudar pelo cadeado na barra de endereços.",
+      "missing": "Não encontrei nenhum microfone.",
+      "busy": "Tem outro aplicativo usando o microfone.",
+      "insecure": "Aqui não consigo pedir o microfone.",
+      "broken": "Algo quebrou do meu lado ao abrir o microfone.",
+      "unknown": "Não consegui abrir o microfone.",
+      "again": "Toque de novo para pedir, ou escolha escrever.",
+      "orWrite": "Você pode seguir escrevendo."
     },
     "exit": {
       "leave": "Sair",

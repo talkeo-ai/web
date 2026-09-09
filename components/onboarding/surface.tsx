@@ -6,9 +6,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMarkTarget } from "@/components/talkeo/mark-target";
+import type { MicRefusal } from "@/lib/audio/microphone";
 import type { Surface as SurfaceSpec } from "@/lib/onboarding/surfaces";
 import { playSound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
+
+import { MicNotice } from "./mic-notice";
 
 /**
  * The other way to answer the question that was already asked.
@@ -46,10 +49,13 @@ export type SurfaceAnswer = {
 
 export function Surface({
   surface,
+  refusal,
   onTouch,
   onAnswer,
 }: {
   surface: SurfaceSpec;
+  /** Why the microphone did not open, for the surface that offers it. */
+  refusal?: MicRefusal | "";
   /** They typed in it, ticked something, moved something. */
   onTouch: () => void;
   onAnswer: (answer: SurfaceAnswer) => void;
@@ -60,7 +66,7 @@ export function Surface({
     return <NameSurface onTouch={onTouch} onAnswer={onAnswer} />;
   }
   if (surface.kind === "mode") {
-    return <ModeSurface onAnswer={onAnswer} />;
+    return <ModeSurface refusal={refusal} onAnswer={onAnswer} />;
   }
   if (surface.kind === "scope") {
     return (
@@ -168,14 +174,25 @@ function NameSurface({
   );
 }
 
+/**
+ * Speak or write.
+ *
+ * ⚠ Pressing "speak" asks for the microphone and settles NOTHING until it
+ * opens. Both options stay on screen through a failure, with the reason under
+ * them: the only way into writing is pressing the other button. It used to
+ * declare `speak` on the press and then discover the microphone had refused,
+ * which left somebody in a view with no input and no explanation.
+ */
 function ModeSurface({
+  refusal,
   onAnswer,
 }: {
+  refusal?: MicRefusal | "";
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding");
   return (
-    <Frame title={t("mode.question")} target="control:mode">
+    <Frame title={t("mode.question")} hint={t("mode.hint")} target="control:mode">
       <div className="flex flex-col gap-3">
         <Button
           size="lg"
@@ -192,6 +209,7 @@ function ModeSurface({
         >
           {t("mode.text")}
         </Button>
+        {refusal ? <MicNotice refusal={refusal} className="mt-1" /> : null}
       </div>
     </Frame>
   );
