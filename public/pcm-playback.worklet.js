@@ -9,6 +9,13 @@
  * playback is continuous by construction and a late frame is silence rather than
  * a click.
  *
+ * ⚠ **The ring is a jitter buffer, not a queue.** It holds enough to ride out a
+ * slow frame and no more, so the side that has the audio has to feed it at the
+ * rate it drains. That is why every report carries `room`: it is a credit, and
+ * the sender spends it. Treating the ring as the queue is what made a turn
+ * replayed from cache lose three quarters of itself — 8 s pushed in one call
+ * into 2 s of ring, oldest-sample-first, so only the tail survived.
+ *
  * Plain JavaScript and in `public/` because a worklet is fetched by URL and
  * compiled in its own scope, not bundled.
  *
@@ -37,26 +44,38 @@ class PcmPlayback extends AudioWorkletProcessor {
     this.port.onmessage = (event) => {
       const message = event.data;
       if (message.kind === "frames") this.write(message.samples);
+      // A turn beginning. The count is what the screen reads as "how far into
+      // this turn the voice is", so it belongs to the turn and not to the
+      // context — left running, every turn after the first started its reveal
+      // already finished.
+      else if (message.kind === "begins") this.clear();
       // `flush` is a turn ending: what is in the ring still plays, and the ring
       // is not cleared. `stop` is somebody cutting it off, and it is.
       else if (message.kind === "flush") this.draining = true;
       else if (message.kind === "stop") this.clear();
     };
+
+    // The first credit, so the sender does not have to wait a report to know
+    // how much the ring holds — and so nothing here is a number the other side
+    // has to guess.
+    this.port.postMessage({ kind: "ready", room: this.ring.length });
   }
 
   clear() {
     this.writeAt = 0;
     this.readAt = 0;
     this.filled = 0;
+    this.consumed = 0;
     this.draining = false;
   }
 
   write(samples) {
     this.draining = false;
     for (let i = 0; i < samples.length; i += 1) {
-      // Overrun drops the OLDEST sample rather than the newest: what is arriving
-      // is the more recent sound, and a ring this size only overruns if nothing
-      // is playing at all.
+      // A sender that spends its credit never gets here. It stays as the last
+      // guard against a caller that does not: dropping the OLDEST keeps the
+      // most recent sound, which is the right choice for live audio and the
+      // wrong one for a whole turn arriving at once — hence the credit.
       if (this.filled === this.ring.length) {
         this.readAt = (this.readAt + 1) % this.ring.length;
         this.filled -= 1;
@@ -92,6 +111,9 @@ class PcmPlayback extends AudioWorkletProcessor {
         kind: "played",
         frames: this.consumed,
         buffered: this.filled,
+        // How much more will fit. The sender spends this rather than pushing
+        // what it has.
+        room: this.ring.length - this.filled,
         // Said once, when the last of a turn has been heard, so the screen knows
         // the turn is over rather than guessing from the clock.
         drained: this.draining && this.filled === 0,

@@ -71,7 +71,6 @@
     },
     "mode": {
       "question": "¿Cómo querés responder?",
-      "questionNamed": "{name}, ¿cómo querés responder?",
       "hint": "Talkeo necesita el micrófono para escucharte.",
       "voice": "Activar micrófono",
       "text": "Prefiero escribir"
@@ -88,8 +87,18 @@
     "voice": {
       "mute": "Silenciar a Talkeo",
       "unmute": "Escuchar a Talkeo",
-      "notHeard": "No te escuché. Probá de nuevo.",
-      "noMic": "No pude usar el micrófono, así que seguimos escribiendo."
+      "notHeard": "No te escuché. Probá de nuevo."
+    },
+    "mic": {
+      "denied": "No me diste permiso para usar el micrófono.",
+      "blocked": "Tu navegador tiene el micrófono bloqueado para este sitio. Se cambia desde el candado de la barra de direcciones.",
+      "missing": "No encontré ningún micrófono.",
+      "busy": "Hay otra aplicación usando el micrófono.",
+      "insecure": "Acá no puedo pedir el micrófono.",
+      "broken": "Algo se rompió de mi lado al abrir el micrófono.",
+      "unknown": "No pude abrir el micrófono.",
+      "again": "Tocá de nuevo para pedirlo, o elegí escribir.",
+      "orWrite": "Podés seguir escribiendo."
     },
     "exit": {
       "leave": "Salir",

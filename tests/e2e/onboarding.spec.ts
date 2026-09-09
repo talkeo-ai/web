@@ -13,6 +13,22 @@ import { expect, test } from "@playwright/test";
 /** A turn takes about a second to come back, here as in the service. */
 const TURN = { timeout: 15_000 };
 
+/**
+ * Wait until Talkeo has said something.
+ *
+ * Anchored on the focus view rather than on the turn's text, because that text
+ * is REPLACED by the surface once the turn has been said — so a test that waits
+ * for it and then acts is racing the swap. `data-shows` says which of the two is
+ * up and never goes back to nothing.
+ */
+async function spoken(page: import("@playwright/test").Page) {
+  await expect(page.locator('[data-slot="focus-view"]')).not.toHaveAttribute(
+    "data-shows",
+    "nothing",
+    TURN,
+  );
+}
+
 test("the press on the landing lands in the conversation", async ({ page }) => {
   await page.goto("/es");
   await page.getByRole("link", { name: "Comenzar ahora" }).first().click();
@@ -25,9 +41,6 @@ test("Talkeo speaks first, and the bar says where that is", async ({ page }) => 
 
   const turn = page.locator('[data-slot="turn-text"]').first();
   await expect(turn).toContainText("Hola", TURN);
-  // The entrance streams no text at all — its words are only in the finished
-  // turn — so anything on screen here means the result was rendered and not
-  // just the fragments.
 
   const bar = page.locator('[data-slot="onboarding-progress"]');
   await expect(bar).toHaveAttribute("aria-valuenow", "1");
@@ -35,23 +48,37 @@ test("Talkeo speaks first, and the bar says where that is", async ({ page }) => 
   await expect(bar).toHaveAttribute("aria-valuemax", "7");
 });
 
-test("the surface answers the question rather than asking it again", async ({
+test("the message goes before the surface arrives, never beside it", async ({
   page,
 }) => {
   await page.goto("/es/onboarding");
-  await expect(page.locator('[data-slot="surface-name"]')).toBeVisible(TURN);
+  const focus = page.locator('[data-slot="focus-view"]');
 
-  // Talkeo asked; the field is where it gets answered. The question appearing a
-  // second time as a heading under it is the repetition this whole pattern
-  // exists to avoid.
-  await expect(page.getByRole("heading", { name: /Cómo te llamás/ })).toHaveCount(
-    0,
-  );
+  // Talkeo says it first, alone. This is the half that was inverted: the surface
+  // came up at two seconds and the words at nine, one under the other.
+  await expect(focus).toHaveAttribute("data-shows", "turn", TURN);
+  await expect(page.locator('[data-slot="surface-name"]')).toHaveCount(0);
+
+  // Then it takes its place, and carries the question itself — which it can,
+  // because the turn that asked is no longer on screen to repeat.
+  await expect(focus).toHaveAttribute("data-shows", "surface", TURN);
+  await expect(page.locator('[data-slot="turn-text"]')).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: /Cómo te llamás/ }),
+  ).toBeVisible();
+
+  // ⚠ No raw key ever reaches a screen. A namespace applied twice —
+  // `t("surfaces.scope.title")` inside a `t` already scoped to
+  // `onboarding.surfaces` — put `onboarding.surfaces.surfaces.scope.title` on
+  // screen as the surface's title, and nothing failed. Seen 9/sep.
+  await expect(page.locator("body")).not.toContainText("onboarding.");
 });
 
 test("answering on the surface moves the conversation on", async ({ page }) => {
   await page.goto("/es/onboarding");
-  await page.locator('[data-slot="surface-name"]').fill("Ana", TURN);
+  const field = page.locator('[data-slot="surface-name"]');
+  await expect(field).toBeVisible(TURN);
+  await field.fill("Ana");
   await page.getByRole("button", { name: "Continuar" }).click();
 
   // The second entrance line, which is the one asking how they want to answer.
@@ -62,9 +89,7 @@ test("answering on the surface moves the conversation on", async ({ page }) => {
 
 test("the two views show the same conversation", async ({ page }) => {
   await page.goto("/es/onboarding");
-  await expect(page.locator('[data-slot="turn-text"]').first()).toBeVisible(
-    TURN,
-  );
+  await spoken(page);
 
   const screen = page.locator('[data-slot="onboarding"]');
   await expect(screen).toHaveAttribute("data-view", "focus");
@@ -84,9 +109,7 @@ test("the composer offers the call with nothing written, and send with something
   page,
 }) => {
   await page.goto("/es/onboarding");
-  await expect(page.locator('[data-slot="turn-text"]').first()).toBeVisible(
-    TURN,
-  );
+  await spoken(page);
   await page.locator('[data-slot="view-toggle"]').click();
 
   const action = page.locator('[data-slot="composer-action"]');
@@ -100,9 +123,7 @@ test("leaving asks first, and staying keeps the conversation", async ({
   page,
 }) => {
   await page.goto("/es/onboarding");
-  await expect(page.locator('[data-slot="turn-text"]').first()).toBeVisible(
-    TURN,
-  );
+  await spoken(page);
 
   await page.locator('[data-slot="onboarding-exit"]').click();
   await expect(page.locator('[data-slot="exit-dialog"]')).toBeVisible();

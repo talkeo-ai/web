@@ -64,6 +64,16 @@ export type Conversation = {
   closed: boolean;
   /** Set when the service reported one. Nothing clears it but a new turn. */
   failed: string;
+  /**
+   * The entrance surfaces they have confirmed themselves, by card name.
+   *
+   * The entrance has no cards of the service's — its two facts are the answers
+   * to two fixed lines — so this is what tells "Talkeo read it out of what they
+   * said" from "they pressed the button". The first is a `proposed` card, which
+   * comes up for them to check; the second is `settled`, which does not. Every
+   * other stage gets the same distinction from the card's own state.
+   */
+  confirmed: readonly string[];
 };
 
 export const noConversation: Conversation = {
@@ -79,6 +89,7 @@ export const noConversation: Conversation = {
   listening: false,
   closed: false,
   failed: "",
+  confirmed: [],
 };
 
 export type ConversationAction =
@@ -104,11 +115,53 @@ export type ConversationAction =
    * what to call somebody who just told you is the kind of pause that reads as
    * the product not listening.
    */
-  | { kind: "named"; name: string };
+  | { kind: "named"; name: string }
+  /**
+   * They answered an entrance surface themselves, rather than in the chat.
+   *
+   * It settles that surface where an answer read out of the conversation only
+   * proposes it — which is the difference between "Talkeo thinks you are called
+   * Joaquin, is that right?" and "you told it so".
+   */
+  | { kind: "confirmed"; card: string };
 
 /** What they have said out loud so far, settled and guessed together. */
 export function heardSoFar(transcript: Conversation["transcript"]): string {
   return `${transcript.settled}${transcript.guess}`.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * The conversation's cards, with the entrance's two among them.
+ *
+ * The entrance has no cards of the service's: its facts are the answers to two
+ * fixed lines, and the service keeps them on the flow. Projecting them here is
+ * the one place that difference exists — everything above reads cards, and the
+ * entrance's surfaces are decided by exactly the rule that decides the rest.
+ *
+ * `draft` and not `confirmed` when it came out of the conversation: Talkeo read
+ * a name out of a sentence and that reading is something to put in front of
+ * them, not something to act on silently. Pressing the button IS the acting on
+ * it, so that one settles.
+ */
+export function cardsWithEntrance(
+  state: Conversation,
+): Record<string, InterviewCard> {
+  const entrance: Record<string, InterviewCard> = {};
+  if (state.name) {
+    entrance.name = {
+      card: "name",
+      state: state.confirmed.includes("name") ? "confirmed" : "draft",
+      body: { name: state.name },
+    };
+  }
+  if (state.mode) {
+    entrance.mode = {
+      card: "mode",
+      state: state.confirmed.includes("mode") ? "confirmed" : "draft",
+      body: { mode: state.mode },
+    };
+  }
+  return { ...state.cards, ...entrance };
 }
 
 export function advance(
@@ -153,6 +206,11 @@ export function advance(
 
   if (action.kind === "named") {
     return { ...state, name: action.name };
+  }
+
+  if (action.kind === "confirmed") {
+    if (state.confirmed.includes(action.card)) return state;
+    return { ...state, confirmed: [...state.confirmed, action.card] };
   }
 
   return fold(state, action.message);
@@ -253,7 +311,16 @@ function fold(state: Conversation, message: InterviewMessage): Conversation {
     }
 
     case "stream_error":
-      return { ...state, answering: false, failed: message.error.message };
+      // `turn` goes too, and not only `answering`. A turn that failed is not a
+      // turn still being written, and leaving it in flight left the screen
+      // waiting for it to finish — the surface never appeared again for the
+      // rest of that session, because its gate is "nothing is being said".
+      return {
+        ...state,
+        turn: null,
+        answering: false,
+        failed: message.error.message,
+      };
 
     // Audio is the player's, and a turn's worth of it has no business in a
     // render.

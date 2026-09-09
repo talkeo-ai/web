@@ -2,25 +2,22 @@
 
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 
 import type { OpenedInterview } from "@/app/[locale]/(app)/onboarding/actions";
 import { MarkTargets, useFireMark } from "@/components/talkeo/mark-target";
 import { Button } from "@/components/ui/button";
-import type { TalkeoTurn } from "@/core/contracts";
-import { voice } from "@/lib/audio/voice";
 import { useFollowingScroll } from "@/lib/onboarding/use-following-scroll";
 import { useInterview } from "@/lib/onboarding/use-interview";
 import { heardSoFar } from "@/lib/onboarding/conversation";
 import { VIEW_SWITCH_MS } from "@/lib/onboarding/motion";
 import { useRouter } from "@/lib/i18n/navigation";
-import { useTurnPlayback } from "@/lib/talkeo/use-turn-playback";
 import { cn } from "@/lib/utils";
 
 import { Composer } from "./composer";
 import { ExitDialog } from "./exit-dialog";
 import { FocusView } from "./focus-view";
+import { MicNotice } from "./mic-notice";
 import { ProgressBar } from "./progress-bar";
 import { Surface } from "./surface";
 import { Transcript } from "./transcript";
@@ -38,52 +35,30 @@ import { ViewToggle } from "./view-toggle";
 export function OnboardingScreen({ opened }: { opened: OpenedInterview }) {
   const t = useTranslations("onboarding");
   const router = useRouter();
-  const run = useInterview(opened);
 
+  // Inside `MarkTargets` and not above it: the conversation drives playback, and
+  // playback is what fires marks — so the hook that owns it has to be able to
+  // reach the registry.
   return (
     <MarkTargets>
-      <Screen run={run} t={t} onLeave={() => router.push("/")} />
+      <Screen opened={opened} t={t} onLeave={() => router.push("/")} />
     </MarkTargets>
   );
 }
 
-type Run = ReturnType<typeof useInterview>;
-
 function Screen({
-  run,
+  opened,
   t,
   onLeave,
 }: {
-  run: Run;
+  opened: OpenedInterview;
   t: ReturnType<typeof useTranslations<"onboarding">>;
   onLeave: () => void;
 }) {
   const fire = useFireMark();
   const scroll = useFollowingScroll();
-  const { conversation, view, surface, surfaceReady } = run;
-
-  // The turn being said, in the shape playback reads. Rebuilt as it grows: the
-  // service streams it, so the text is longer every few frames.
-  const live: TalkeoTurn | null = useMemo(
-    () =>
-      conversation.turn
-        ? {
-            turn_id: conversation.turn.id,
-            text: conversation.turn.text,
-            marks: [],
-            word_timings: conversation.turn.timings,
-            audio: null,
-            events: [],
-            closing: false,
-          }
-        : null,
-    [conversation.turn],
-  );
-
-  const playback = useTurnPlayback(live ?? lastSaid(run), {
-    onMark: fire,
-    playhead: voice(),
-  });
+  const run = useInterview(opened, { onMark: fire });
+  const { conversation, view, surface, surfaceReady, live, playback } = run;
 
   const heard = heardSoFar(conversation.transcript);
   const showing = surface && surfaceReady ? surface : null;
@@ -95,7 +70,12 @@ function Screen({
       data-view={view.view}
       className="flex h-dvh flex-col"
     >
-      <header className="flex items-center gap-3 px-4 pt-4 pb-2">
+      {/* The bar, the way out and the mute are one piece and travel together,
+          held to the same column as the conversation and the field below it.
+          Full-bleed, the bar ran the width of the window while everything it
+          was about sat in the middle of it. */}
+      <header className="w-full px-4 pt-4 pb-2">
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
         <ExitDialog
           title={t("exit.title")}
           body={t("exit.body")}
@@ -137,6 +117,7 @@ function Screen({
             <VolumeX className="size-5" />
           )}
         </Button>
+        </div>
       </header>
 
       <main className="relative flex min-h-0 flex-1 flex-col">
@@ -160,12 +141,12 @@ function Screen({
             />
           ) : (
             <FocusView
-              shows={view.shows}
               playback={playback}
               surface={
                 showing ? (
                   <Surface
                     surface={showing}
+                    refusal={run.micRefusal}
                     onTouch={run.touchSurface}
                     onAnswer={run.answerSurface}
                   />
@@ -201,10 +182,8 @@ function Screen({
       {inChat ? (
         <div className="w-full px-4 pt-8 pb-4">
           <div className="mx-auto w-full max-w-3xl">
-            {run.micTrouble ? (
-              <p className="text-text-secondary mb-2 text-sm">
-                {t("voice.noMic")}
-              </p>
+            {run.micRefusal ? (
+              <MicNotice refusal={run.micRefusal} className="mb-2" />
             ) : null}
             <Composer
               placeholder={
@@ -228,27 +207,4 @@ function Screen({
       ) : null}
     </div>
   );
-}
-
-/**
- * The last thing Talkeo said, for focus to show between turns.
- *
- * Focus shows one turn, so between turns it shows the one before — otherwise the
- * screen empties every time somebody answers, which reads as the conversation
- * having ended.
- */
-function lastSaid(run: Run): TalkeoTurn | null {
-  const said = [...run.conversation.thread]
-    .reverse()
-    .find((entry) => entry.from === "talkeo");
-  if (!said) return null;
-  return {
-    turn_id: said.id,
-    text: said.text,
-    marks: said.marks ?? [],
-    word_timings: said.timings ?? [],
-    audio: null,
-    events: [],
-    closing: false,
-  };
 }

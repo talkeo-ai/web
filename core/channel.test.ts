@@ -56,18 +56,23 @@ describe("the recorded interview channel", () => {
     expect(first.stage).toBe(1);
   });
 
-  it("streams no text for the entrance, whose words are only in the result", async () => {
-    // Stage 1 is fixed copy and never reaches a model, so it has no fragments to
-    // stream. A screen that appends deltas and never renders `turn_done` shows a
-    // blank screen here — which is the first thing anybody sees.
+  it("streams the entrance too, even though it is copy and not a model's", async () => {
+    // ⚠ It used to stream nothing here, and so did the service: `turn_started`,
+    // then eight seconds of audio, then the words at `turn_done`. The screen was
+    // blank for the whole greeting — the first thing anybody sees — and the text
+    // arrived once it had finished being said. The service hands copy over the
+    // same way it hands over a model's words now, and so does this.
     vi.useFakeTimers();
     const channel = openMockInterview();
     const seen = await throughOneTurn(channel, () => channel.resume());
     vi.useRealTimers();
 
-    expect(seen.filter((m) => m.kind === "text")).toHaveLength(0);
+    const streamed = seen.filter((message) => message.kind === "text");
+    expect(streamed.length).toBeGreaterThan(0);
     const last = seen.at(-1);
     if (last?.kind !== "turn_done") throw new Error("unreachable");
+    // And the result is still what settles it: a guard can cut a turn after it
+    // has been streamed, so the fragments are never the record.
     expect(last.result.turn.text.length).toBeGreaterThan(10);
   });
 

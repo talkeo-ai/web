@@ -6,9 +6,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMarkTarget } from "@/components/talkeo/mark-target";
+import type { MicRefusal } from "@/lib/audio/microphone";
 import type { Surface as SurfaceSpec } from "@/lib/onboarding/surfaces";
 import { playSound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
+
+import { MicNotice } from "./mic-notice";
 
 /**
  * The other way to answer the question that was already asked.
@@ -46,10 +49,13 @@ export type SurfaceAnswer = {
 
 export function Surface({
   surface,
+  refusal,
   onTouch,
   onAnswer,
 }: {
   surface: SurfaceSpec;
+  /** Why the microphone did not open, for the surface that offers it. */
+  refusal?: MicRefusal | "";
   /** They typed in it, ticked something, moved something. */
   onTouch: () => void;
   onAnswer: (answer: SurfaceAnswer) => void;
@@ -60,7 +66,7 @@ export function Surface({
     return <NameSurface onTouch={onTouch} onAnswer={onAnswer} />;
   }
   if (surface.kind === "mode") {
-    return <ModeSurface onAnswer={onAnswer} />;
+    return <ModeSurface refusal={refusal} onAnswer={onAnswer} />;
   }
   if (surface.kind === "scope") {
     return (
@@ -80,11 +86,11 @@ export function Surface({
 /**
  * The shell every surface sits in.
  *
- * ⚠ `title` is a LABEL and not a question, and the surfaces that answer a
- * question Talkeo just asked do not pass one. The turn above says "¿cómo te
- * llamás?"; a heading underneath repeating it is the same question twice on one
- * screen, which is the repetition this whole pattern exists to avoid. A card has
- * a title because a card is a record and needs saying what it is.
+ * The title is the question, in the surface's own words. It reads as a repeat
+ * only while the turn that asked it is still on screen — which is why the two
+ * are never up at once. Talkeo asks, finishes, and then this replaces it; by
+ * then the question is gone and the surface has to carry it, or somebody who
+ * looked away is answering a field with no question above it.
  */
 function Frame({
   title,
@@ -136,7 +142,7 @@ function NameSurface({
   const written = value.trim();
 
   return (
-    <Frame hint={t("name.hint")} target="control:name">
+    <Frame title={t("name.question")} hint={t("name.hint")} target="control:name">
       <form
         className="flex flex-col gap-3"
         onSubmit={(event) => {
@@ -168,14 +174,25 @@ function NameSurface({
   );
 }
 
+/**
+ * Speak or write.
+ *
+ * ⚠ Pressing "speak" asks for the microphone and settles NOTHING until it
+ * opens. Both options stay on screen through a failure, with the reason under
+ * them: the only way into writing is pressing the other button. It used to
+ * declare `speak` on the press and then discover the microphone had refused,
+ * which left somebody in a view with no input and no explanation.
+ */
 function ModeSurface({
+  refusal,
   onAnswer,
 }: {
+  refusal?: MicRefusal | "";
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding");
   return (
-    <Frame target="control:mode">
+    <Frame title={t("mode.question")} hint={t("mode.hint")} target="control:mode">
       <div className="flex flex-col gap-3">
         <Button
           size="lg"
@@ -192,6 +209,7 @@ function ModeSurface({
         >
           {t("mode.text")}
         </Button>
+        {refusal ? <MicNotice refusal={refusal} className="mt-1" /> : null}
       </div>
     </Frame>
   );
@@ -225,7 +243,11 @@ function ScopeSurface({
   };
 
   return (
-    <Frame hint={t("scope.hint")} target="control:scope">
+    <Frame
+      title={t("scope.title")}
+      hint={t("scope.hint")}
+      target="control:scope"
+    >
       <div className="flex flex-col gap-2">
         {AREAS.map((area) => {
           const on = picked.includes(area);

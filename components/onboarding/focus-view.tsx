@@ -1,46 +1,66 @@
 "use client";
 
 import { TurnText } from "@/components/talkeo/turn-text";
-import type { FocusShows } from "@/lib/onboarding/view-machine";
+import { VIEW_SWITCH_MS } from "@/lib/onboarding/motion";
 import type { TurnPlayback } from "@/lib/talkeo/use-turn-playback";
 
 import { TALKEO_BODY } from "./bubble";
 
 /**
- * One thing at a time.
+ * One thing at a time, and it means one.
  *
- * The last turn, large, and the surface for the stage when there is one. It is
- * the default because it is the intuitive shape: an English app puts something
- * in front of you and you answer it.
+ * Talkeo says something, finishes saying it, and then the surface takes its
+ * place. The two are never both up: the surface is one of the ways to ANSWER
+ * what was just asked, so having it beside the question turns a conversation
+ * into a form with a caption.
  *
- * When it shows only the surface, that is because somebody was pulled here out
- * of the chat — where the turn is already in front of them. Repeating it would
- * be the same words twice on two screens.
+ * ⚠ They used to be siblings in a column, and both showed. What that produced —
+ * measured in a browser on 9/sep — was the surface arriving first and the words
+ * eight seconds later, underneath it. It also forced the surfaces to drop their
+ * titles, because the title IS the question and the question was already on
+ * screen; with the two separated, the title comes back.
+ *
+ * The cross-fade is deliberately the plainest thing that works. The focus view's
+ * animation is its own piece of work and is not this one.
  */
 export function FocusView({
-  shows,
   playback,
   surface,
 }: {
-  shows: FocusShows;
   playback: TurnPlayback;
   surface: React.ReactNode;
 }) {
+  // ⚠ This used to also ask the view machine whether it was showing "the
+  // surface" — the state for somebody pulled here out of the chat. That is
+  // already said by there BEING a surface, and asking twice meant that between
+  // the pull and the surface being ready the view rendered NEITHER: a turn
+  // arrived, the beat had not passed, and the screen was blank while Talkeo
+  // talked. Seen 9/sep on the turn that says "te anoté en el sistema".
+  const saying = !surface && playback.lines.length > 0;
+
   return (
     <div
       data-slot="focus-view"
-      className="flex min-h-0 flex-1 flex-col items-center justify-center gap-10 px-6 py-10"
+      data-shows={surface ? "surface" : saying ? "turn" : "nothing"}
+      className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 py-10"
     >
-      {shows === "the turn" && playback.lines.length > 0 ? (
-        <div className="w-full max-w-xl">
-          <TurnText
-            lines={playback.lines}
-            revealedWords={playback.revealedWords}
-            className={`${TALKEO_BODY} text-[24px] leading-[1.5]`}
-          />
-        </div>
-      ) : null}
-      {surface}
+      <div
+        key={surface ? "surface" : "turn"}
+        className="animate-[message-in] w-full ease-(--ease-standard)"
+        style={{ animationDuration: `${VIEW_SWITCH_MS}ms` }}
+      >
+        {surface ?? (
+          <div className="mx-auto w-full max-w-xl">
+            {saying ? (
+              <TurnText
+                lines={playback.lines}
+                revealedWords={playback.revealedWords}
+                className={`${TALKEO_BODY} text-[24px] leading-[1.5]`}
+              />
+            ) : null}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

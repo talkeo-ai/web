@@ -23,13 +23,26 @@ import { OnboardingScreen } from "./onboarding-screen";
  * thing on this screen is whatever Talkeo says, and a skeleton of a
  * conversation is a shape that is never filled in the way it suggests.
  */
+/**
+ * The call in flight, so a remount joins it instead of making a second one.
+ *
+ * ⚠ React runs an effect, tears it down and runs it again. Both calls read the
+ * cookie before either has written one (`actions.ts:44`), so both took the
+ * "there is no session" branch and **each created an anonymous user and a
+ * session** — one of which is then orphaned in the database, with nobody ever
+ * to come back to it. Keyed by locale because that is what the call takes.
+ */
+const opening = new Map<string, Promise<OpenedInterview>>();
+
 export function OnboardingEntry() {
   const locale = useLocale() as Locale;
   const [opened, setOpened] = useState<OpenedInterview | null>(null);
 
   useEffect(() => {
     let live = true;
-    void openInterviewSession(locale).then((session) => {
+    const already = opening.get(locale) ?? openInterviewSession(locale);
+    opening.set(locale, already);
+    void already.then((session) => {
       if (live) setOpened(session);
     });
     return () => {
