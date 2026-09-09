@@ -70,8 +70,8 @@
       "cta": "Continuar"
     },
     "mode": {
-      "question": "¿Podés hablar ahora?",
-      "questionNamed": "{name}, ¿podés hablar ahora?",
+      "question": "¿Cómo querés responder?",
+      "questionNamed": "{name}, ¿cómo querés responder?",
       "hint": "Talkeo necesita el micrófono para escucharte.",
       "voice": "Activar micrófono",
       "text": "Prefiero escribir"
@@ -81,8 +81,57 @@
       "placeholder": "Escribí tu respuesta",
       "placeholderNamed": "Contame, {name}",
       "latest": "Último turno",
-      "showChat": "La charla",
-      "hideChat": "Ahora"
+      "showChat": "Chat",
+      "hideChat": "Foco",
+      "updated": "Hay algo nuevo para vos"
+    },
+    "voice": {
+      "mute": "Silenciar a Talkeo",
+      "unmute": "Escuchar a Talkeo",
+      "notHeard": "No te escuché. Probá de nuevo.",
+      "noMic": "No pude usar el micrófono, así que seguimos escribiendo."
+    },
+    "exit": {
+      "leave": "Salir",
+      "title": "¿Seguro que querés salir?",
+      "body": "Faltan dos minutos para tener tu primera clase armada. Si salís ahora, esto queda guardado y podés volver.",
+      "stay": "Seguir",
+      "confirm": "Salir igual"
+    },
+    "surfaces": {
+      "confirm": "Confirmar",
+      "next": "Siguiente",
+      "edit": "Editar",
+      "empty": "—",
+      "scope": {
+        "title": "¿En qué querés mejorar?",
+        "hint": "Marcá lo que quieras. Talkeo también lo puede marcar por vos.",
+        "conversation": "Conversación",
+        "pronunciation": "Pronunciación",
+        "vocabulary": "Vocabulario",
+        "grammar": "Gramática",
+        "listening": "Comprensión oral",
+        "reading": "Lectura",
+        "writing": "Escritura"
+      },
+      "goal": {
+        "title": "Tu primer objetivo",
+        "goal": "Qué querés lograr",
+        "work_on": "Qué vamos a trabajar"
+      },
+      "goals": { "title": "Tus objetivos" },
+      "starting_point": {
+        "title": "De dónde partís",
+        "path": "Cómo aprendiste",
+        "comfortable": "Lo que te sale",
+        "wants_to_work": "Lo que querés trabajar",
+        "sees_self": "Cómo te ves hoy"
+      },
+      "about_you": {
+        "title": "Sobre vos",
+        "does": "Qué hacés",
+        "follows": "Qué seguís"
+      }
     },
     "items": {
       "lexicalYesno": {

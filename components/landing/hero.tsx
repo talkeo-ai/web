@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
+import { EnterOnboarding } from "@/components/onboarding/enter-onboarding";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/i18n/navigation";
 
@@ -103,9 +104,7 @@ export async function Hero() {
                 flattened; it is the same drawing, larger. */}
             <div className="order-3 mx-auto mt-8 flex w-full max-w-[371px] flex-col gap-[13.5px] pb-8 lg:pb-0">
               <Button size="lg" variant="raised" className="text-[18px]" asChild>
-                <Link href="/onboarding" prefetch={false}>
-                  {t("cta")}
-                </Link>
+                <EnterOnboarding>{t("cta")}</EnterOnboarding>
               </Button>
               {/* The lip is applied here rather than carried by the variant:
                   it belongs to this pair only, and its partner sitting flat
@@ -135,10 +134,8 @@ export async function Hero() {
                     a bare element gives a mouse-only affordance: nothing to
                     tab to, nothing to announce, and no keyboard equivalent.
                     Labelled explicitly because its contents are a canvas. */}
-                <Link
-                  href="/onboarding"
-                  prefetch={false}
-                  aria-label={t("cta")}
+                <EnterOnboarding
+                  label={t("cta")}
                   className="bg-surface-secondary border-border focus-visible:ring-ring focus-visible:ring-offset-background shadow-raised relative block h-full w-full overflow-hidden rounded-full border focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:outline-none"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -150,7 +147,7 @@ export async function Hero() {
                   <div className="relative h-full w-full">
                     <OrbWidget />
                   </div>
-                </Link>
+                </EnterOnboarding>
               </div>
             </div>
           </div>

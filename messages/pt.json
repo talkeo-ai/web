@@ -70,8 +70,8 @@
       "cta": "Continuar"
     },
     "mode": {
-      "question": "Você pode falar agora?",
-      "questionNamed": "{name}, você pode falar agora?",
+      "question": "Como você quer responder?",
+      "questionNamed": "{name}, como você quer responder?",
       "hint": "O Talkeo precisa do microfone para te ouvir.",
       "voice": "Ativar microfone",
       "text": "Prefiro escrever"
@@ -81,8 +81,57 @@
       "placeholder": "Escreva sua resposta",
       "placeholderNamed": "Me conta, {name}",
       "latest": "Último turno",
-      "showChat": "A conversa",
-      "hideChat": "Agora"
+      "showChat": "Chat",
+      "hideChat": "Foco",
+      "updated": "Tem algo novo para você"
+    },
+    "voice": {
+      "mute": "Silenciar o Talkeo",
+      "unmute": "Ouvir o Talkeo",
+      "notHeard": "Não te ouvi. Tente de novo.",
+      "noMic": "Não consegui usar o microfone, então seguimos escrevendo."
+    },
+    "exit": {
+      "leave": "Sair",
+      "title": "Tem certeza que quer sair?",
+      "body": "Faltam dois minutos para a sua primeira aula ficar pronta. Se sair agora isto fica salvo e você pode voltar.",
+      "stay": "Continuar",
+      "confirm": "Sair mesmo assim"
+    },
+    "surfaces": {
+      "confirm": "Confirmar",
+      "next": "Próximo",
+      "edit": "Editar",
+      "empty": "—",
+      "scope": {
+        "title": "No que você quer melhorar?",
+        "hint": "Marque o que quiser. O Talkeo também pode marcar por você.",
+        "conversation": "Conversação",
+        "pronunciation": "Pronúncia",
+        "vocabulary": "Vocabulário",
+        "grammar": "Gramática",
+        "listening": "Compreensão oral",
+        "reading": "Leitura",
+        "writing": "Escrita"
+      },
+      "goal": {
+        "title": "Seu primeiro objetivo",
+        "goal": "O que você quer alcançar",
+        "work_on": "O que vamos trabalhar"
+      },
+      "goals": { "title": "Seus objetivos" },
+      "starting_point": {
+        "title": "De onde você parte",
+        "path": "Como você aprendeu",
+        "comfortable": "O que sai fácil",
+        "wants_to_work": "O que você quer trabalhar",
+        "sees_self": "Como você se vê hoje"
+      },
+      "about_you": {
+        "title": "Sobre você",
+        "does": "O que você faz",
+        "follows": "O que você acompanha"
+      }
     },
     "items": {
       "lexicalYesno": {
