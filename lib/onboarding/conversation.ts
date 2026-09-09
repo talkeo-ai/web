@@ -253,7 +253,16 @@ function fold(state: Conversation, message: InterviewMessage): Conversation {
     }
 
     case "stream_error":
-      return { ...state, answering: false, failed: message.error.message };
+      // `turn` goes too, and not only `answering`. A turn that failed is not a
+      // turn still being written, and leaving it in flight left the screen
+      // waiting for it to finish — the surface never appeared again for the
+      // rest of that session, because its gate is "nothing is being said".
+      return {
+        ...state,
+        turn: null,
+        answering: false,
+        failed: message.error.message,
+      };
 
     // Audio is the player's, and a turn's worth of it has no business in a
     // render.
