@@ -5,6 +5,7 @@ import { Geist_Mono, Inter, Outfit } from "next/font/google";
 import { locale as localeParam } from "next/root-params";
 
 import { routing } from "@/lib/i18n/routing";
+import { ThemeKeeper } from "@/components/theme-keeper";
 import { themeBootstrapScript } from "@/lib/theme";
 
 import "../globals.css";
@@ -84,7 +85,12 @@ export default async function RootLayout({
             where it stands. `next/script` only promises before hydration,
             which is already after the first paint. */}
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          {/* The script above is never re-run on a client navigation, and
+              switching language is one. This puts the class back. */}
+          <ThemeKeeper />
+          {children}
+        </NextIntlClientProvider>
       </body>
     </html>
   );

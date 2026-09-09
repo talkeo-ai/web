@@ -14,6 +14,34 @@ export const themeBootstrapScript = `try{var t=localStorage.getItem(${JSON.strin
   THEME_STORAGE_KEY,
 )});document.documentElement.classList.toggle("dark",t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches)}catch(e){}`;
 
+/**
+ * Put the chosen theme back on `<html>`, from wherever the app is running.
+ *
+ * ⚠ The bootstrap script above runs when the PARSER reaches it, and a
+ * client-side navigation never parses a document — so switching site language,
+ * which is a real link between two locale segments, re-renders the root layout
+ * and leaves the class list as the server wrote it: light. Reloading was the
+ * only way back. React says so out loud in development: "scripts inside React
+ * components are never executed when rendering on the client".
+ *
+ * The script stays, because it is the only thing early enough for the FIRST
+ * paint. This is the same decision, re-applied for a paint the script cannot
+ * reach.
+ */
+export function applyTheme(): void {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    document.documentElement.classList.toggle(
+      "dark",
+      stored
+        ? stored === "dark"
+        : matchMedia("(prefers-color-scheme: dark)").matches,
+    );
+  } catch {
+    // No storage: leave whatever is on the element.
+  }
+}
+
 export function readTheme(): Theme {
   return document.documentElement.classList.contains("dark") ? "dark" : "light";
 }
