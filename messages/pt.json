@@ -4,7 +4,8 @@
     "description": "O Talkeo mede o que você sabe de inglês — habilidade por habilidade, a partir do seu uso real — e monta a prática de hoje com isso. E mostra o que ainda não mediu."
   },
   "nav": {
-    "language": "Idioma"
+    "language": "Idioma",
+    "theme": "Alternar tema"
   },
   "hero": {
     "headline": "Descubra seu nível de inglês e melhore o que te falta",
@@ -60,6 +61,148 @@
     "loading": "Carregando",
     "sessionReady": "Sessão ativa",
     "sessionMissing": "Sem sessão"
+  },
+  "onboarding": {
+    "name": {
+      "question": "Como você se chama?",
+      "hint": "Para o Talkeo saber como te chamar.",
+      "placeholder": "Seu nome",
+      "cta": "Continuar"
+    },
+    "mode": {
+      "question": "Como você quer responder?",
+      "questionNamed": "{name}, como você quer responder?",
+      "hint": "O Talkeo precisa do microfone para te ouvir.",
+      "voice": "Ativar microfone",
+      "text": "Prefiro escrever"
+    },
+    "chat": {
+      "title": "Onboarding",
+      "placeholder": "Escreva sua resposta",
+      "placeholderNamed": "Me conta, {name}",
+      "latest": "Último turno",
+      "showChat": "Chat",
+      "hideChat": "Foco",
+      "updated": "Tem algo novo para você"
+    },
+    "voice": {
+      "mute": "Silenciar o Talkeo",
+      "unmute": "Ouvir o Talkeo",
+      "notHeard": "Não te ouvi. Tente de novo.",
+      "noMic": "Não consegui usar o microfone, então seguimos escrevendo."
+    },
+    "exit": {
+      "leave": "Sair",
+      "title": "Tem certeza que quer sair?",
+      "body": "Faltam dois minutos para a sua primeira aula ficar pronta. Se sair agora isto fica salvo e você pode voltar.",
+      "stay": "Continuar",
+      "confirm": "Sair mesmo assim"
+    },
+    "surfaces": {
+      "confirm": "Confirmar",
+      "next": "Próximo",
+      "edit": "Editar",
+      "empty": "—",
+      "scope": {
+        "title": "No que você quer melhorar?",
+        "hint": "Marque o que quiser. O Talkeo também pode marcar por você.",
+        "conversation": "Conversação",
+        "pronunciation": "Pronúncia",
+        "vocabulary": "Vocabulário",
+        "grammar": "Gramática",
+        "listening": "Compreensão oral",
+        "reading": "Leitura",
+        "writing": "Escrita"
+      },
+      "goal": {
+        "title": "Seu primeiro objetivo",
+        "goal": "O que você quer alcançar",
+        "work_on": "O que vamos trabalhar"
+      },
+      "goals": { "title": "Seus objetivos" },
+      "starting_point": {
+        "title": "De onde você parte",
+        "path": "Como você aprendeu",
+        "comfortable": "O que sai fácil",
+        "wants_to_work": "O que você quer trabalhar",
+        "sees_self": "Como você se vê hoje"
+      },
+      "about_you": {
+        "title": "Sobre você",
+        "does": "O que você faz",
+        "follows": "O que você acompanha"
+      }
+    },
+    "items": {
+      "lexicalYesno": {
+        "question": "Você conhece esta palavra?",
+        "yes": "Conheço",
+        "no": "Não conheço"
+      },
+      "meaningCard": {
+        "ask": "Diga o que significa. Se não souber, deslize para a esquerda.",
+        "placeholder": "O que significa",
+        "send": "Enviar",
+        "dontKnow": "Não sei"
+      }
+    },
+    "stages": {
+      "items": {
+        "title": "Vamos medir seu nível!",
+        "hint": "Deslize para a direita se conhece a palavra, para a esquerda se não."
+      },
+      "verification": {
+        "title": "Vamos confirmar o que você sabe",
+        "hint": "Diga o que cada uma significa. Se não souber, deslize para a esquerda."
+      }
+    },
+    "progress": "Passo {position} de {total}",
+    "back": "Voltar",
+    "consent": "Para te ouvir, usamos {providers}.",
+    "screens": {
+      "exercises": {
+        "title": "Os exercícios",
+        "body": "Ainda não foram construídos."
+      },
+      "verify": {
+        "title": "Vamos ver o que te falta",
+        "body": "Ainda não foi construída."
+      },
+      "plan": {
+        "title": "Seu plano de hoje",
+        "body": "Ainda não foi construído."
+      },
+      "lesson": {
+        "title": "A lição",
+        "body": "Ainda não foi construída."
+      },
+      "roleplay": {
+        "title": "A prática",
+        "body": "Ainda não foi construída."
+      },
+      "delta": {
+        "title": "O que você aprendeu hoje",
+        "body": "Ainda não foi construído."
+      },
+      "result": {
+        "title": "Seu resultado",
+        "body": "Ainda não foi construído."
+      },
+      "email": {
+        "title": "Salve seu progresso",
+        "body": "Ainda não foi construído."
+      },
+      "home": {
+        "title": "Seu início",
+        "body": "Ainda não foi construído. Por enquanto o percurso termina aqui."
+      }
+    },
+    "panel": {
+      "show": "Mostrar o painel",
+      "hide": "Ocultar o painel",
+      "expand": "Tela cheia",
+      "restore": "Sair da tela cheia"
+    }
   },
   "notFound": {
     "title": "Esta página não existe",

@@ -1,0 +1,118 @@
+{
+  "submit_survey": {
+    "schema_version": 1,
+    "scope": { "areas": ["conversation", "vocabulary"], "version": 1 },
+    "flow": { "step": "survey", "mode": "standard", "mic_granted": false, "display_name": null }
+  },
+  "set_display_name": {
+    "schema_version": 1,
+    "ok": true,
+    "flow": { "step": "survey", "mode": "standard", "mic_granted": false, "display_name": "Caro" }
+  },
+  "set_mic_permission": {
+    "schema_version": 1,
+    "ok": true,
+    "flow": { "step": "kai_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "log_kai_turn": {
+    "schema_version": 1,
+    "ok": true,
+    "flow": { "step": "kai_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "get_situation_classes": {
+    "schema_version": 1,
+    "classes": [
+      { "situation_class_id": "job_interview", "name": "Entrevista de trabajo" },
+      { "situation_class_id": "daily_work", "name": "Trabajo del día a día" },
+      { "situation_class_id": "travel", "name": "Viaje" },
+      { "situation_class_id": "exam", "name": "Examen" },
+      { "situation_class_id": "social", "name": "Social" }
+    ]
+  },
+  "create_goal_draft": {
+    "schema_version": 1,
+    "goal": {
+      "goal_id": "b2c3d4e5-0002-4000-8000-000000000002",
+      "kind": "main",
+      "status": "draft",
+      "name": "Pasar entrevistas de trabajo en inglés",
+      "focus": "encontrar las palabras",
+      "target_date": null,
+      "version": 0,
+      "signed_ts": null
+    },
+    "flow": { "step": "kai_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "update_goal_draft": {
+    "schema_version": 1,
+    "goal": {
+      "goal_id": "b2c3d4e5-0002-4000-8000-000000000002",
+      "kind": "main",
+      "status": "draft",
+      "name": "Pasar entrevistas de trabajo en inglés",
+      "focus": "encontrar las palabras a tiempo",
+      "target_date": null,
+      "version": 0,
+      "signed_ts": null
+    },
+    "flow": { "step": "kai_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "sign_goal": {
+    "schema_version": 1,
+    "goal": {
+      "goal_id": "b2c3d4e5-0002-4000-8000-000000000002",
+      "kind": "main",
+      "status": "active",
+      "name": "Pasar entrevistas de trabajo en inglés",
+      "focus": "encontrar las palabras",
+      "target_date": null,
+      "version": 1,
+      "signed_ts": "2026-08-27T18:12:00Z"
+    },
+    "flow": { "step": "kai_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "get_goal": {
+    "schema_version": 1,
+    "goals": [
+      {
+        "goal_id": "b2c3d4e5-0002-4000-8000-000000000002",
+        "kind": "main",
+        "status": "active",
+        "name": "Pasar entrevistas de trabajo en inglés",
+        "focus": "encontrar las palabras",
+        "target_date": null,
+        "version": 1,
+        "signed_ts": "2026-08-27T18:12:00Z"
+      }
+    ]
+  },
+  "set_situation_class": {
+    "schema_version": 1,
+    "ok": true,
+    "flow": { "step": "kai_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "set_need_future": {
+    "schema_version": 1,
+    "ok": true,
+    "flow": { "step": "kai_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "add_interest": {
+    "schema_version": 1,
+    "ok": true,
+    "flow": { "step": "kai_interview", "mode": "standard", "mic_granted": true, "display_name": "Caro" }
+  },
+  "get_state_summary": {
+    "schema_version": 1,
+    "state_summary": {
+      "areas": [
+        { "area": "reading", "status": "measured", "evidence_refs": ["ev_9001", "ev_9002", "ev_9003"] },
+        { "area": "writing", "status": "measured", "evidence_refs": ["ev_9004", "ev_9005"] },
+        { "area": "vocabulary", "status": "measured", "evidence_refs": ["ev_9006", "ev_9007"] },
+        { "area": "grammar", "status": "partial", "evidence_refs": ["ev_9008"] },
+        { "area": "listening", "status": "partial", "evidence_refs": ["ev_9009"] },
+        { "area": "pronunciation", "status": "partial", "evidence_refs": ["ev_9010"] },
+        { "area": "conversation", "status": "gray", "evidence_refs": [] }
+      ]
+    }
+  }
+}

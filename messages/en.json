@@ -4,7 +4,8 @@
     "description": "Talkeo measures what you actually know in English — skill by skill, from how you use it — and builds today's practice from that. It shows you what it hasn't measured yet."
   },
   "nav": {
-    "language": "Site language"
+    "language": "Site language",
+    "theme": "Switch theme"
   },
   "hero": {
     "headline": "Discover your English level and improve what you're missing",
@@ -447,6 +448,148 @@
     "loading": "Loading",
     "sessionReady": "Session active",
     "sessionMissing": "No session"
+  },
+  "onboarding": {
+    "name": {
+      "question": "What's your name?",
+      "hint": "So Talkeo knows what to call you.",
+      "placeholder": "Your name",
+      "cta": "Continue"
+    },
+    "mode": {
+      "question": "How would you like to answer?",
+      "questionNamed": "{name}, how would you like to answer?",
+      "hint": "Talkeo needs the microphone to hear you.",
+      "voice": "Turn on the microphone",
+      "text": "I'd rather write"
+    },
+    "chat": {
+      "title": "Onboarding",
+      "placeholder": "Type your answer",
+      "placeholderNamed": "Tell me, {name}",
+      "latest": "Latest turn",
+      "showChat": "Chat",
+      "hideChat": "Focus",
+      "updated": "There is something new for you"
+    },
+    "voice": {
+      "mute": "Mute Talkeo",
+      "unmute": "Unmute Talkeo",
+      "notHeard": "I did not catch that. Try again.",
+      "noMic": "I could not use the microphone, so let's keep writing."
+    },
+    "exit": {
+      "leave": "Leave",
+      "title": "Are you sure you want to leave?",
+      "body": "Your first class is two minutes away. If you leave now this is saved and you can come back.",
+      "stay": "Keep going",
+      "confirm": "Leave anyway"
+    },
+    "surfaces": {
+      "confirm": "Confirm",
+      "next": "Next",
+      "edit": "Edit",
+      "empty": "—",
+      "scope": {
+        "title": "What would you like to get better at?",
+        "hint": "Tick whatever you like. Talkeo can also tick them for you.",
+        "conversation": "Conversation",
+        "pronunciation": "Pronunciation",
+        "vocabulary": "Vocabulary",
+        "grammar": "Grammar",
+        "listening": "Listening",
+        "reading": "Reading",
+        "writing": "Writing"
+      },
+      "goal": {
+        "title": "Your first objective",
+        "goal": "What you want to achieve",
+        "work_on": "What we will work on"
+      },
+      "goals": { "title": "Your objectives" },
+      "starting_point": {
+        "title": "Where you start from",
+        "path": "How you learned",
+        "comfortable": "What comes easily",
+        "wants_to_work": "What you want to work on",
+        "sees_self": "How you see yourself today"
+      },
+      "about_you": {
+        "title": "About you",
+        "does": "What you do",
+        "follows": "What you follow"
+      }
+    },
+    "items": {
+      "lexicalYesno": {
+        "question": "Do you know this word?",
+        "yes": "I know it",
+        "no": "I don't"
+      },
+      "meaningCard": {
+        "ask": "Say what it means. If you don't know it, swipe left.",
+        "placeholder": "What it means",
+        "send": "Send",
+        "dontKnow": "I don't know it"
+      }
+    },
+    "stages": {
+      "items": {
+        "title": "Let's measure your level",
+        "hint": "Swipe right if you know the word, left if you don't."
+      },
+      "verification": {
+        "title": "Let's confirm what you know",
+        "hint": "Say what each one means. If you don't know it, swipe left."
+      }
+    },
+    "progress": "Step {position} of {total}",
+    "back": "Back",
+    "consent": "To hear you, we use {providers}.",
+    "screens": {
+      "exercises": {
+        "title": "The exercises",
+        "body": "Not built yet."
+      },
+      "verify": {
+        "title": "Let's see what you're missing",
+        "body": "Not built yet."
+      },
+      "plan": {
+        "title": "Your plan for today",
+        "body": "Not built yet."
+      },
+      "lesson": {
+        "title": "The lesson",
+        "body": "Not built yet."
+      },
+      "roleplay": {
+        "title": "The practice",
+        "body": "Not built yet."
+      },
+      "delta": {
+        "title": "What you learned today",
+        "body": "Not built yet."
+      },
+      "result": {
+        "title": "Your result",
+        "body": "Not built yet."
+      },
+      "email": {
+        "title": "Save your progress",
+        "body": "Not built yet."
+      },
+      "home": {
+        "title": "Your home",
+        "body": "Not built yet. For now, the run ends here."
+      }
+    },
+    "panel": {
+      "show": "Show the panel",
+      "hide": "Hide the panel",
+      "expand": "Full screen",
+      "restore": "Exit full screen"
+    }
   },
   "notFound": {
     "title": "This page doesn't exist",

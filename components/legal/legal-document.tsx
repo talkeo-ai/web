@@ -22,8 +22,8 @@ import type { LegalDocument as Document } from "@/lib/legal";
 export function LegalDocument({ document }: { document: Document }) {
   return (
     <main className="mx-auto w-full max-w-[76ch] px-6 pt-32 pb-28 lg:px-8">
-      <header className="border-border/60 border-b pb-8">
-        <h1 className="text-foreground font-heading text-[30px] leading-[1.2] font-medium [font-stretch:96%] sm:text-[38px]">
+      <header className="border-separator border-b pb-8">
+        <h1 className="text-foreground font-heading text-[30px] leading-[1.2] font-semibold tracking-[-0.02em] sm:text-[38px]">
           {document.title}
         </h1>
         <p className="text-text-tertiary mt-3 text-sm">{document.updated}</p>
