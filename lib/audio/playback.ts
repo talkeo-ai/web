@@ -187,7 +187,15 @@ export function createPlayback(): Playback {
       node?.port.postMessage({ kind: "begins" });
       heardMs = 0;
       anchorAt = performance.now();
-      if (gain) gain.gain.value = 1;
+      // ⚠ Cancelled, not assigned. `stop()` leaves a ramp to zero on the
+      // timeline, and assigning `.value` while automation is scheduled does
+      // nothing — the timeline wins and its last value is zero. So the gain
+      // stayed shut for the rest of the session: the greeting was heard, the
+      // person answered, and every turn after it was silent. Heard 9/sep.
+      if (gain && context) {
+        gain.gain.cancelScheduledValues(context.currentTime);
+        gain.gain.setValueAtTime(1, context.currentTime);
+      }
       feed();
     },
 

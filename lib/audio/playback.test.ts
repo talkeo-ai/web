@@ -85,6 +85,7 @@ class FakeWorklet {
 }
 
 let worklet: FakeWorklet;
+let gain: { gain: { value: number } };
 
 class FakeContext {
   state = "running";
@@ -92,14 +93,35 @@ class FakeContext {
   destination = {};
   audioWorklet = { addModule: async () => {} };
   createGain() {
-    return {
+    // A gain that behaves the way the real one does about automation: once a
+    // ramp is on the timeline, assigning `.value` does nothing. That is the
+    // whole point of the test below, and a fake that let the assignment work
+    // would have passed on the broken code.
+    const node = {
+      scheduled: false,
       gain: {
-        value: 1,
-        setValueAtTime: () => {},
-        linearRampToValueAtTime: () => {},
+        _value: 1,
+        get value() {
+          return node.scheduled ? 0 : node.gain._value;
+        },
+        set value(next: number) {
+          node.gain._value = next;
+        },
+        setValueAtTime: (next: number) => {
+          node.scheduled = false;
+          node.gain._value = next;
+        },
+        linearRampToValueAtTime: () => {
+          node.scheduled = true;
+        },
+        cancelScheduledValues: () => {
+          node.scheduled = false;
+        },
       },
       connect: <T>(next: T) => next,
     };
+    gain = node;
+    return node;
   }
   async resume(): Promise<void> {}
   async close(): Promise<void> {}
@@ -192,6 +214,23 @@ describe("the voice, streamed", () => {
     playOut(player);
 
     expect(worklet.heard).toHaveLength(RATE);
+  });
+
+  it("opens the speaker again for the turn after the one it cut", async () => {
+    const player = createPlayback();
+    await player.begins("tt_0000", { sampleRate: RATE });
+    worklet.ready();
+    player.push("tt_0000", tone(1));
+
+    // They answered, so the voice is faded out rather than cut mid-word.
+    player.stop();
+    expect(gain.gain.value).toBe(0);
+
+    // And the reply has to be audible. Assigning the gain back does nothing
+    // while the fade is still on the timeline, so every turn after the first
+    // answer came out silent.
+    await player.begins("tt_0001", { sampleRate: RATE });
+    expect(gain.gain.value).toBe(1);
   });
 
   it("says a turn is over only once the queue behind it is empty too", async () => {
