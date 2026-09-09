@@ -10,19 +10,37 @@ function at(
   stage: number,
   cards: Record<string, InterviewCard> = noCards,
 ) {
-  return surfaceFor({ stage, cards, named: true, mode: "text" });
+  return surfaceFor({ stage, cards });
+}
+
+function card(name: string, state: string): InterviewCard {
+  return { card: name, state, body: {} };
 }
 
 describe("the entrance", () => {
   it("asks the name first, and how they want to answer after it", () => {
-    const cards = noCards;
-    expect(
-      surfaceFor({ stage: 1, cards, named: false, mode: "" })?.kind,
-    ).toBe("name");
-    expect(surfaceFor({ stage: 1, cards, named: true, mode: "" })?.kind).toBe(
-      "mode",
-    );
-    expect(surfaceFor({ stage: 1, cards, named: true, mode: "text" })).toBeNull();
+    expect(at(1)?.kind).toBe("name");
+    expect(at(1, { name: card("name", "confirmed") })?.kind).toBe("mode");
+    // Both settled: the last one stays up as the record it is, the same as any
+    // other stage whose card is agreed to.
+    const done = at(1, {
+      name: card("name", "confirmed"),
+      mode: card("mode", "confirmed"),
+    });
+    expect(done?.kind).toBe("mode");
+    expect(done?.state).toBe("settled");
+  });
+
+  it("is decided by the same rule as every other stage", () => {
+    // ⚠ A name that arrived from the CHAT used to make its surface disappear:
+    // the entrance was written as "if there is no name, ask for it", so having
+    // one meant there was nothing to show. It comes up proposed instead, with
+    // what Talkeo understood in it, for them to confirm — which is §3.4, and
+    // which is what stages 2 to 6 have always done.
+    const read = at(1, { name: card("name", "draft") });
+    expect(read?.kind).toBe("name");
+    expect(read?.state).toBe("proposed");
+    expect(wantsAttention(read)).toBe(true);
   });
 });
 

@@ -2,6 +2,7 @@ import type { CardEdit } from "@/core/contracts";
 
 import {
   advance,
+  cardsWithEntrance,
   noConversation,
   type Conversation,
   type ConversationAction,
@@ -120,9 +121,7 @@ export function step(
 function surfaceOf(conversation: Conversation): Surface | null {
   return surfaceFor({
     stage: conversation.stage,
-    cards: conversation.cards,
-    named: Boolean(conversation.name),
-    mode: conversation.mode,
+    cards: cardsWithEntrance(conversation),
   });
 }
 
