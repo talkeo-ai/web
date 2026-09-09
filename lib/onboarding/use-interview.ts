@@ -10,10 +10,11 @@ import {
   openMicrophone,
   type Microphone,
 } from "@/lib/audio/microphone";
-import { voice } from "@/lib/audio/voice";
+import { claimVoiceOnFirstGesture, voice } from "@/lib/audio/voice";
 
 import type { OpenedInterview } from "@/app/[locale]/(app)/onboarding/actions";
 
+import type { Said } from "./conversation";
 import { flush } from "./outbox";
 import { nothingYet, step } from "./machine";
 import { SURFACE_AFTER_MS } from "./motion";
@@ -29,6 +30,56 @@ import type { View } from "./view-machine";
  * outside React — a socket, a microphone, an audio graph, a timer — which is
  * what an effect is actually for.
  */
+
+/**
+ * The open channels, so a remount reuses one instead of opening a second.
+ *
+ * ⚠ React mounts an effect, tears it down and mounts it again in development.
+ * A channel opened per mount means two sockets on the same session, and **both
+ * ask for a turn** — so the greeting was produced for the first and the second
+ * got the line after it, and the first thing anybody sees never appeared.
+ * Closing is deferred by a tick for the same reason: the teardown and the second
+ * mount happen in the same breath.
+ */
+const channels = new Map<string, { channel: InterviewChannel; users: number }>();
+
+function shareInterview(sessionId: string): InterviewChannel {
+  const open = channels.get(sessionId);
+  if (open) {
+    open.users += 1;
+    return open.channel;
+  }
+  const channel = openInterview(sessionId);
+  channels.set(sessionId, { channel, users: 1 });
+  return channel;
+}
+
+/** The one turn the service hands back on a resume, as a thread of one. */
+function lastSaid(opened: OpenedInterview): Said[] {
+  const said = opened.lastTurn;
+  if (!said) return [];
+  return [
+    {
+      id: said.turn_id,
+      from: "talkeo",
+      text: said.text,
+      marks: said.marks,
+      timings: said.word_timings,
+    },
+  ];
+}
+
+function releaseInterview(sessionId: string): void {
+  const open = channels.get(sessionId);
+  if (!open) return;
+  open.users -= 1;
+  setTimeout(() => {
+    const still = channels.get(sessionId);
+    if (!still || still.users > 0) return;
+    channels.delete(sessionId);
+    still.channel.close();
+  }, 0);
+}
 export function useInterview(opened: OpenedInterview) {
   const [state, dispatch] = useReducer(step, nothingYet);
   const [inCall, setInCall] = useState(false);
@@ -39,6 +90,9 @@ export function useInterview(opened: OpenedInterview) {
   const player = useMemo(() => voice(), []);
   const channel = useRef<InterviewChannel | null>(null);
   const microphone = useRef<Microphone | null>(null);
+  // Whether this session has already been asked for a turn. It survives the
+  // remount, which is the whole point.
+  const asked = useRef(false);
   // The turn's frames as they arrive, so the last one can be put back after a
   // reload rather than paid for a second time.
   const frames = useRef<{ turn: string; rate: number; of: ArrayBuffer[] }>({
@@ -61,8 +115,10 @@ export function useInterview(opened: OpenedInterview) {
         kind: "restored",
         // The service's side is authoritative and arrives with the session; the
         // thread is the browser's own copy, because the transcript never leaves
-        // the service.
-        thread: kept?.thread ?? [],
+        // the service. With no copy — another browser, cleared storage — the
+        // last turn is still known, and one turn is a better place to come back
+        // to than a blank screen.
+        thread: kept?.thread ?? lastSaid(opened),
         cards: opened.cards,
         stage: opened.stage,
         stagesTotal: opened.stagesTotal,
@@ -82,10 +138,16 @@ export function useInterview(opened: OpenedInterview) {
     };
   }, [sessionId, opened, player]);
 
+  // --- being allowed to make a sound ---------------------------------------
+
+  useEffect(() => claimVoiceOnFirstGesture(), []);
+
   // --- the socket ----------------------------------------------------------
 
   useEffect(() => {
-    const open = openInterview(sessionId);
+    const open = shareInterview(sessionId);
+    const first = !opened.lastTurn && !asked.current;
+    asked.current = true;
     channel.current = open;
     let live = true;
 
@@ -120,15 +182,16 @@ export function useInterview(opened: OpenedInterview) {
     })();
 
     // Nothing arrives until something is asked for: the service answers, it
-    // never opens. This is also how the interview starts.
-    open.resume();
+    // never opens. This is also how the interview starts — and it is asked ONCE
+    // per session, because asking twice walks the conversation forward twice.
+    if (first) open.resume();
 
     return () => {
       live = false;
-      open.close();
+      releaseInterview(sessionId);
       channel.current = null;
     };
-  }, [sessionId, player]);
+  }, [sessionId, player, opened.lastTurn]);
 
   // --- keeping what a reload will need -------------------------------------
 
