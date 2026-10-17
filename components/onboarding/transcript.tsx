@@ -66,10 +66,12 @@ export function Transcript({
 
           {/* Not before its first word: the turn opens about a second before
               there is anything to say, and the bubble sat empty through it.
-              Without the fade, too — it used to run on the empty bubble where
-              nobody saw it, and on the text it reads as the words dimmed. */}
+              And it is simply there, with no fade and no growing: both ran on
+              the empty bubble before, where nobody saw them, and on the text
+              the fade dims the words and the growing clips them. The words
+              writing themselves in are the arrival. */}
           {live && playback.revealedWords > 0 ? (
-            <Arriving key={live.turn_id} first={said.length === 0}>
+            <div key={live.turn_id} className={said.length === 0 ? undefined : "pt-8"}>
               <Bubble from="talkeo" arriving={false}>
                 <TurnText
                   lines={playback.lines}
@@ -77,7 +79,7 @@ export function Transcript({
                   className={TALKEO_BODY}
                 />
               </Bubble>
-            </Arriving>
+            </div>
           ) : null}
 
           {surface ? (

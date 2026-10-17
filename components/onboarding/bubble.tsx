@@ -75,18 +75,7 @@ export function Bubble({
  * It only has to cover the first line — from there `TurnText` grows on its own
  * as the voice reaches each one, and `1fr` hands the height back to it.
  */
-export function Arriving({
-  children,
-  first = false,
-}: {
-  children: ReactNode;
-  /**
-   * Whether nothing is above it. The settled thread drops the space on its first
-   * message (`first:pt-0`), and an arriving one that kept it came in 32px low and
-   * jumped up the moment it settled — the greeting, every time.
-   */
-  first?: boolean;
-}) {
+export function Arriving({ children }: { children: ReactNode }) {
   const [grown, setGrown] = useState(false);
 
   useEffect(() => {
@@ -107,7 +96,7 @@ export function Arriving({
       <div className="overflow-hidden">
         {/* The spacing lives inside the clipped row, so it grows with the
             bubble instead of being there before it. */}
-        <div className={first ? undefined : "pt-8"}>{children}</div>
+        <div className="pt-8">{children}</div>
       </div>
     </div>
   );
