@@ -72,7 +72,7 @@ export function Transcript({
               writing themselves in are the arrival. */}
           {live && playback.revealedWords > 0 ? (
             <div key={live.turn_id} className={said.length === 0 ? undefined : "pt-8"}>
-              <Bubble from="talkeo" arriving={false}>
+              <Bubble from="talkeo" arriving={false} growing>
                 <TurnText
                   lines={playback.lines}
                   revealedWords={playback.revealedWords}
