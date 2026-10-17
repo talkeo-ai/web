@@ -62,7 +62,10 @@ export function useFollowingScroll() {
 
     const observer = new ResizeObserver(() => {
       if (!following.current) return;
-      box.scrollTop = box.scrollHeight;
+      // Glided, not set: a new bubble or a new line used to throw the whole
+      // thread up by its height in one frame, which is the jump that read as
+      // the layout shifting under the words.
+      box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
     });
 
     observer.observe(inner);
