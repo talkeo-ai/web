@@ -200,7 +200,7 @@ function Frame({
       data-pointed={mark ? "true" : "false"}
       className={cn(
         TONE.card,
-        "mr-auto flex w-full max-w-[56ch] flex-col gap-2 rounded-2xl p-2",
+        "mr-auto flex w-full max-w-[56ch] flex-col gap-2 rounded-[22px] p-2",
         "transition-[box-shadow] duration-(--duration-highlight-out) ease-(--ease-standard)",
         mark && "ring-foreground/30 ring-2",
       )}
@@ -234,21 +234,22 @@ function Frame({
 }
 
 /**
- * A choice, as a tile: a solid thing to press, resting on a soft shadow.
- * Picked, its edge and its icon's well turn to the ink colour.
+ * A choice, built the way the reference builds it: a grey shape with the icon
+ * at its left, and the label on a face laid over its right part. The face has
+ * the only border; the grey shape has none, so there is one outline and not
+ * two lines running side by side. Same corner on both, so the face's left
+ * edge reads as a card laid on the shape.
+ *
+ * Picked, the well turns to the ink colour and the face's edge with it.
  */
 function tile(on: boolean) {
   return cn(
-    "group relative flex cursor-pointer items-stretch overflow-hidden rounded-lg border text-left outline-none select-none",
+    "group relative flex cursor-pointer items-stretch rounded-[14px] text-left outline-none select-none",
     // Hover only firms up the edge. Nothing moves: a tile rising under the
     // pointer read as the list wobbling (Joaquin, 17/oct).
-    "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
-    "shadow-[0_1px_2px_0_rgb(0_0_0/0.05)]",
+    "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
-    // The tile's own fill is the icon's well; the body sits on top of it.
-    on
-      ? cn(TONE.picked.edge, TONE.picked.well)
-      : cn(TONE.edge, TONE.edgeHover, TONE.well),
+    on ? TONE.picked.well : TONE.well,
   );
 }
 
@@ -262,27 +263,27 @@ function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid w-10 shrink-0 place-items-center",
+        "grid w-12 shrink-0 place-items-center",
         "transition-[color] duration-(--duration-control) ease-(--ease-standard)",
         on ? TONE.picked.icon : TONE.icon,
       )}
     >
-      <Icon className="size-4" strokeWidth={1.75} />
+      <Icon className="size-[18px]" strokeWidth={1.75} />
     </span>
   );
 }
 
-/** What a tile says, on its own face over the well, rounded where it meets it. */
-function TileBody({ children }: { children: React.ReactNode }) {
+/** What a tile says: the bordered face laid over the right of the tile. */
+function TileBody({ on, children }: { on: boolean; children: React.ReactNode }) {
   return (
     <span
       className={cn(
-        // Inset from the tile's edge on three sides, so the face floats inside
-        // the tile instead of running into its border, as in the reference.
-        // 3px off an 8px corner leaves 5px, so the two curves stay parallel;
-        // the padding gives back the 6px, so the tile keeps its height.
-        "my-[3px] mr-[3px] flex min-w-0 flex-1 items-center gap-3 rounded-[5px] px-3 py-[7px]",
+        "flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-[14px] border py-2.5 pr-3 pl-4",
+        "transition-[border-color] duration-(--duration-control) ease-(--ease-standard)",
         TONE.face,
+        on
+          ? TONE.picked.edge
+          : cn(TONE.edge, "group-hover:border-black/[0.18] dark:group-hover:border-white/[0.18]"),
       )}
     >
       {children}
@@ -346,7 +347,7 @@ function NameSurface({
             TONE.edge,
             TONE.edgeHover,
             // The button's height and corner, so the two read as one line.
-            "h-10 min-w-0 flex-1 rounded-lg px-3 text-[15px]",
+            "h-11 min-w-0 flex-1 rounded-[12px] px-4 text-[15px]",
             TONE.focus,
           )}
           value={value}
@@ -361,7 +362,7 @@ function NameSurface({
           aria-label={t("name.question")}
           data-slot="surface-name"
         />
-        <Button type="submit" variant="primary" size="sm" className="rounded-lg" disabled={!written}>
+        <Button type="submit" variant="primary" size="sm" className="h-11 rounded-[12px]" disabled={!written}>
           <Check className="size-4" strokeWidth={2.5} />
           {t("name.cta")}
         </Button>
@@ -459,8 +460,8 @@ function OptionRow({
       className={tile(picked)}
     >
       <TileIcon icon={icon} on={picked} />
-      <TileBody>
-        <span className="text-foreground flex-1 text-[14px] font-medium">
+      <TileBody on={picked}>
+        <span className="text-foreground flex-1 text-[15px] leading-snug">
           {label}
         </span>
         {picked ? (
@@ -525,8 +526,8 @@ function ScopeSurface({
               className={tile(on)}
             >
               <TileIcon icon={AREA_ICON[area]} on={on} />
-              <TileBody>
-                <span className="text-foreground flex-1 text-[14px] leading-tight font-medium">
+              <TileBody on={on}>
+                <span className="text-foreground flex-1 text-[15px] leading-snug">
                   {t(`scope.${area}`)}
                 </span>
                 <Tick on={on} />
@@ -539,7 +540,7 @@ function ScopeSurface({
         <Footer>
           <Button
             variant="primary"
-            size="sm" className="rounded-lg"
+            size="sm" className="h-11 rounded-[12px]"
             disabled={picked.length === 0}
             data-slot="surface-confirm"
             onClick={() =>
@@ -603,7 +604,7 @@ function CardSurface({
         <Footer>
           <Button
             variant="primary"
-            size="sm" className="rounded-lg"
+            size="sm" className="h-11 rounded-[12px]"
             data-slot="surface-confirm"
             onClick={() => onAnswer({ field: "", value: "", confirms: true })}
           >
@@ -784,17 +785,17 @@ function Tick({ on }: { on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid size-4 shrink-0 place-items-center rounded-[4px] border-[1.5px]",
+        "grid size-5 shrink-0 place-items-center rounded-[6px] border-[1.5px]",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
           ? "border-foreground bg-foreground text-background"
-          : "border-black/25 group-hover:border-black/40 dark:border-white/25 dark:group-hover:border-white/40",
+          : "border-black/15 group-hover:border-black/30 dark:border-white/15 dark:group-hover:border-white/30",
       )}
     >
       <Check
         strokeWidth={3}
         className={cn(
-          "size-3 transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
+          "size-3.5 transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
           on ? "scale-100 opacity-100" : "scale-50 opacity-0",
         )}
       />
