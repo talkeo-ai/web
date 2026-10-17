@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
  * both come in — the clip stops at the last line whose first word has been
  * spoken.
  *
- * A line resolves out of blur rather than fading in flat. A plain opacity ramp
+ * Each word resolves out of blur rather than fading in flat. A plain opacity ramp
  * is a light switch: at every moment the text is fully formed and merely dim,
  * which reads as a rendering delay. Coming out of focus reads as something
  * being written, because that is what resolving looks like.
@@ -171,14 +171,11 @@ export function TurnText({
           bubble's own position in the column. */}
       <p ref={paragraph} className="relative text-pretty">
         {words.map((word, index) => {
-          // Its line, found by walking the starts. Before the first
-          // measurement everything is line zero, which is what makes the very
-          // first line resolve rather than pop.
-          let line = 0;
-          while (line + 1 < lineStarts.length && lineStarts[line + 1]! <= index) {
-            line += 1;
-          }
-          const shown = bornSettled || line < visibleLines;
+          // Word by word, not a line at a time. The box still grows by lines;
+          // what is written into it resolves one word after another, at the
+          // pace the text runs ahead of the voice. A whole line coming out of
+          // blur at once read as a block landing, not as writing.
+          const shown = bornSettled || index < revealedWords;
 
           return (
             <span
