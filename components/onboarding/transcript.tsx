@@ -64,7 +64,10 @@ export function Transcript({
             </div>
           ))}
 
-          {live ? (
+          {/* Not before its first word. The turn opens before there is anything
+              to say — the stream starts, the voice has not — and a bubble up in
+              that gap sat empty for a moment and then started writing. */}
+          {live && playback.revealedWords > 0 ? (
             <Arriving key={live.turn_id} first={said.length === 0}>
               <Bubble from="talkeo">
                 <TurnText
