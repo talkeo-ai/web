@@ -117,11 +117,12 @@ export type ConversationAction =
    */
   | { kind: "named"; name: string }
   /**
-   * They answered an entrance surface themselves, rather than in the chat.
+   * They pressed a card's confirm themselves, rather than answering in the chat.
    *
-   * It settles that surface where an answer read out of the conversation only
+   * It settles that card where an answer read out of the conversation only
    * proposes it — which is the difference between "Talkeo thinks you are called
-   * Joaquin, is that right?" and "you told it so".
+   * Joaquin, is that right?" and "you told it so". For the service's cards it
+   * holds until the service's own confirm comes back.
    */
   | { kind: "confirmed"; card: string };
 
@@ -165,7 +166,16 @@ export function cardsWithEntrance(
       body: { mode: state.mode },
     };
   }
-  return { ...state.cards, ...entrance };
+  // A card they confirmed reads as confirmed from the press, not from when the
+  // service's answer comes back after Talkeo's next message has been written
+  // (Joaquin, 17/oct: "tarda en confirmar cuando se le da click").
+  const cards: Record<string, InterviewCard> = {};
+  for (const [key, card] of Object.entries(state.cards)) {
+    cards[key] = state.confirmed.includes(key)
+      ? { ...card, state: "confirmed" }
+      : card;
+  }
+  return { ...cards, ...entrance };
 }
 
 export function advance(

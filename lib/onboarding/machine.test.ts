@@ -169,6 +169,18 @@ describe("where a surface stays", () => {
     expect(state.anchored[1]!.surface.state).not.toBe("settled");
   });
 
+  it("reads as confirmed on the press, before Talkeo has answered", () => {
+    const state = through([
+      restored,
+      { kind: "surface ready" },
+      { kind: "named", name: "Ana" },
+      { kind: "confirmed", card: "name" },
+    ]);
+
+    expect(state.anchored).toHaveLength(1);
+    expect(state.anchored[0]!.surface.state).toBe("settled");
+  });
+
   it("moves on to the mode when Talkeo takes the name in the chat", () => {
     const state = through([
       restored,

@@ -93,6 +93,32 @@ export function step(
   state: Onboarding,
   action: OnboardingAction,
 ): Onboarding {
+  return settleConfirmed(reduce(state, action));
+}
+
+/**
+ * A card that is confirmed reads as such where it sits, at once: the press is
+ * the answer. Waiting for the next card to come up put "Confirmado" a whole
+ * message behind the click (Joaquin, 17/oct).
+ */
+function settleConfirmed(state: Onboarding): Onboarding {
+  const cards = cardsWithEntrance(state.conversation);
+  let changed = false;
+  const anchored = state.anchored.map((entry) => {
+    const card = entry.surface.card ? cards[entry.surface.card] : undefined;
+    if (entry.surface.state === "settled" || card?.state !== "confirmed") {
+      return entry;
+    }
+    changed = true;
+    return {
+      ...entry,
+      surface: { ...entry.surface, state: "settled" as const, body: card.body },
+    };
+  });
+  return changed ? { ...state, anchored } : state;
+}
+
+function reduce(state: Onboarding, action: OnboardingAction): Onboarding {
   if (action.kind === "edited") {
     return { ...state, outbox: queueEdit(state.outbox, action.edit) };
   }

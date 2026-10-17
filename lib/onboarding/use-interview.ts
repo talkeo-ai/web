@@ -458,6 +458,7 @@ export function useInterview(
         dispatch({ kind: "edited", edit });
         return;
       }
+      dispatch({ kind: "confirmed", card: surface.card });
       send({ edits: [...flush(outbox).edits, edit] });
     },
     [outbox, send, surface, conversation.name, askForMicrophone],
