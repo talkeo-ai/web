@@ -122,6 +122,7 @@ export function openMockInterview(): InterviewChannel {
   // carries what they wrote, the way the service's does (`cards.on_screen`).
   const bodies: Record<string, Record<string, unknown>> = {};
   let goalsShown = false;
+  let nameTaken = false;
   let closed = false;
 
   const wait = (ms: number) =>
@@ -204,6 +205,27 @@ export function openMockInterview(): InterviewChannel {
       });
       for (const event of turn.events) {
         queue.push({ kind: "event", turn_id: turn.turn_id, event });
+      }
+      // The recording asks for the mode right after the name, so the name was
+      // taken. The service says so with `confirm_card("entrance")`; the
+      // recording has no event for it, and the name card waited forever.
+      if (stage === 1 && named && !nameTaken) {
+        nameTaken = true;
+        queue.push({
+          kind: "event",
+          turn_id: turn.turn_id,
+          event: {
+            event_id: `ev_${turn.turn_id}_entrance`,
+            kind: "card_updated",
+            origin: "inferred",
+            payload: {
+              card: "entrance",
+              state: "confirmed",
+              body: { name: named },
+              by: "talkeo",
+            },
+          },
+        });
       }
       // The objectives list opens with the first objective in it, as the
       // service's does. The recording has no card for it, so it showed empty.

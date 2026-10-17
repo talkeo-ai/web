@@ -148,9 +148,13 @@ export function cardsWithEntrance(
 ): Record<string, InterviewCard> {
   const entrance: Record<string, InterviewCard> = {};
   if (state.name) {
+    // Confirmed by them on the card, or by Talkeo in the chat: the service
+    // closes it with `confirm_card("entrance")`, and a name card that waited
+    // for the button alone never let the mode one up (Joaquin, 17/oct).
+    const told = state.cards.entrance?.state === "confirmed";
     entrance.name = {
       card: "name",
-      state: state.confirmed.includes("name") ? "confirmed" : "draft",
+      state: told || state.confirmed.includes("name") ? "confirmed" : "draft",
       body: { name: state.name },
     };
   }

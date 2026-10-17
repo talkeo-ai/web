@@ -169,6 +169,35 @@ describe("where a surface stays", () => {
     expect(state.anchored[1]!.surface.state).not.toBe("settled");
   });
 
+  it("moves on to the mode when Talkeo takes the name in the chat", () => {
+    const state = through([
+      restored,
+      { kind: "surface ready" },
+      { kind: "said", text: "Ana" },
+      { kind: "named", name: "Ana" },
+      {
+        kind: "message",
+        message: {
+          kind: "event",
+          turn_id: "tt_1",
+          event: {
+            event_id: "ev_1",
+            kind: "card_updated",
+            origin: "inferred",
+            payload: { card: "entrance", state: "confirmed", body: { name: "Ana" } },
+          },
+        },
+      },
+      { kind: "surface ready" },
+    ]);
+
+    expect(state.anchored.map((entry) => entry.key)).toEqual([
+      "name:name",
+      "mode:mode",
+    ]);
+    expect(state.anchored[0]!.surface.state).toBe("settled");
+  });
+
   it("still comes up when they answer in the chat before its beat", () => {
     const state = through([
       restored,
