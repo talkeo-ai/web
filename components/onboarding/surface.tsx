@@ -729,8 +729,14 @@ function Line({
   readOnly: boolean;
   onCommit: (value: string) => void;
 }) {
-  const [draft, setDraft] = useState<string | null>(null);
+  // What they wrote, kept for as long as the card still says what it said
+  // when they wrote it. ⚠ Dropping it on leaving the field erased it: an edit
+  // waits for their next turn, so the card's own value is still the old one
+  // until then (Joaquin, 17/oct). Once Talkeo writes the line anew, that wins.
+  const [mine, setMine] = useState<{ over: string; text: string } | null>(null);
+  const draft = mine && mine.over === value ? mine.text : null;
   const showing = draft ?? value;
+  const setDraft = (text: string) => setMine({ over: value, text });
   const box = cn(
     "block w-full rounded-lg border px-3 py-2 text-[14px] leading-[1.5]",
     TONE.face,
@@ -748,10 +754,10 @@ function Line({
             className={cn(
               box,
               "whitespace-pre-line",
-              value ? "text-foreground" : "text-text-tertiary",
+              showing ? "text-foreground" : "text-text-tertiary",
             )}
           >
-            {value || example}
+            {showing || example}
           </p>
         ) : (
           <textarea
@@ -772,7 +778,6 @@ function Line({
               // an edit travels with their next turn, and one per character
               // would be a queue of a hundred versions of the same sentence.
               if (draft !== null && draft !== value) onCommit(draft);
-              setDraft(null);
             }}
           />
         )}
@@ -842,7 +847,11 @@ function Points({
   onCommit: (value: string) => void;
 }) {
   const t = useTranslations("onboarding.surfaces");
-  const [draft, setDraft] = useState<string[] | null>(null);
+  // Kept past leaving the field, for the same reason as a single line's.
+  const over = value.join("\n");
+  const [mine, setMine] = useState<{ over: string; points: string[] } | null>(null);
+  const draft = mine && mine.over === over ? mine.points : null;
+  const setDraft = (points: string[]) => setMine({ over, points });
   const [opened, setOpened] = useState(-1);
   const points = draft ?? value;
   const shown = !readOnly && points.length === 0 ? [""] : points;
@@ -861,8 +870,9 @@ function Points({
   const commit = () => {
     if (draft === null) return;
     const kept = draft.map((point) => point.trim()).filter(Boolean);
-    if (kept.join("\n") !== value.join("\n")) onCommit(kept.join("\n"));
-    setDraft(null);
+    if (kept.join("\n") !== over) onCommit(kept.join("\n"));
+    // The empty points go; what they wrote stays on screen.
+    setDraft(kept);
     setOpened(-1);
   };
 
