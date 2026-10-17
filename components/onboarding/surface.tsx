@@ -1,5 +1,34 @@
 "use client";
 
+import {
+  ArrowRight,
+  AudioLines,
+  BookA,
+  BookOpen,
+  Briefcase,
+  Check,
+  ChevronRight,
+  Compass,
+  Dumbbell,
+  Eye,
+  Flag,
+  Headphones,
+  Heart,
+  Keyboard,
+  LayoutGrid,
+  ListChecks,
+  MessageCircle,
+  MessagesSquare,
+  Mic,
+  PenLine,
+  Route,
+  Smile,
+  Sparkles,
+  SpellCheck,
+  Target,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -40,6 +69,28 @@ const AREAS = [
   "writing",
 ] as const;
 
+const AREA_ICON: Record<(typeof AREAS)[number], LucideIcon> = {
+  conversation: MessagesSquare,
+  listening: Headphones,
+  vocabulary: BookA,
+  pronunciation: AudioLines,
+  grammar: SpellCheck,
+  reading: BookOpen,
+  writing: PenLine,
+};
+
+/** The mark beside each line of a card, so a line is found before it is read. */
+const FIELD_ICON: Record<string, LucideIcon> = {
+  goal: Target,
+  work_on: ListChecks,
+  path: Route,
+  comfortable: Smile,
+  wants_to_work: Dumbbell,
+  sees_self: Eye,
+  does: Briefcase,
+  follows: Heart,
+};
+
 export type SurfaceAnswer = {
   /** The card and line this changed, empty when it is not a card edit. */
   field: string;
@@ -77,21 +128,35 @@ export function Surface({
   );
 }
 
+/** The mark at the head of each card: what it is about, before it is read. */
+const CARD_ICON: Record<string, LucideIcon> = {
+  name: UserRound,
+  mode: MessageCircle,
+  scope: LayoutGrid,
+  goal: Target,
+  goals: Flag,
+  starting_point: Compass,
+  about_you: Sparkles,
+};
+
 /**
- * The shell every surface sits in.
+ * The shell every surface sits in: a block in the thread, under the message
+ * that asked for it.
  *
- * The title is the question, in the surface's own words. It reads as a repeat
- * only while the turn that asked it is still on screen — which is why the two
- * are never up at once. Talkeo asks, finishes, and then this replaces it; by
- * then the question is gone and the surface has to carry it, or somebody who
- * looked away is answering a field with no question above it.
+ * It sits in the conversation's own column, held to the left and as wide as
+ * Talkeo's bubbles, so it reads as part of what Talkeo said rather than as a
+ * form laid over the chat. The title is a label in the card's header, at
+ * reading size: the question is already in the message right above, and a
+ * heading would say it a second time, louder.
  */
 function Frame({
+  kind,
   title,
   hint,
   target,
   children,
 }: {
+  kind: string;
   title?: string;
   hint?: string;
   /** What a mark in the turn points at, so the voice can light this up. */
@@ -99,28 +164,68 @@ function Frame({
   children: React.ReactNode;
 }) {
   const mark = useMarkTarget(target ?? "");
+  const Icon = CARD_ICON[kind] ?? Sparkles;
   return (
     <section
       data-slot="surface"
+      data-kind={kind}
       data-pointed={mark ? "true" : "false"}
       className={cn(
-        "mx-auto flex w-full max-w-md flex-col gap-5 rounded-3xl p-6",
-        "transition-[box-shadow] duration-(--duration-highlight-out) ease-(--ease-standard)",
-        mark && "ring-accent-500 ring-2",
+        "bg-background mr-auto w-full max-w-[56ch] overflow-hidden rounded-2xl border",
+        "transition-[box-shadow,border-color] duration-(--duration-highlight-out) ease-(--ease-standard)",
+        mark ? "border-accent-500 ring-accent-500/20 ring-4" : "border-border",
       )}
     >
       {title || hint ? (
-        <div className="flex flex-col gap-1.5 text-center">
-          {title ? (
-            <h2 className="font-heading text-foreground text-[22px] leading-tight font-bold">
-              {title}
-            </h2>
-          ) : null}
-          {hint ? <p className="text-text-secondary text-sm">{hint}</p> : null}
-        </div>
+        <header className="flex items-start gap-3 px-4 pt-4 pb-3.5">
+          <IconTile icon={Icon} />
+          <div className="flex min-w-0 flex-col gap-0.5 pt-0.5">
+            {title ? (
+              <h2 className="text-foreground text-[15px] leading-snug font-semibold">
+                {title}
+              </h2>
+            ) : null}
+            {hint ? (
+              <p className="text-text-secondary text-[13px] leading-snug">{hint}</p>
+            ) : null}
+          </div>
+        </header>
       ) : null}
-      {children}
+      <div className="border-border border-t">{children}</div>
     </section>
+  );
+}
+
+/** A small square that holds an icon, the same everywhere a card shows one. */
+function IconTile({
+  icon: Icon,
+  tone = "quiet",
+}: {
+  icon: LucideIcon;
+  tone?: "quiet" | "on";
+}) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "grid size-8 shrink-0 place-items-center rounded-lg",
+        "transition-[background-color,color] duration-(--duration-control) ease-(--ease-standard)",
+        tone === "on"
+          ? "bg-accent-500 text-(--cta-face-text)"
+          : "bg-surface-secondary text-text-secondary",
+      )}
+    >
+      <Icon className="size-4" strokeWidth={1.75} />
+    </span>
+  );
+}
+
+/** Where a card's action goes: under its rows, to the right, like a reply box. */
+function Footer({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border-border flex items-center justify-end gap-2 border-t px-4 py-3">
+      {children}
+    </div>
   );
 }
 
@@ -134,32 +239,41 @@ function NameSurface({
   const written = value.trim();
 
   return (
-    <Frame title={t("name.question")} hint={t("name.hint")} target="control:name">
+    <Frame
+      kind="name"
+      title={t("name.question")}
+      hint={t("name.hint")}
+      target="control:name"
+    >
       <form
-        className="flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (!written) return;
           onAnswer({ field: "", value: written, confirms: true });
         }}
       >
-        <Input
-          autoFocus
-          value={value}
-          onChange={(event) => {
-            // Written as it is stored, while they type. The service raises the
-            // first letter of every word and lowers nothing, so a field that
-            // did not would show `martin` next to a greeting that says
-            // `Martin` — the same name spelled two ways on one screen.
-            setValue(writtenName(event.target.value));
-          }}
-          placeholder={t("name.placeholder")}
-          aria-label={t("name.question")}
-          data-slot="surface-name"
-        />
-        <Button type="submit" size="lg" disabled={!written}>
-          {t("name.cta")}
-        </Button>
+        <div className="px-4 py-4">
+          <Input
+            autoFocus
+            value={value}
+            onChange={(event) => {
+              // Written as it is stored, while they type. The service raises the
+              // first letter of every word and lowers nothing, so a field that
+              // did not would show `martin` next to a greeting that says
+              // `Martin` — the same name spelled two ways on one screen.
+              setValue(writtenName(event.target.value));
+            }}
+            placeholder={t("name.placeholder")}
+            aria-label={t("name.question")}
+            data-slot="surface-name"
+          />
+        </div>
+        <Footer>
+          <Button type="submit" size="sm" disabled={!written}>
+            {t("name.cta")}
+            <ArrowRight className="size-4" />
+          </Button>
+        </Footer>
       </form>
     </Frame>
   );
@@ -183,26 +297,69 @@ function ModeSurface({
 }) {
   const t = useTranslations("onboarding");
   return (
-    <Frame title={t("mode.question")} hint={t("mode.hint")} target="control:mode">
-      <div className="flex flex-col gap-3">
-        <Button
-          size="lg"
-          data-slot="surface-mode-speak"
+    <Frame
+      kind="mode"
+      title={t("mode.question")}
+      hint={t("mode.hint")}
+      target="control:mode"
+    >
+      <div className="divide-border flex flex-col divide-y">
+        <OptionRow
+          icon={Mic}
+          label={t("mode.voice")}
+          slot="surface-mode-speak"
           onClick={() => onAnswer({ field: "", value: "speak", confirms: true })}
-        >
-          {t("mode.voice")}
-        </Button>
-        <Button
-          size="lg"
-          variant="secondary"
-          data-slot="surface-mode-text"
+        />
+        <OptionRow
+          icon={Keyboard}
+          label={t("mode.text")}
+          slot="surface-mode-text"
           onClick={() => onAnswer({ field: "", value: "text", confirms: true })}
-        >
-          {t("mode.text")}
-        </Button>
-        {refusal ? <MicNotice refusal={refusal} className="mt-1" /> : null}
+        />
       </div>
+      {refusal ? (
+        <div className="border-border border-t px-4 py-3">
+          <MicNotice refusal={refusal} />
+        </div>
+      ) : null}
     </Frame>
+  );
+}
+
+/** One of a card's choices, as a row: what it is, and a press to pick it. */
+function OptionRow({
+  icon,
+  label,
+  slot,
+  onClick,
+}: {
+  icon: LucideIcon;
+  label: string;
+  slot: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      data-slot={slot}
+      onClick={onClick}
+      className={cn(
+        "group flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left outline-none",
+        "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
+        "hover:bg-surface-secondary focus-visible:bg-surface-secondary",
+      )}
+    >
+      <IconTile icon={icon} />
+      <span className="text-foreground flex-1 text-[15px] font-medium">{label}</span>
+      <ChevronRight
+        aria-hidden
+        className={cn(
+          "text-text-tertiary size-4",
+          "transition-transform duration-(--duration-control) ease-(--ease-standard)",
+          "group-hover:translate-x-0.5",
+        )}
+      />
+    </button>
   );
 }
 
@@ -232,11 +389,12 @@ function ScopeSurface({
 
   return (
     <Frame
+      kind="scope"
       title={t("scope.title")}
       hint={t("scope.hint")}
       target="control:scope"
     >
-      <div className="flex flex-col gap-2">
+      <div className="divide-border flex flex-col divide-y">
         {AREAS.map((area) => {
           const on = picked.includes(area);
           return (
@@ -249,30 +407,34 @@ function ScopeSurface({
               data-area={area}
               onClick={() => toggle(area)}
               className={cn(
-                "flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left",
-                "border transition-[border-color,background-color] duration-(--duration-control) ease-(--ease-standard)",
-                on
-                  ? "border-accent-500 bg-surface-secondary"
-                  : "border-border hover:border-border-strong",
+                "flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left outline-none",
+                "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
+                "hover:bg-surface-secondary focus-visible:bg-surface-secondary",
               )}
             >
-              <span className="text-foreground text-[17px]">{t(`scope.${area}`)}</span>
+              <IconTile icon={AREA_ICON[area]} tone={on ? "on" : "quiet"} />
+              <span className="text-foreground flex-1 text-[15px]">
+                {t(`scope.${area}`)}
+              </span>
               <Tick on={on} />
             </button>
           );
         })}
       </div>
       {surface.state !== "settled" ? (
-        <Button
-          size="lg"
-          disabled={picked.length === 0}
-          data-slot="surface-confirm"
-          onClick={() =>
-            onAnswer({ field: "areas", value: picked.join("\n"), confirms: true })
-          }
-        >
-          {t("next")}
-        </Button>
+        <Footer>
+          <Button
+            size="sm"
+            disabled={picked.length === 0}
+            data-slot="surface-confirm"
+            onClick={() =>
+              onAnswer({ field: "areas", value: picked.join("\n"), confirms: true })
+            }
+          >
+            {t("next")}
+            <ArrowRight className="size-4" />
+          </Button>
+        </Footer>
       ) : null}
     </Frame>
   );
@@ -298,14 +460,15 @@ function CardSurface({
   const fields = FIELDS[surface.kind] ?? [];
 
   return (
-    <Frame title={title} target={`card:${surface.card ?? ""}`}>
+    <Frame kind={surface.kind} title={title} target={`card:${surface.card ?? ""}`}>
       {surface.kind === "goals" ? (
         <GoalList surface={surface} onAnswer={onAnswer} />
       ) : (
-        <dl className="flex flex-col gap-4">
+        <dl className="divide-border flex flex-col divide-y">
           {fields.map((field) => (
             <Line
               key={field}
+              icon={FIELD_ICON[field]}
               label={t(`${surface.kind}.${field}`)}
               value={asText(surface.body[field])}
               empty={t("empty")}
@@ -318,13 +481,16 @@ function CardSurface({
         </dl>
       )}
       {surface.confirmable && surface.state === "proposed" ? (
-        <Button
-          size="lg"
-          data-slot="surface-confirm"
-          onClick={() => onAnswer({ field: "", value: "", confirms: true })}
-        >
-          {t("confirm")}
-        </Button>
+        <Footer>
+          <Button
+            size="sm"
+            data-slot="surface-confirm"
+            onClick={() => onAnswer({ field: "", value: "", confirms: true })}
+          >
+            <Check className="size-4" />
+            {t("confirm")}
+          </Button>
+        </Footer>
       ) : null}
     </Frame>
   );
@@ -364,13 +530,14 @@ function GoalList({
   const listed = goals.length > 0 ? goals : [{}];
 
   return (
-    <ol className="flex flex-col gap-8">
+    <ol className="divide-border flex flex-col divide-y">
       {listed.map((goal, index) => (
         <li key={index} data-slot="surface-goal">
-          <dl className="flex flex-col gap-4">
+          <dl className="flex flex-col">
             {FIELDS.goal.map((field) => (
               <Line
                 key={field}
+                icon={FIELD_ICON[field]}
                 label={t(`goal.${field}`)}
                 value={asText(goal[field])}
                 empty={t("empty")}
@@ -389,13 +556,22 @@ function GoalList({
   );
 }
 
+/**
+ * One line of a card: an icon, what the line is, and what Talkeo understood.
+ *
+ * The value reads as text and becomes a field only where the pointer or the
+ * caret is. A box around every line made the card a form to fill in; it is a
+ * record of what was heard, that can be corrected.
+ */
 function Line({
+  icon: Icon = Sparkles,
   label,
   value,
   empty,
   readOnly,
   onCommit,
 }: {
+  icon?: LucideIcon;
   label: string;
   value: string;
   empty: string;
@@ -406,39 +582,44 @@ function Line({
   const showing = draft ?? value;
 
   return (
-    <div className="flex flex-col gap-1">
-      <dt className="text-text-tertiary text-xs font-medium tracking-wide uppercase">
-        {label}
-      </dt>
-      <dd>
-        {readOnly ? (
-          <p className="text-foreground text-[17px] leading-[1.5]">
-            {value || empty}
-          </p>
-        ) : (
-          <textarea
-            rows={1}
-            value={showing}
-            placeholder={empty}
-            data-slot="surface-line"
-            className={cn(
-              "text-foreground placeholder:text-text-tertiary field-sizing-content",
-              "w-full resize-none rounded-xl bg-transparent px-3 py-2 text-[17px] leading-[1.5]",
-              "border-border border outline-none",
-              "transition-[border-color] duration-(--duration-control) ease-(--ease-standard)",
-              "hover:border-border-strong focus:border-border-strong",
-            )}
-            onChange={(event) => setDraft(event.target.value)}
-            onBlur={() => {
-              // Committed on leaving the line rather than on every keystroke: an
-              // edit travels with their next turn, and one per character would
-              // be a queue of a hundred versions of the same sentence.
-              if (draft !== null && draft !== value) onCommit(draft);
-              setDraft(null);
-            }}
-          />
-        )}
-      </dd>
+    <div className="flex items-start gap-3 px-4 py-3">
+      <Icon
+        aria-hidden
+        strokeWidth={1.75}
+        className="text-text-tertiary mt-[3px] size-4 shrink-0"
+      />
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <dt className="text-text-secondary text-[13px] leading-snug">{label}</dt>
+        <dd>
+          {readOnly ? (
+            <p className="text-foreground text-[15px] leading-[1.6] whitespace-pre-line">
+              {value || empty}
+            </p>
+          ) : (
+            <textarea
+              rows={1}
+              value={showing}
+              placeholder={empty}
+              data-slot="surface-line"
+              className={cn(
+                "text-foreground placeholder:text-text-tertiary field-sizing-content",
+                "-mx-2 w-[calc(100%+1rem)] resize-none rounded-lg bg-transparent px-2 py-1 text-[15px] leading-[1.6]",
+                "outline-none",
+                "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
+                "hover:bg-surface-secondary focus:bg-surface-secondary",
+              )}
+              onChange={(event) => setDraft(event.target.value)}
+              onBlur={() => {
+                // Committed on leaving the line rather than on every keystroke:
+                // an edit travels with their next turn, and one per character
+                // would be a queue of a hundred versions of the same sentence.
+                if (draft !== null && draft !== value) onCommit(draft);
+                setDraft(null);
+              }}
+            />
+          )}
+        </dd>
+      </div>
     </div>
   );
 }
