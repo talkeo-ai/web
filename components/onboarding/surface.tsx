@@ -126,15 +126,14 @@ export function Surface({
  * The shell every surface sits in: a block in the thread, under the message
  * that asked for it.
  *
- * Quiet on purpose, the way a menu in Linear or a panel in Vercel is: one
- * hairline, no header band, no dividers. The rows are inset and rounded so a
- * hover reads as a highlight under the pointer rather than a stripe across the
- * card, and the type is one size smaller than the chat's — the card is a tool
- * next to the conversation, not more of it.
+ * Filled like Talkeo's own bubble, so it reads as Talkeo handing something
+ * over rather than as a form dropped into the chat. What is inside it is made
+ * of the product's own pieces: choices are tiles with the same lip as the
+ * buttons, the brand's green marks what is picked, and the action is the
+ * raised button. Same type sizes as the chat.
  *
  * It sits in the conversation's own column, held to the left and as wide as
- * Talkeo's bubbles. The title is a label, not a heading: the question is in
- * the message right above, and a heading would say it a second time, louder.
+ * Talkeo's bubbles.
  */
 function Frame({
   kind,
@@ -157,21 +156,20 @@ function Frame({
       data-kind={kind}
       data-pointed={mark ? "true" : "false"}
       className={cn(
-        "bg-background mr-auto w-full max-w-[56ch] rounded-xl border p-1",
-        "shadow-[0_1px_2px_0_rgb(0_0_0/0.04)]",
-        "transition-[box-shadow,border-color] duration-(--duration-highlight-out) ease-(--ease-standard)",
-        mark ? "border-accent-500/60 ring-accent-500/25 ring-2" : "border-border",
+        "bg-surface-secondary mr-auto flex w-full max-w-[56ch] flex-col gap-4 rounded-2xl p-4",
+        "transition-[box-shadow] duration-(--duration-highlight-out) ease-(--ease-standard)",
+        mark && "ring-accent-500 ring-2",
       )}
     >
       {title || hint ? (
-        <header className="flex flex-col gap-0.5 px-3 pt-2.5 pb-2">
+        <header className="flex flex-col gap-1">
           {title ? (
-            <h2 className="text-foreground text-[14px] leading-snug font-medium">
+            <h2 className="font-heading text-foreground text-[17px] leading-snug font-semibold">
               {title}
             </h2>
           ) : null}
           {hint ? (
-            <p className="text-text-tertiary text-[13px] leading-snug">{hint}</p>
+            <p className="text-text-secondary text-[14px] leading-snug">{hint}</p>
           ) : null}
         </header>
       ) : null}
@@ -180,23 +178,45 @@ function Frame({
   );
 }
 
-/** The classes every pressable row in a card shares. */
-const ROW = cn(
-  "group flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left outline-none",
-  "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
-  "hover:bg-surface-secondary focus-visible:bg-surface-secondary",
-);
-
-/** A card's action: small, to the right, the way a dialog's is. */
-const ACTION = "h-8 rounded-lg px-3 text-[13px]";
-
-/** Where a card's action goes: under its rows, to the right. */
-function Footer({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-end gap-2 px-1.5 pt-1.5 pb-1">
-      {children}
-    </div>
+/**
+ * A choice, as a tile with the buttons' lip: a solid thing to press, that
+ * goes down when pressed and turns the brand's green when picked. The lip is
+ * a zero-blur shadow, as on the buttons, so the tile keeps its height whether
+ * or not it is pressed.
+ */
+function tile(on: boolean) {
+  return cn(
+    "group relative flex cursor-pointer items-center gap-3 rounded-xl border-2 text-left outline-none select-none",
+    "transition-[transform,box-shadow,background-color,border-color] duration-(--duration-press-out) ease-(--ease-standard)",
+    "active:translate-y-[2px] active:shadow-none active:duration-(--duration-press-in)",
+    "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
+    on
+      ? "border-accent-500 bg-accent-500/12 shadow-[0_2px_0_0_var(--color-accent-600)]"
+      : "border-border bg-background shadow-[0_2px_0_0_var(--border)] hover:border-border-strong",
   );
+}
+
+/** The round mark a tile carries its icon in; green when the tile is picked. */
+function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "grid size-9 shrink-0 place-items-center rounded-full",
+        "transition-[background-color,color] duration-(--duration-control) ease-(--ease-standard)",
+        on
+          ? "bg-accent-500 text-accent-950"
+          : "bg-surface-secondary text-text-secondary group-hover:text-foreground",
+      )}
+    >
+      <Icon className="size-[18px]" strokeWidth={2} />
+    </span>
+  );
+}
+
+/** Where a card's action goes: under what it acts on, to the right. */
+function Footer({ children }: { children: React.ReactNode }) {
+  return <div className="flex items-center justify-end gap-2">{children}</div>;
 }
 
 function NameSurface({
@@ -216,15 +236,16 @@ function NameSurface({
       target="control:name"
     >
       <form
+        className="flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (!written) return;
           onAnswer({ field: "", value: written, confirms: true });
         }}
       >
-        <div className="px-2 pb-1">
+        <div>
           <Input
-            className="h-9 rounded-lg px-3 text-[14px]"
+            className="bg-background focus-visible:border-accent-500"
             autoFocus
             value={value}
             onChange={(event) => {
@@ -240,7 +261,7 @@ function NameSurface({
           />
         </div>
         <Footer>
-          <Button type="submit" size="sm" className={ACTION} disabled={!written}>
+          <Button type="submit" variant="raised" disabled={!written}>
             {t("name.cta")}
           </Button>
         </Footer>
@@ -273,7 +294,9 @@ function ModeSurface({
       hint={t("mode.hint")}
       target="control:mode"
     >
-      <div className="flex flex-col">
+      {/* Side by side, as the two answers to one question; stacked only where
+          two would not fit a label each. */}
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <OptionRow
           icon={Mic}
           label={t("mode.voice")}
@@ -287,18 +310,14 @@ function ModeSurface({
           onClick={() => onAnswer({ field: "", value: "text", confirms: true })}
         />
       </div>
-      {refusal ? (
-        <div className="px-3 pt-1 pb-2">
-          <MicNotice refusal={refusal} className="text-left text-[13px]" />
-        </div>
-      ) : null}
+      {refusal ? <MicNotice refusal={refusal} className="text-left" /> : null}
     </Frame>
   );
 }
 
-/** One of a card's choices, as a row: what it is, and a press to pick it. */
+/** One of a card's choices, as a tile: what it is, and a press to pick it. */
 function OptionRow({
-  icon: Icon,
+  icon,
   label,
   slot,
   onClick,
@@ -309,20 +328,22 @@ function OptionRow({
   onClick: () => void;
 }) {
   return (
-    <button type="button" data-slot={slot} onClick={onClick} className={ROW}>
-      <Icon
-        aria-hidden
-        strokeWidth={1.75}
-        className="text-text-tertiary group-hover:text-foreground size-4 shrink-0 transition-colors duration-(--duration-control)"
-      />
-      <span className="text-foreground flex-1 text-[14px]">{label}</span>
-      {/* Only under the pointer: a column of arrows says "press" six times. */}
+    <button
+      type="button"
+      data-slot={slot}
+      onClick={onClick}
+      className={cn(tile(false), "px-3.5 py-3")}
+    >
+      <TileIcon icon={icon} on={false} />
+      <span className="text-foreground font-heading flex-1 text-[15px] font-semibold">
+        {label}
+      </span>
       <ChevronRight
         aria-hidden
         className={cn(
-          "text-text-tertiary size-4 opacity-0",
-          "transition-[opacity,translate] duration-(--duration-control) ease-(--ease-standard)",
-          "group-hover:translate-x-0.5 group-hover:opacity-100 group-focus-visible:opacity-100",
+          "text-text-tertiary size-4",
+          "transition-transform duration-(--duration-control) ease-(--ease-standard)",
+          "group-hover:translate-x-0.5",
         )}
       />
     </button>
@@ -360,10 +381,11 @@ function ScopeSurface({
       hint={t("scope.hint")}
       target="control:scope"
     >
-      <div className="flex flex-col">
+      {/* Two across: seven areas in one column was a long list to read down;
+          as tiles they are seven things to look at once. */}
+      <div className="grid grid-cols-2 gap-2.5">
         {AREAS.map((area) => {
           const on = picked.includes(area);
-          const Icon = AREA_ICON[area];
           return (
             <button
               key={area}
@@ -373,17 +395,10 @@ function ScopeSurface({
               data-slot="surface-area"
               data-area={area}
               onClick={() => toggle(area)}
-              className={ROW}
+              className={cn(tile(on), "px-3 py-2.5")}
             >
-              <Icon
-                aria-hidden
-                strokeWidth={1.75}
-                className={cn(
-                  "size-4 shrink-0 transition-colors duration-(--duration-control)",
-                  on ? "text-foreground" : "text-text-tertiary group-hover:text-foreground",
-                )}
-              />
-              <span className="text-foreground flex-1 text-[14px]">
+              <TileIcon icon={AREA_ICON[area]} on={on} />
+              <span className="text-foreground flex-1 text-[15px] leading-tight font-medium">
                 {t(`scope.${area}`)}
               </span>
               <Tick on={on} />
@@ -394,8 +409,7 @@ function ScopeSurface({
       {surface.state !== "settled" ? (
         <Footer>
           <Button
-            size="sm"
-            className={ACTION}
+            variant="raised"
             disabled={picked.length === 0}
             data-slot="surface-confirm"
             onClick={() =>
@@ -434,7 +448,7 @@ function CardSurface({
       {surface.kind === "goals" ? (
         <GoalList surface={surface} onAnswer={onAnswer} />
       ) : (
-        <dl className="flex flex-col">
+        <dl className={PANEL}>
           {fields.map((field) => (
             <Line
               key={field}
@@ -453,11 +467,11 @@ function CardSurface({
       {surface.confirmable && surface.state === "proposed" ? (
         <Footer>
           <Button
-            size="sm"
-            className={ACTION}
+            variant="raised"
             data-slot="surface-confirm"
             onClick={() => onAnswer({ field: "", value: "", confirms: true })}
           >
+            <Check className="size-4" strokeWidth={2.5} />
             {t("confirm")}
           </Button>
         </Footer>
@@ -465,6 +479,13 @@ function CardSurface({
     </Frame>
   );
 }
+
+/**
+ * Where a card's lines sit: one white panel on the card's fill, lines split by
+ * hairlines — a grouped list, the way a settings screen holds its rows.
+ */
+const PANEL =
+  "bg-background divide-border flex flex-col divide-y overflow-hidden rounded-xl border-2 border-border";
 
 /** Which lines each card shows, in the order it shows them. */
 const FIELDS: Record<string, string[]> = {
@@ -500,12 +521,11 @@ function GoalList({
   const listed = goals.length > 0 ? goals : [{}];
 
   return (
-    // Objectives apart by space and a hairline inset from the edges, the
-    // way a list groups its sections; a full-width rule is a table.
-    <ol className="[&>li+li]:border-border flex flex-col [&>li+li]:mx-2.5 [&>li+li]:mt-1 [&>li+li]:border-t [&>li+li]:pt-1">
+    // One panel per objective, so each reads as one thing with two lines.
+    <ol className="flex flex-col gap-2.5">
       {listed.map((goal, index) => (
         <li key={index} data-slot="surface-goal">
-          <dl className="flex flex-col">
+          <dl className={PANEL}>
             {FIELDS.goal.map((field) => (
               <Line
                 key={field}
@@ -554,17 +574,20 @@ function Line({
   const showing = draft ?? value;
 
   return (
-    <div className="flex items-start gap-2.5 px-2.5 py-2">
-      <Icon
+    <div className="flex items-start gap-3 px-3.5 py-3">
+      <span
         aria-hidden
-        strokeWidth={1.75}
-        className="text-text-tertiary mt-[2px] size-4 shrink-0"
-      />
+        className="bg-accent-500/15 text-accent-800 dark:text-accent-400 grid size-8 shrink-0 place-items-center rounded-full"
+      >
+        <Icon strokeWidth={2} className="size-4" />
+      </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <dt className="text-text-tertiary text-[12px] leading-snug">{label}</dt>
+        <dt className="text-text-secondary text-[13px] leading-snug font-medium">
+          {label}
+        </dt>
         <dd>
           {readOnly ? (
-            <p className="text-foreground text-[14px] leading-[1.55] whitespace-pre-line">
+            <p className="text-foreground text-[15px] leading-[1.55] whitespace-pre-line">
               {value || empty}
             </p>
           ) : (
@@ -575,7 +598,7 @@ function Line({
               data-slot="surface-line"
               className={cn(
                 "text-foreground placeholder:text-text-tertiary field-sizing-content",
-                "-mx-1.5 w-[calc(100%+0.75rem)] resize-none rounded-md bg-transparent px-1.5 py-0.5 text-[14px] leading-[1.55]",
+                "-mx-1.5 w-[calc(100%+0.75rem)] resize-none rounded-md bg-transparent px-1.5 py-0.5 text-[15px] leading-[1.55]",
                 "outline-none",
                 "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
                 "hover:bg-surface-secondary focus:bg-surface-secondary",
@@ -620,10 +643,10 @@ function Tick({ on }: { on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid size-4 shrink-0 place-items-center rounded-[5px] border",
+        "grid size-5 shrink-0 place-items-center rounded-full border-2",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
-          ? "border-foreground bg-foreground text-background"
+          ? "border-accent-500 bg-accent-500 text-accent-950"
           : "border-border-strong group-hover:border-text-tertiary",
       )}
     >
