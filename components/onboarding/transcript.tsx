@@ -64,9 +64,13 @@ export function Transcript({
             </div>
           ))}
 
-          {live ? (
+          {/* Not before its first word: the turn opens about a second before
+              there is anything to say, and the bubble sat empty through it.
+              Without the fade, too — it used to run on the empty bubble where
+              nobody saw it, and on the text it reads as the words dimmed. */}
+          {live && playback.revealedWords > 0 ? (
             <Arriving key={live.turn_id} first={said.length === 0}>
-              <Bubble from="talkeo">
+              <Bubble from="talkeo" arriving={false}>
                 <TurnText
                   lines={playback.lines}
                   revealedWords={playback.revealedWords}
