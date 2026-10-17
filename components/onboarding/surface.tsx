@@ -189,14 +189,13 @@ function Frame({
   /** What a mark in the turn points at, so the voice can light this up. */
   target?: string;
   /**
-   * Answered and agreed. The card stays as the record of it: the hint, which
-   * was about how to answer, goes, and a quiet mark beside the title says it
-   * is done.
+   * Answered and agreed. Only marked here: the card looks the same as before
+   * and its action says it is done (`Confirmed`). Changing the layout on
+   * confirm — the hint gone, the field gone — read as a different card.
    */
   settled?: boolean;
   children: React.ReactNode;
 }) {
-  const t = useTranslations("onboarding.surfaces");
   const mark = useMarkTarget(target ?? "");
   return (
     <section
@@ -213,23 +212,12 @@ function Frame({
     >
       {title || hint ? (
         <header className="flex flex-col gap-0.5 px-2 pt-1.5 pb-0.5">
-          <div className="flex items-center justify-between gap-3">
-            {title ? (
-              <h2 className="font-heading text-foreground text-[15px] leading-snug font-semibold">
-                {title}
-              </h2>
-            ) : null}
-            {settled ? (
-              <span
-                data-slot="surface-settled"
-                className="text-text-secondary inline-flex shrink-0 items-center gap-1 text-[12px] font-medium"
-              >
-                <Check aria-hidden className="size-3.5" strokeWidth={2.5} />
-                {t("confirmed")}
-              </span>
-            ) : null}
-          </div>
-          {hint && !settled ? (
+          {title ? (
+            <h2 className="font-heading text-foreground text-[15px] leading-snug font-semibold">
+              {title}
+            </h2>
+          ) : null}
+          {hint ? (
             <p className="text-text-secondary text-[13px] leading-snug">{hint}</p>
           ) : null}
         </header>
@@ -297,6 +285,29 @@ function TileBody({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * A confirm that has been pressed: the same box in the same place, saying so.
+ *
+ * Green, the one colour that means "yours", at a tint rather than a fill, so
+ * the card's action goes quiet instead of louder once there is nothing left to
+ * do. Not a button: there is nothing to press.
+ */
+function Confirmed() {
+  const t = useTranslations("onboarding.surfaces");
+  return (
+    <span
+      data-slot="surface-confirmed"
+      className={cn(
+        "font-heading inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-[14px] font-semibold",
+        "bg-accent-500/12 text-accent-800 dark:bg-accent-500/10 dark:text-accent-400",
+      )}
+    >
+      <Check aria-hidden className="size-4" strokeWidth={2.5} />
+      {t("confirmed")}
+    </span>
+  );
+}
+
 /** Where a card's action goes: under what it acts on, to the right. */
 function Footer({ children }: { children: React.ReactNode }) {
   return <div className="flex items-center justify-end gap-2 pt-1">{children}</div>;
@@ -317,6 +328,7 @@ function NameSurface({
   const [theirs, setTheirs] = useState<string | null>(null);
   const value = theirs ?? heard;
   const written = value.trim();
+  const settled = surface.state === "settled";
 
   return (
     <Frame
@@ -324,18 +336,10 @@ function NameSurface({
       title={t("name.question")}
       hint={t("name.hint")}
       target="control:name"
-      settled={surface.state === "settled"}
+      settled={settled}
     >
-      {surface.state === "settled" ? (
-        <p
-          data-slot="surface-name-settled"
-          className="text-foreground px-2 pb-1.5 text-[15px] leading-snug"
-        >
-          {heard}
-        </p>
-      ) : (
-      // The action beside the field, as one line: under it, a single button
-      // took a row of its own.
+      {/* The action beside the field, as one line: under it, a single button
+          took a row of its own. */}
       <form
         className="flex items-center gap-2"
         onSubmit={(event) => {
@@ -367,13 +371,17 @@ function NameSurface({
           placeholder={t("name.placeholder")}
           aria-label={t("name.question")}
           data-slot="surface-name"
+          readOnly={settled}
         />
-        <Button type="submit" variant="primary" size="sm" className="rounded-lg" disabled={!written}>
-          <Check className="size-4" strokeWidth={2.5} />
-          {t("name.cta")}
-        </Button>
+        {settled ? (
+          <Confirmed />
+        ) : (
+          <Button type="submit" variant="primary" size="sm" className="rounded-lg" disabled={!written}>
+            <Check className="size-4" strokeWidth={2.5} />
+            {t("name.cta")}
+          </Button>
+        )}
       </form>
-      )}
     </Frame>
   );
 }
@@ -403,11 +411,9 @@ function ModeSurface({
     { value: "speak", icon: Mic, label: t("mode.voice") },
     { value: "text", icon: Keyboard, label: t("mode.text") },
   ] as const;
-  // Settled, only what they chose is left: the other one is a road not taken,
-  // and still showing it reads as the question still being open.
-  // Until the service echoes which one it was, both stay rather than none.
-  const theirs = options.filter((option) => option.value === chosen);
-  const shown = settled && theirs.length > 0 ? theirs : options;
+  // Settled, both stay where they were and the chosen one says so, the same
+  // way a confirm turns into `Confirmed`: the card does not rearrange itself.
+  const shown = options;
 
   return (
     <Frame
@@ -430,7 +436,7 @@ function ModeSurface({
             key={option.value}
             icon={option.icon}
             label={option.label}
-            picked={settled}
+            picked={settled && option.value === chosen}
             slot={`surface-mode-${option.value}`}
             onClick={() =>
               onAnswer({ field: "", value: option.value, confirms: true })
@@ -471,22 +477,26 @@ function ModeChoice({
       onClick={onClick}
       className={cn(
         "group flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 outline-none select-none",
-        "text-foreground text-[14px] font-medium",
-        "transition-[border-color,background-color] duration-(--duration-control) ease-(--ease-standard)",
+        "text-[14px] font-medium",
+        "transition-[border-color,background-color,color] duration-(--duration-control) ease-(--ease-standard)",
         "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
-        TONE.face,
-        picked ? "border-foreground/30" : cn(TONE.edge, TONE.edgeHover),
+        // Chosen, it takes the same green tint as `Confirmed`, with the tick
+        // in place of its icon; nothing else on the card changes.
+        picked
+          ? "border-transparent bg-accent-500/12 text-accent-800 dark:bg-accent-500/10 dark:text-accent-400"
+          : cn("text-foreground", TONE.face, TONE.edge, TONE.edgeHover),
       )}
     >
-      <Icon
-        aria-hidden
-        strokeWidth={1.75}
-        className={cn("size-4", TONE.icon)}
-      />
-      {label}
       {picked ? (
-        <Check aria-hidden className="text-text-secondary size-4" strokeWidth={2.5} />
-      ) : null}
+        <Check aria-hidden className="size-4" strokeWidth={2.5} />
+      ) : (
+        <Icon
+          aria-hidden
+          strokeWidth={1.75}
+          className={cn("size-4", TONE.icon)}
+        />
+      )}
+      {label}
     </button>
   );
 }
@@ -526,10 +536,7 @@ function ScopeSurface({
       {/* One per row, each a picture and a box to tick, as a checklist reads.
           Two across stops the moment a label wraps. */}
       <div className="flex flex-col gap-1.5">
-        {/* Settled, only what they picked, as with the mode. */}
-        {AREAS.filter(
-          (area) => surface.state !== "settled" || picked.includes(area),
-        ).map((area) => {
+        {AREAS.map((area) => {
           const on = picked.includes(area);
           return (
             <button
@@ -553,8 +560,10 @@ function ScopeSurface({
           );
         })}
       </div>
-      {surface.state !== "settled" ? (
-        <Footer>
+      <Footer>
+        {surface.state === "settled" ? (
+          <Confirmed />
+        ) : (
           <Button
             variant="primary"
             size="sm" className="rounded-lg"
@@ -566,8 +575,8 @@ function ScopeSurface({
           >
             {t("next")}
           </Button>
-        </Footer>
-      ) : null}
+        )}
+      </Footer>
     </Frame>
   );
 }
@@ -628,6 +637,11 @@ function CardSurface({
             <Check className="size-4" strokeWidth={2.5} />
             {t("confirm")}
           </Button>
+        </Footer>
+      ) : null}
+      {surface.confirmable && surface.state === "settled" ? (
+        <Footer>
+          <Confirmed />
         </Footer>
       ) : null}
     </Frame>
