@@ -116,8 +116,11 @@ const TONE = {
     // neutral, so the one green thing is the one that is yours. A tint on the
     // well, not a fill — a white well shouted, a lighter grey did not read as
     // picked at all (Joaquin, 17/oct).
-    well: "bg-accent-500/15 dark:bg-accent-500/[0.13]",
-    icon: "text-accent-800 dark:text-accent-400",
+    // Solid shades of the green rather than the lime at low opacity: over the
+    // dark grey that mixed into olive. The palette's own deep and pale steps
+    // stay clean green in both themes.
+    well: "bg-accent-100 dark:bg-accent-950",
+    icon: "text-accent-800 dark:text-accent-300",
     tick: "border-accent-500 bg-accent-500 text-accent-950",
   },
   focus: "focus-visible:border-foreground/40",
