@@ -1,23 +1,18 @@
 "use client";
 
 import {
-  ArrowRight,
   AudioLines,
   BookA,
   BookOpen,
   Briefcase,
   Check,
   ChevronRight,
-  Compass,
   Dumbbell,
   Eye,
-  Flag,
   Headphones,
   Heart,
   Keyboard,
-  LayoutGrid,
   ListChecks,
-  MessageCircle,
   MessagesSquare,
   Mic,
   PenLine,
@@ -26,7 +21,6 @@ import {
   Sparkles,
   SpellCheck,
   Target,
-  UserRound,
   type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -128,26 +122,19 @@ export function Surface({
   );
 }
 
-/** The mark at the head of each card: what it is about, before it is read. */
-const CARD_ICON: Record<string, LucideIcon> = {
-  name: UserRound,
-  mode: MessageCircle,
-  scope: LayoutGrid,
-  goal: Target,
-  goals: Flag,
-  starting_point: Compass,
-  about_you: Sparkles,
-};
-
 /**
  * The shell every surface sits in: a block in the thread, under the message
  * that asked for it.
  *
+ * Quiet on purpose, the way a menu in Linear or a panel in Vercel is: one
+ * hairline, no header band, no dividers. The rows are inset and rounded so a
+ * hover reads as a highlight under the pointer rather than a stripe across the
+ * card, and the type is one size smaller than the chat's — the card is a tool
+ * next to the conversation, not more of it.
+ *
  * It sits in the conversation's own column, held to the left and as wide as
- * Talkeo's bubbles, so it reads as part of what Talkeo said rather than as a
- * form laid over the chat. The title is a label in the card's header, at
- * reading size: the question is already in the message right above, and a
- * heading would say it a second time, louder.
+ * Talkeo's bubbles. The title is a label, not a heading: the question is in
+ * the message right above, and a heading would say it a second time, louder.
  */
 function Frame({
   kind,
@@ -164,66 +151,49 @@ function Frame({
   children: React.ReactNode;
 }) {
   const mark = useMarkTarget(target ?? "");
-  const Icon = CARD_ICON[kind] ?? Sparkles;
   return (
     <section
       data-slot="surface"
       data-kind={kind}
       data-pointed={mark ? "true" : "false"}
       className={cn(
-        "bg-background mr-auto w-full max-w-[56ch] overflow-hidden rounded-2xl border",
+        "bg-background mr-auto w-full max-w-[56ch] rounded-xl border p-1",
+        "shadow-[0_1px_2px_0_rgb(0_0_0/0.04)]",
         "transition-[box-shadow,border-color] duration-(--duration-highlight-out) ease-(--ease-standard)",
-        mark ? "border-accent-500 ring-accent-500/20 ring-4" : "border-border",
+        mark ? "border-accent-500/60 ring-accent-500/25 ring-2" : "border-border",
       )}
     >
       {title || hint ? (
-        <header className="flex items-start gap-3 px-4 pt-4 pb-3.5">
-          <IconTile icon={Icon} />
-          <div className="flex min-w-0 flex-col gap-0.5 pt-0.5">
-            {title ? (
-              <h2 className="text-foreground text-[15px] leading-snug font-semibold">
-                {title}
-              </h2>
-            ) : null}
-            {hint ? (
-              <p className="text-text-secondary text-[13px] leading-snug">{hint}</p>
-            ) : null}
-          </div>
+        <header className="flex flex-col gap-0.5 px-3 pt-2.5 pb-2">
+          {title ? (
+            <h2 className="text-foreground text-[14px] leading-snug font-medium">
+              {title}
+            </h2>
+          ) : null}
+          {hint ? (
+            <p className="text-text-tertiary text-[13px] leading-snug">{hint}</p>
+          ) : null}
         </header>
       ) : null}
-      <div className="border-border border-t">{children}</div>
+      {children}
     </section>
   );
 }
 
-/** A small square that holds an icon, the same everywhere a card shows one. */
-function IconTile({
-  icon: Icon,
-  tone = "quiet",
-}: {
-  icon: LucideIcon;
-  tone?: "quiet" | "on";
-}) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "grid size-8 shrink-0 place-items-center rounded-lg",
-        "transition-[background-color,color] duration-(--duration-control) ease-(--ease-standard)",
-        tone === "on"
-          ? "bg-accent-500 text-(--cta-face-text)"
-          : "bg-surface-secondary text-text-secondary",
-      )}
-    >
-      <Icon className="size-4" strokeWidth={1.75} />
-    </span>
-  );
-}
+/** The classes every pressable row in a card shares. */
+const ROW = cn(
+  "group flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left outline-none",
+  "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
+  "hover:bg-surface-secondary focus-visible:bg-surface-secondary",
+);
 
-/** Where a card's action goes: under its rows, to the right, like a reply box. */
+/** A card's action: small, to the right, the way a dialog's is. */
+const ACTION = "h-8 rounded-lg px-3 text-[13px]";
+
+/** Where a card's action goes: under its rows, to the right. */
 function Footer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="border-border flex items-center justify-end gap-2 border-t px-4 py-3">
+    <div className="flex items-center justify-end gap-2 px-1.5 pt-1.5 pb-1">
       {children}
     </div>
   );
@@ -252,8 +222,9 @@ function NameSurface({
           onAnswer({ field: "", value: written, confirms: true });
         }}
       >
-        <div className="px-4 py-4">
+        <div className="px-2 pb-1">
           <Input
+            className="h-9 rounded-lg px-3 text-[14px]"
             autoFocus
             value={value}
             onChange={(event) => {
@@ -269,9 +240,8 @@ function NameSurface({
           />
         </div>
         <Footer>
-          <Button type="submit" size="sm" disabled={!written}>
+          <Button type="submit" size="sm" className={ACTION} disabled={!written}>
             {t("name.cta")}
-            <ArrowRight className="size-4" />
           </Button>
         </Footer>
       </form>
@@ -303,7 +273,7 @@ function ModeSurface({
       hint={t("mode.hint")}
       target="control:mode"
     >
-      <div className="divide-border flex flex-col divide-y">
+      <div className="flex flex-col">
         <OptionRow
           icon={Mic}
           label={t("mode.voice")}
@@ -318,8 +288,8 @@ function ModeSurface({
         />
       </div>
       {refusal ? (
-        <div className="border-border border-t px-4 py-3">
-          <MicNotice refusal={refusal} />
+        <div className="px-3 pt-1 pb-2">
+          <MicNotice refusal={refusal} className="text-left text-[13px]" />
         </div>
       ) : null}
     </Frame>
@@ -328,7 +298,7 @@ function ModeSurface({
 
 /** One of a card's choices, as a row: what it is, and a press to pick it. */
 function OptionRow({
-  icon,
+  icon: Icon,
   label,
   slot,
   onClick,
@@ -339,24 +309,20 @@ function OptionRow({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      data-slot={slot}
-      onClick={onClick}
-      className={cn(
-        "group flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left outline-none",
-        "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
-        "hover:bg-surface-secondary focus-visible:bg-surface-secondary",
-      )}
-    >
-      <IconTile icon={icon} />
-      <span className="text-foreground flex-1 text-[15px] font-medium">{label}</span>
+    <button type="button" data-slot={slot} onClick={onClick} className={ROW}>
+      <Icon
+        aria-hidden
+        strokeWidth={1.75}
+        className="text-text-tertiary group-hover:text-foreground size-4 shrink-0 transition-colors duration-(--duration-control)"
+      />
+      <span className="text-foreground flex-1 text-[14px]">{label}</span>
+      {/* Only under the pointer: a column of arrows says "press" six times. */}
       <ChevronRight
         aria-hidden
         className={cn(
-          "text-text-tertiary size-4",
-          "transition-transform duration-(--duration-control) ease-(--ease-standard)",
-          "group-hover:translate-x-0.5",
+          "text-text-tertiary size-4 opacity-0",
+          "transition-[opacity,translate] duration-(--duration-control) ease-(--ease-standard)",
+          "group-hover:translate-x-0.5 group-hover:opacity-100 group-focus-visible:opacity-100",
         )}
       />
     </button>
@@ -394,9 +360,10 @@ function ScopeSurface({
       hint={t("scope.hint")}
       target="control:scope"
     >
-      <div className="divide-border flex flex-col divide-y">
+      <div className="flex flex-col">
         {AREAS.map((area) => {
           const on = picked.includes(area);
+          const Icon = AREA_ICON[area];
           return (
             <button
               key={area}
@@ -406,14 +373,17 @@ function ScopeSurface({
               data-slot="surface-area"
               data-area={area}
               onClick={() => toggle(area)}
-              className={cn(
-                "flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left outline-none",
-                "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
-                "hover:bg-surface-secondary focus-visible:bg-surface-secondary",
-              )}
+              className={ROW}
             >
-              <IconTile icon={AREA_ICON[area]} tone={on ? "on" : "quiet"} />
-              <span className="text-foreground flex-1 text-[15px]">
+              <Icon
+                aria-hidden
+                strokeWidth={1.75}
+                className={cn(
+                  "size-4 shrink-0 transition-colors duration-(--duration-control)",
+                  on ? "text-foreground" : "text-text-tertiary group-hover:text-foreground",
+                )}
+              />
+              <span className="text-foreground flex-1 text-[14px]">
                 {t(`scope.${area}`)}
               </span>
               <Tick on={on} />
@@ -425,6 +395,7 @@ function ScopeSurface({
         <Footer>
           <Button
             size="sm"
+            className={ACTION}
             disabled={picked.length === 0}
             data-slot="surface-confirm"
             onClick={() =>
@@ -432,7 +403,6 @@ function ScopeSurface({
             }
           >
             {t("next")}
-            <ArrowRight className="size-4" />
           </Button>
         </Footer>
       ) : null}
@@ -464,7 +434,7 @@ function CardSurface({
       {surface.kind === "goals" ? (
         <GoalList surface={surface} onAnswer={onAnswer} />
       ) : (
-        <dl className="divide-border flex flex-col divide-y">
+        <dl className="flex flex-col">
           {fields.map((field) => (
             <Line
               key={field}
@@ -484,10 +454,10 @@ function CardSurface({
         <Footer>
           <Button
             size="sm"
+            className={ACTION}
             data-slot="surface-confirm"
             onClick={() => onAnswer({ field: "", value: "", confirms: true })}
           >
-            <Check className="size-4" />
             {t("confirm")}
           </Button>
         </Footer>
@@ -530,7 +500,9 @@ function GoalList({
   const listed = goals.length > 0 ? goals : [{}];
 
   return (
-    <ol className="divide-border flex flex-col divide-y">
+    // Objectives apart by space and a hairline inset from the edges, the
+    // way a list groups its sections; a full-width rule is a table.
+    <ol className="[&>li+li]:border-border flex flex-col [&>li+li]:mx-2.5 [&>li+li]:mt-1 [&>li+li]:border-t [&>li+li]:pt-1">
       {listed.map((goal, index) => (
         <li key={index} data-slot="surface-goal">
           <dl className="flex flex-col">
@@ -582,17 +554,17 @@ function Line({
   const showing = draft ?? value;
 
   return (
-    <div className="flex items-start gap-3 px-4 py-3">
+    <div className="flex items-start gap-2.5 px-2.5 py-2">
       <Icon
         aria-hidden
         strokeWidth={1.75}
-        className="text-text-tertiary mt-[3px] size-4 shrink-0"
+        className="text-text-tertiary mt-[2px] size-4 shrink-0"
       />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <dt className="text-text-secondary text-[13px] leading-snug">{label}</dt>
+        <dt className="text-text-tertiary text-[12px] leading-snug">{label}</dt>
         <dd>
           {readOnly ? (
-            <p className="text-foreground text-[15px] leading-[1.6] whitespace-pre-line">
+            <p className="text-foreground text-[14px] leading-[1.55] whitespace-pre-line">
               {value || empty}
             </p>
           ) : (
@@ -603,7 +575,7 @@ function Line({
               data-slot="surface-line"
               className={cn(
                 "text-foreground placeholder:text-text-tertiary field-sizing-content",
-                "-mx-2 w-[calc(100%+1rem)] resize-none rounded-lg bg-transparent px-2 py-1 text-[15px] leading-[1.6]",
+                "-mx-1.5 w-[calc(100%+0.75rem)] resize-none rounded-md bg-transparent px-1.5 py-0.5 text-[14px] leading-[1.55]",
                 "outline-none",
                 "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
                 "hover:bg-surface-secondary focus:bg-surface-secondary",
@@ -642,29 +614,26 @@ function asText(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+/** A checkbox the size of the text beside it, in the ink of the text. */
 function Tick({ on }: { on: boolean }) {
   return (
     <span
       aria-hidden
       className={cn(
-        "grid size-6 shrink-0 place-items-center rounded-full border",
+        "grid size-4 shrink-0 place-items-center rounded-[5px] border",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
-        on ? "border-accent-500 bg-accent-500" : "border-border",
+        on
+          ? "border-foreground bg-foreground text-background"
+          : "border-border-strong group-hover:border-text-tertiary",
       )}
     >
-      {on ? (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="var(--cta-face-text)"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="size-3.5"
-        >
-          <path d="m5 13 4 4L19 7" />
-        </svg>
-      ) : null}
+      <Check
+        strokeWidth={3}
+        className={cn(
+          "size-3 transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
+          on ? "scale-100 opacity-100" : "scale-50 opacity-0",
+        )}
+      />
     </span>
   );
 }
