@@ -33,14 +33,13 @@ import { cn } from "@/lib/utils";
  */
 const GROW_MS = 260;
 /**
- * A word becomes legible fast and finishes focusing slowly. Opacity runs on a
- * shorter clock than the blur, both on the entrance curve (quick out of the
- * gate, long soft tail), so the word is readable almost at once and the last
- * of the softness melts away behind the next one — which is what lets a run
- * of words read as one continuous stroke instead of a row of separate fades.
+ * A word fades in on an even curve while its blur melts on the entrance curve
+ * (quick out of the gate, long soft tail), so it comes up gradually and the
+ * last of the softness goes behind the next one — which is what lets a run of
+ * words read as one continuous stroke instead of a row of separate fades.
  * At 6px the blur smeared into the neighbouring words; 3px only softens.
  */
-const APPEAR_MS = 280;
+const APPEAR_MS = 520;
 const RESOLVE_MS = 600;
 const BLUR_PX = 3;
 
@@ -193,7 +192,7 @@ export function TurnText({
               style={{
                 opacity: shown ? 1 : 0,
                 filter: shown ? "blur(0px)" : `blur(${BLUR_PX}px)`,
-                transition: `opacity ${APPEAR_MS}ms var(--ease-entrance), filter ${RESOLVE_MS}ms var(--ease-entrance)`,
+                transition: `opacity ${APPEAR_MS}ms var(--ease-standard), filter ${RESOLVE_MS}ms var(--ease-entrance)`,
               }}
             >
               {word}
