@@ -85,6 +85,38 @@ const FIELD_ICON: Record<string, LucideIcon> = {
   follows: Heart,
 };
 
+/**
+ * Every colour a surface uses, in one place, so the card is one palette and
+ * not a fill per component.
+ *
+ * Two rules make it hold together. **Neutrals are a ladder**: page, card, then
+ * whatever you can touch is one step closer to you than the card — white on
+ * the light card, lighter grey on the dark one. Before, the tiles and the field
+ * were the page colour in dark mode, so they read as holes cut in the card.
+ * **Green means one thing, "yours"**: what is picked, the field you are in.
+ * Nothing decorative is green, so where it appears it says something.
+ *
+ * Edges are hairlines of the text colour at low opacity rather than the
+ * `border` token, which in dark mode is a grey heavy enough to draw a grid.
+ */
+const TONE = {
+  card: "bg-surface-secondary border border-black/[0.04] dark:border-white/[0.05]",
+  edge: "border-black/[0.08] dark:border-white/[0.08]",
+  edgeHover: "hover:border-black/[0.16] dark:hover:border-white/[0.16]",
+  hairline: "border-black/[0.06] divide-black/[0.06] dark:border-white/[0.06] dark:divide-white/[0.06]",
+  /** What you can touch: one step up from the card. */
+  face: "bg-background dark:bg-surface-tertiary",
+  /** The well behind a tile's icon: between the card and the face. */
+  well: "bg-black/[0.035] dark:bg-white/[0.025]",
+  picked: {
+    edge: "border-accent-500 dark:border-accent-500/70",
+    face: "bg-accent-50 dark:bg-[color-mix(in_oklab,var(--surface-tertiary),var(--color-accent-500)_12%)]",
+    well: "bg-accent-100 dark:bg-accent-500/15",
+    icon: "text-accent-800 dark:text-accent-300",
+  },
+  icon: "text-text-secondary",
+} as const;
+
 export type SurfaceAnswer = {
   /** The card and line this changed, empty when it is not a card edit. */
   field: string;
@@ -156,9 +188,10 @@ function Frame({
       data-kind={kind}
       data-pointed={mark ? "true" : "false"}
       className={cn(
-        "bg-surface-secondary mr-auto flex w-full max-w-[56ch] flex-col gap-3 rounded-2xl p-3.5",
+        TONE.card,
+        "mr-auto flex w-full max-w-[56ch] flex-col gap-3 rounded-2xl p-3.5",
         "transition-[box-shadow] duration-(--duration-highlight-out) ease-(--ease-standard)",
-        mark && "ring-accent-500 ring-2",
+        mark && "ring-accent-500/70 ring-2",
       )}
     >
       {title || hint ? (
@@ -193,8 +226,8 @@ function tile(on: boolean) {
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
     // The tile's own fill is the icon's well; the body sits on top of it.
     on
-      ? "border-accent-500 bg-accent-500/20"
-      : "border-border bg-surface-tertiary hover:border-border-strong",
+      ? cn(TONE.picked.edge, TONE.picked.well)
+      : cn(TONE.edge, TONE.edgeHover, TONE.well),
   );
 }
 
@@ -210,9 +243,7 @@ function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
       className={cn(
         "grid w-11 shrink-0 place-items-center",
         "transition-[color] duration-(--duration-control) ease-(--ease-standard)",
-        on
-          ? "text-accent-800 dark:text-accent-300"
-          : "text-text-secondary group-hover:text-foreground",
+        on ? TONE.picked.icon : cn(TONE.icon, "group-hover:text-foreground"),
       )}
     >
       <Icon className="size-[18px]" strokeWidth={1.75} />
@@ -227,7 +258,7 @@ function TileBody({ on, children }: { on: boolean; children: React.ReactNode }) 
       className={cn(
         "flex min-w-0 flex-1 items-center gap-3 rounded-l-[10px] px-3.5 py-2.5",
         "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
-        on ? "bg-accent-50 dark:bg-[color-mix(in_oklab,var(--background),var(--color-accent-500)_8%)]" : "bg-background",
+        on ? TONE.picked.face : TONE.face,
       )}
     >
       {children}
@@ -269,7 +300,12 @@ function NameSurface({
             // No autofocus: the card comes up while they may be typing in the
             // chat field, and taking the caret from there throws their
             // sentence into the wrong box (Joaquin, 17/oct).
-            className="bg-background focus-visible:border-accent-500"
+            className={cn(
+              TONE.face,
+              TONE.edge,
+              TONE.edgeHover,
+              "focus-visible:border-accent-500 dark:focus-visible:border-accent-500/70",
+            )}
             value={value}
             onChange={(event) => {
               // Written as it is stored, while they type. The service raises the
@@ -284,7 +320,7 @@ function NameSurface({
           />
         </div>
         <Footer>
-          <Button type="submit" variant="raised" size="sm" disabled={!written}>
+          <Button type="submit" variant="primary" size="sm" disabled={!written}>
             {t("name.cta")}
           </Button>
         </Footer>
@@ -436,7 +472,7 @@ function ScopeSurface({
       {surface.state !== "settled" ? (
         <Footer>
           <Button
-            variant="raised"
+            variant="primary"
             size="sm"
             disabled={picked.length === 0}
             data-slot="surface-confirm"
@@ -495,7 +531,7 @@ function CardSurface({
       {surface.confirmable && surface.state === "proposed" ? (
         <Footer>
           <Button
-            variant="raised"
+            variant="primary"
             size="sm"
             data-slot="surface-confirm"
             onClick={() => onAnswer({ field: "", value: "", confirms: true })}
@@ -514,8 +550,7 @@ function CardSurface({
  * hairlines. A panel inside the card was a box in a box, and the double frame
  * was most of what made it read heavy.
  */
-const PANEL =
-  "border-border/60 divide-border/60 -mx-3.5 flex flex-col divide-y border-t";
+const PANEL = cn(TONE.hairline, "-mx-3.5 flex flex-col divide-y border-t");
 
 /** Which lines each card shows, in the order it shows them. */
 const FIELDS: Record<string, string[]> = {
@@ -611,7 +646,7 @@ function Line({
       <Icon
         aria-hidden
         strokeWidth={2}
-        className="text-text-tertiary mt-[3px] size-4"
+        className={cn(TONE.icon, "mt-[3px] size-4")}
       />
       <dt className="text-text-secondary text-[13px] leading-[1.6]">{label}</dt>
       <dd className="min-w-0">
@@ -682,7 +717,7 @@ function Tick({ on }: { on: boolean }) {
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
           ? "border-accent-500 bg-accent-500 text-accent-950"
-          : "border-border-strong group-hover:border-text-tertiary",
+          : "border-black/25 group-hover:border-black/40 dark:border-white/25 dark:group-hover:border-white/40",
       )}
     >
       <Check
