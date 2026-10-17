@@ -127,4 +127,15 @@ describe("where a surface stays", () => {
     expect(state.anchored).toHaveLength(1);
     expect(state.anchored[0]!.after).toBe("tt_0");
   });
+
+  it("still comes up when they answer in the chat before its beat", () => {
+    const state = through([
+      restored,
+      { kind: "said", text: "Ana" },
+      { kind: "message", message: started },
+    ]);
+
+    expect(state.anchored).toHaveLength(1);
+    expect(state.anchored[0]!.after).toBe("tt_0");
+  });
 });

@@ -82,14 +82,16 @@ test("the field is always there, whichever way they answer", async ({ page }) =>
   await expect(page.locator('[data-slot="view-toggle"]')).toHaveCount(0);
 });
 
-test("the composer offers the call with nothing written, and send with something", async ({
+test("the composer offers no call while they give their name, and send with something", async ({
   page,
 }) => {
   await page.goto("/es/onboarding");
   await spoken(page);
 
+  // Speaking is the question after the name, so it is not offered before it.
   const action = page.locator('[data-slot="composer-action"]');
-  await expect(action).toHaveAttribute("data-action", "call");
+  await expect(action).toHaveAttribute("data-action", "send");
+  await expect(action).toBeDisabled();
 
   await page.locator('[data-slot="composer-field"]').fill("hola");
   await expect(action).toHaveAttribute("data-action", "send");

@@ -156,20 +156,20 @@ function Frame({
       data-kind={kind}
       data-pointed={mark ? "true" : "false"}
       className={cn(
-        "bg-surface-secondary mr-auto flex w-full max-w-[56ch] flex-col gap-4 rounded-2xl p-4",
+        "bg-surface-secondary mr-auto flex w-full max-w-[56ch] flex-col gap-3 rounded-2xl p-3.5",
         "transition-[box-shadow] duration-(--duration-highlight-out) ease-(--ease-standard)",
         mark && "ring-accent-500 ring-2",
       )}
     >
       {title || hint ? (
-        <header className="flex flex-col gap-1">
+        <header className="flex flex-col gap-0.5 px-0.5">
           {title ? (
-            <h2 className="font-heading text-foreground text-[17px] leading-snug font-semibold">
+            <h2 className="font-heading text-foreground text-[15px] leading-snug font-semibold">
               {title}
             </h2>
           ) : null}
           {hint ? (
-            <p className="text-text-secondary text-[14px] leading-snug">{hint}</p>
+            <p className="text-text-secondary text-[13px] leading-snug">{hint}</p>
           ) : null}
         </header>
       ) : null}
@@ -179,20 +179,21 @@ function Frame({
 }
 
 /**
- * A choice, as a tile with the buttons' lip: a solid thing to press, that
- * goes down when pressed and turns the brand's green when picked. The lip is
- * a zero-blur shadow, as on the buttons, so the tile keeps its height whether
- * or not it is pressed.
+ * A choice, as a tile: a solid thing to press. It rests on a soft shadow,
+ * rises a pixel under the pointer, settles when pressed and takes a tint of
+ * the brand's green when picked. The green is a tint and a border, not a fill:
+ * a full lime block next to the text shouted over everything else on the card.
  */
 function tile(on: boolean) {
   return cn(
-    "group relative flex cursor-pointer items-center gap-3 rounded-xl border-2 text-left outline-none select-none",
+    "group relative flex cursor-pointer items-center gap-2.5 rounded-xl border text-left outline-none select-none",
     "transition-[transform,box-shadow,background-color,border-color] duration-(--duration-press-out) ease-(--ease-standard)",
-    "active:translate-y-[2px] active:shadow-none active:duration-(--duration-press-in)",
+    "shadow-[0_1px_2px_0_rgb(0_0_0/0.05)] hover:-translate-y-px hover:shadow-[0_3px_8px_-2px_rgb(0_0_0/0.10)]",
+    "active:translate-y-0 active:shadow-[0_1px_1px_0_rgb(0_0_0/0.04)] active:duration-(--duration-press-in)",
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
     on
-      ? "border-accent-500 bg-accent-500/12 shadow-[0_2px_0_0_var(--color-accent-600)]"
-      : "border-border bg-background shadow-[0_2px_0_0_var(--border)] hover:border-border-strong",
+      ? "border-accent-500 bg-accent-50 dark:bg-accent-500/10"
+      : "border-border bg-background hover:border-border-strong",
   );
 }
 
@@ -202,14 +203,14 @@ function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid size-9 shrink-0 place-items-center rounded-full",
+        "grid size-7 shrink-0 place-items-center rounded-full",
         "transition-[background-color,color] duration-(--duration-control) ease-(--ease-standard)",
         on
-          ? "bg-accent-500 text-accent-950"
+          ? "bg-accent-500/25 text-accent-800 dark:text-accent-300"
           : "bg-surface-secondary text-text-secondary group-hover:text-foreground",
       )}
     >
-      <Icon className="size-[18px]" strokeWidth={2} />
+      <Icon className="size-4" strokeWidth={2} />
     </span>
   );
 }
@@ -261,7 +262,7 @@ function NameSurface({
           />
         </div>
         <Footer>
-          <Button type="submit" variant="raised" disabled={!written}>
+          <Button type="submit" variant="raised" size="sm" disabled={!written}>
             {t("name.cta")}
           </Button>
         </Footer>
@@ -332,10 +333,10 @@ function OptionRow({
       type="button"
       data-slot={slot}
       onClick={onClick}
-      className={cn(tile(false), "px-3.5 py-3")}
+      className={cn(tile(false), "px-3 py-2.5")}
     >
       <TileIcon icon={icon} on={false} />
-      <span className="text-foreground font-heading flex-1 text-[15px] font-semibold">
+      <span className="text-foreground flex-1 text-[14px] font-medium">
         {label}
       </span>
       <ChevronRight
@@ -395,10 +396,10 @@ function ScopeSurface({
               data-slot="surface-area"
               data-area={area}
               onClick={() => toggle(area)}
-              className={cn(tile(on), "px-3 py-2.5")}
+              className={cn(tile(on), "px-2.5 py-2")}
             >
               <TileIcon icon={AREA_ICON[area]} on={on} />
-              <span className="text-foreground flex-1 text-[15px] leading-tight font-medium">
+              <span className="text-foreground flex-1 text-[14px] leading-tight font-medium">
                 {t(`scope.${area}`)}
               </span>
               <Tick on={on} />
@@ -410,6 +411,7 @@ function ScopeSurface({
         <Footer>
           <Button
             variant="raised"
+            size="sm"
             disabled={picked.length === 0}
             data-slot="surface-confirm"
             onClick={() =>
@@ -468,6 +470,7 @@ function CardSurface({
         <Footer>
           <Button
             variant="raised"
+            size="sm"
             data-slot="surface-confirm"
             onClick={() => onAnswer({ field: "", value: "", confirms: true })}
           >
@@ -485,7 +488,7 @@ function CardSurface({
  * hairlines — a grouped list, the way a settings screen holds its rows.
  */
 const PANEL =
-  "bg-background divide-border flex flex-col divide-y overflow-hidden rounded-xl border-2 border-border";
+  "bg-background divide-border flex flex-col divide-y overflow-hidden rounded-xl border border-border shadow-[0_1px_2px_0_rgb(0_0_0/0.05)]";
 
 /** Which lines each card shows, in the order it shows them. */
 const FIELDS: Record<string, string[]> = {
@@ -574,20 +577,20 @@ function Line({
   const showing = draft ?? value;
 
   return (
-    <div className="flex items-start gap-3 px-3.5 py-3">
+    <div className="flex items-start gap-2.5 px-3 py-2.5">
       <span
         aria-hidden
-        className="bg-accent-500/15 text-accent-800 dark:text-accent-400 grid size-8 shrink-0 place-items-center rounded-full"
+        className="bg-accent-500/15 text-accent-800 dark:text-accent-300 mt-0.5 grid size-7 shrink-0 place-items-center rounded-full"
       >
-        <Icon strokeWidth={2} className="size-4" />
+        <Icon strokeWidth={2} className="size-3.5" />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <dt className="text-text-secondary text-[13px] leading-snug font-medium">
+        <dt className="text-text-secondary text-[12px] leading-snug font-medium">
           {label}
         </dt>
         <dd>
           {readOnly ? (
-            <p className="text-foreground text-[15px] leading-[1.55] whitespace-pre-line">
+            <p className="text-foreground text-[14px] leading-[1.55] whitespace-pre-line">
               {value || empty}
             </p>
           ) : (
@@ -598,7 +601,7 @@ function Line({
               data-slot="surface-line"
               className={cn(
                 "text-foreground placeholder:text-text-tertiary field-sizing-content",
-                "-mx-1.5 w-[calc(100%+0.75rem)] resize-none rounded-md bg-transparent px-1.5 py-0.5 text-[15px] leading-[1.55]",
+                "-mx-1.5 w-[calc(100%+0.75rem)] resize-none rounded-md bg-transparent px-1.5 py-0.5 text-[14px] leading-[1.55]",
                 "outline-none",
                 "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
                 "hover:bg-surface-secondary focus:bg-surface-secondary",
@@ -643,7 +646,7 @@ function Tick({ on }: { on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid size-5 shrink-0 place-items-center rounded-full border-2",
+        "grid size-[18px] shrink-0 place-items-center rounded-full border-[1.5px]",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
           ? "border-accent-500 bg-accent-500 text-accent-950"

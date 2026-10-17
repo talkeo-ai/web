@@ -65,6 +65,10 @@ describe("the one control at the end of the composer", () => {
     expect(composerAction({ text: "hola", inCall: true })).toBe("send");
   });
 
+  it("offers no call before speaking is a choice, only a send with nothing in it", () => {
+    expect(composerAction({ text: "", inCall: false, canCall: false })).toBe("send");
+  });
+
   it("offers to leave the call when there is nothing written", () => {
     expect(composerAction({ text: "", inCall: true })).toBe("hang up");
   });

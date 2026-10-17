@@ -41,8 +41,16 @@ export function useFollowingScroll() {
     const node = viewport.current;
     if (!node) return;
 
+    let lastTop = node.scrollTop;
     const onScroll = () => {
-      following.current = atBottom(node);
+      // Only their scrolling UP lets go. A card growing faster than our own
+      // glide toward the foot left the view more than the margin behind for a
+      // moment, and judging by distance alone read that as them reading back:
+      // the scroll stopped halfway down the card.
+      const top = node.scrollTop;
+      if (atBottom(node)) following.current = true;
+      else if (top < lastTop) following.current = false;
+      lastTop = top;
       // Only when something has actually gone under the top edge. With a short
       // conversation there is nothing above to fade, and a band of colour over
       // empty space reads as taller than the one at the foot, which always has

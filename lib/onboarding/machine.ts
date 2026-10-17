@@ -95,11 +95,19 @@ export function step(
     return anchor({ ...state, surfaceReady: true });
   }
 
-  const conversation = advance(state.conversation, action);
+  // Answering in the chat before the surface came up does not lose it: it
+  // takes its place now, under the message that asked for it and before their
+  // answer lands (Joaquin, 17/oct: "si o si").
+  const before =
+    action.kind === "said"
+      ? { ...state, anchored: anchor({ ...state, surfaceReady: true }).anchored }
+      : state;
+
+  const conversation = advance(before.conversation, action);
   const surface = surfaceOf(conversation);
 
   return anchor({
-    ...state,
+    ...before,
     conversation,
     surface,
     // A new turn takes the surface off until the beat after that turn has been

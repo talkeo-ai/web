@@ -159,6 +159,7 @@ function Screen({
             inCall={run.inCall}
             muted={run.micMuted}
             canSend={!conversation.answering}
+            canCall={Boolean(conversation.name)}
             onSend={(text) => {
               scroll.follow();
               run.say(text);

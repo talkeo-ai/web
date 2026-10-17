@@ -40,6 +40,7 @@ export function Composer({
   inCall,
   muted,
   canSend,
+  canCall,
   onSend,
   onCall,
   onHangUp,
@@ -50,13 +51,15 @@ export function Composer({
   muted: boolean;
   /** Whether there is anything to send it to yet. */
   canSend: boolean;
+  /** Whether speaking is on offer yet. Not before they have given a name. */
+  canCall: boolean;
   onSend: (text: string) => void;
   onCall: () => void;
   onHangUp: () => void;
   onMute: (on: boolean) => void;
 }) {
   const [text, setText] = useState("");
-  const action = composerAction({ text, inCall });
+  const action = composerAction({ text, inCall, canCall });
   const ready = action === "send" && canSend;
 
   const act = () => {

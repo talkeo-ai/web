@@ -72,14 +72,21 @@ export type ComposerAction = "send" | "call" | "hang up";
  * With text in the field there is something to send and speaking would throw it
  * away; with the field empty there is nothing to send. In a call and empty, the
  * thing offered is leaving the call — not sending nothing.
+ *
+ * Calling waits for `canCall`: choosing to speak is the question after the
+ * name, and a microphone offered while they are still saying who they are
+ * answers it before it is asked (Joaquin, 17/oct).
  */
 export function composerAction({
   text,
   inCall,
+  canCall = true,
 }: {
   text: string;
   inCall: boolean;
+  canCall?: boolean;
 }): ComposerAction {
   if (text.trim().length > 0) return "send";
-  return inCall ? "hang up" : "call";
+  if (inCall) return "hang up";
+  return canCall ? "call" : "send";
 }
