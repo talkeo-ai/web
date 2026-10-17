@@ -486,11 +486,12 @@ function CardSurface({
 }
 
 /**
- * Where a card's lines sit: one white panel on the card's fill, lines split by
- * hairlines — a grouped list, the way a settings screen holds its rows.
+ * Where a card's lines sit: straight on the card, edge to edge, split by
+ * hairlines. A panel inside the card was a box in a box, and the double frame
+ * was most of what made it read heavy.
  */
 const PANEL =
-  "bg-background divide-border flex flex-col divide-y overflow-hidden rounded-xl border border-border shadow-[0_1px_2px_0_rgb(0_0_0/0.05)]";
+  "border-border/60 divide-border/60 -mx-3.5 flex flex-col divide-y border-t";
 
 /** Which lines each card shows, in the order it shows them. */
 const FIELDS: Record<string, string[]> = {
@@ -526,8 +527,8 @@ function GoalList({
   const listed = goals.length > 0 ? goals : [{}];
 
   return (
-    // One panel per objective, so each reads as one thing with two lines.
-    <ol className="flex flex-col gap-2.5">
+    // One group of lines per objective, each opened by its own hairline.
+    <ol className="flex flex-col">
       {listed.map((goal, index) => (
         <li key={index} data-slot="surface-goal">
           <dl className={PANEL}>
@@ -579,47 +580,52 @@ function Line({
   const showing = draft ?? value;
 
   return (
-    <div className="flex items-start gap-2.5 px-3 py-2.5">
-      <span
+    // One row, label beside value, the way a properties panel reads: the eye
+    // runs down the labels and stops at the value it wants. Stacked, every line
+    // was two lines tall and a card of four empty ones filled the screen.
+    <div className="grid grid-cols-[1rem_minmax(0,9.5rem)_minmax(0,1fr)] items-start gap-x-3 px-3.5 py-2">
+      <Icon
         aria-hidden
-        className="bg-accent-500/15 text-accent-800 dark:text-accent-300 mt-0.5 grid size-7 shrink-0 place-items-center rounded-full"
-      >
-        <Icon strokeWidth={2} className="size-3.5" />
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <dt className="text-text-secondary text-[12px] leading-snug font-medium">
-          {label}
-        </dt>
-        <dd>
-          {readOnly ? (
-            <p className="text-foreground text-[14px] leading-[1.55] whitespace-pre-line">
-              {value || empty}
-            </p>
-          ) : (
-            <textarea
-              rows={1}
-              value={showing}
-              placeholder={empty}
-              data-slot="surface-line"
-              className={cn(
-                "text-foreground placeholder:text-text-tertiary field-sizing-content",
-                "-mx-1.5 w-[calc(100%+0.75rem)] resize-none rounded-md bg-transparent px-1.5 py-0.5 text-[14px] leading-[1.55]",
-                "outline-none",
-                "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
-                "hover:bg-surface-secondary focus:bg-surface-secondary",
-              )}
-              onChange={(event) => setDraft(event.target.value)}
-              onBlur={() => {
-                // Committed on leaving the line rather than on every keystroke:
-                // an edit travels with their next turn, and one per character
-                // would be a queue of a hundred versions of the same sentence.
-                if (draft !== null && draft !== value) onCommit(draft);
-                setDraft(null);
-              }}
-            />
-          )}
-        </dd>
-      </div>
+        strokeWidth={2}
+        className="text-text-tertiary mt-[3px] size-4"
+      />
+      <dt className="text-text-secondary text-[13px] leading-[1.6]">{label}</dt>
+      <dd className="min-w-0">
+        {readOnly ? (
+          <p
+            className={cn(
+              "text-[14px] leading-[1.55] whitespace-pre-line",
+              value ? "text-foreground" : "text-text-tertiary",
+            )}
+          >
+            {value || empty}
+          </p>
+        ) : (
+          <textarea
+            rows={1}
+            value={showing}
+            placeholder={empty}
+            data-slot="surface-line"
+            // `block`: inline, a textarea keeps a descender's worth of space
+            // under it, which is the gap that sat under every editable line.
+            className={cn(
+              "text-foreground placeholder:text-text-tertiary field-sizing-content",
+              "-mx-1.5 -my-0.5 block w-[calc(100%+0.75rem)] resize-none rounded-md bg-transparent px-1.5 py-0.5 text-[14px] leading-[1.55]",
+              "outline-none",
+              "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
+              "hover:bg-surface-tertiary focus:bg-surface-tertiary",
+            )}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={() => {
+              // Committed on leaving the line rather than on every keystroke:
+              // an edit travels with their next turn, and one per character
+              // would be a queue of a hundred versions of the same sentence.
+              if (draft !== null && draft !== value) onCommit(draft);
+              setDraft(null);
+            }}
+          />
+        )}
+      </dd>
     </div>
   );
 }

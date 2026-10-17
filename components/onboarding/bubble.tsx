@@ -100,8 +100,10 @@ export function Arriving({ children }: { children: ReactNode }) {
     >
       <div className="overflow-hidden">
         {/* The spacing lives inside the clipped row, so it grows with the
-            bubble instead of being there before it. */}
-        <div className="pt-8">{children}</div>
+            bubble instead of being there before it. Close under the message:
+            the card belongs to the message that asked for it, and at the
+            distance between two messages it read as a third one. */}
+        <div className="pt-2.5">{children}</div>
       </div>
     </div>
   );
