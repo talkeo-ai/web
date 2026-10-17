@@ -75,6 +75,18 @@ const SAID_ALOUD = [
   "dale",
 ];
 
+/** The card fields the service keeps as lists, and takes back a line each. */
+const LIST_FIELDS = new Set(["work_on", "path", "does", "follows", "context"]);
+
+/** An edit's value the way the service stores it (`cards._lines`). */
+function asField(field: string, value: string): unknown {
+  if (!LIST_FIELDS.has(field)) return value;
+  return value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
 export function openMockInterview(): InterviewChannel {
   const queue = new MessageQueue<InterviewMessage>();
   let next = 0;
@@ -86,7 +98,14 @@ export function openMockInterview(): InterviewChannel {
   // it.
   let mode = "";
   let named: string | null = null;
-  let pendingEdit: CardEdit | null = null;
+  // Every edit since the last turn, not only the last one: a card with two
+  // lines changed sends two, and keeping one dropped the other.
+  let pendingEdits: CardEdit[] = [];
+  // What each card says by now, their edits folded in, so a later card that is
+  // built from an earlier one — the objectives list from the first objective —
+  // carries what they wrote, the way the service's does (`cards.on_screen`).
+  const bodies: Record<string, Record<string, unknown>> = {};
+  let goalsShown = false;
   let closed = false;
 
   const wait = (ms: number) =>
@@ -106,8 +125,8 @@ export function openMockInterview(): InterviewChannel {
     running = true;
     // Taken now rather than at the call site: it belongs to the turn that is
     // about to run, and it must not be carried into the one after it.
-    const edit = pendingEdit;
-    pendingEdit = null;
+    const edits = pendingEdits;
+    pendingEdits = [];
     try {
       const at = Math.min(next, TALKEO_INTERVIEW_TURNS.length - 1);
       const recorded = TALKEO_INTERVIEW_TURNS[at]!;
@@ -147,25 +166,48 @@ export function openMockInterview(): InterviewChannel {
       // Their edit comes back as the card it produced, the way the service
       // answers one: applied, not merely acknowledged. Ahead of the turn's own
       // events, because it happened before the turn did.
-      if (edit) {
+      edits.forEach((edit, index) => {
+        const body = (bodies[edit.card] ??= {});
+        if (edit.field) body[edit.field] = asField(edit.field, edit.value);
         queue.push({
           kind: "event",
           turn_id: turn.turn_id,
           event: {
-            event_id: `ev_${turn.turn_id}_ed`,
+            event_id: `ev_${turn.turn_id}_ed${index}`,
             kind: "card_updated",
             origin: "inferred",
             payload: {
               card: edit.card,
               state: edit.confirms ? "confirmed" : "edited_by_person",
-              body: edit.field ? { [edit.field]: edit.value } : {},
+              body: { ...body },
               by: "person",
             },
           },
         });
-      }
+      });
       for (const event of turn.events) {
         queue.push({ kind: "event", turn_id: turn.turn_id, event });
+      }
+      // The objectives list opens with the first objective in it, as the
+      // service's does. The recording has no card for it, so it showed empty.
+      if (stage >= 4 && !goalsShown) {
+        goalsShown = true;
+        const first = bodies.first_goal;
+        queue.push({
+          kind: "event",
+          turn_id: turn.turn_id,
+          event: {
+            event_id: `ev_${turn.turn_id}_goals`,
+            kind: "card_updated",
+            origin: "inferred",
+            payload: {
+              card: "goals",
+              state: "draft",
+              body: { goals: first ? [{ ...first }] : [] },
+              by: "talkeo",
+            },
+          },
+        });
       }
       queue.push({
         kind: "turn_done",
@@ -211,7 +253,7 @@ export function openMockInterview(): InterviewChannel {
       void runTurn();
     },
     cardEdited: (edit) => {
-      pendingEdit = edit;
+      pendingEdits.push(edit);
     },
     choseMode: (chosen) => {
       mode = chosen;
