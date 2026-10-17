@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { TurnText } from "@/components/talkeo/turn-text";
 import { MESSAGE_IN_MS } from "@/lib/onboarding/motion";
@@ -17,15 +11,11 @@ import { cn } from "@/lib/utils";
 /** One declaration, so a turn being said and a settled one cannot drift apart. */
 export const TALKEO_BODY = "text-foreground text-[18px] leading-[1.7]";
 
-/** How long a streaming bubble takes to widen to its next word. */
-const GROW_WIDTH_MS = 220;
-
 export function Bubble({
   from,
   children,
   arriving = true,
   signed = true,
-  growing = false,
 }: {
   from: "talkeo" | "you";
   children: ReactNode;
@@ -37,29 +27,7 @@ export function Bubble({
    * label on the only thing in the box.
    */
   signed?: boolean;
-  /**
-   * True while its text is still streaming in. The bubble fits what has arrived
-   * so far, so it widens with every word until the line wraps — and fitted in
-   * one frame each time, that read as the bubble jumping under the letters.
-   * Growing, it follows its content's width on a short transition instead.
-   */
-  growing?: boolean;
 }) {
-  const content = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState<number | null>(null);
-
-  useLayoutEffect(() => {
-    const node = content.current;
-    if (!growing || !node) return;
-    const measure = () => setWidth(node.offsetWidth);
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [growing]);
-
-  const sized = growing && width !== null;
-
   return (
     <div
       data-slot="bubble"
@@ -83,29 +51,16 @@ export function Bubble({
           ? "bg-surface-tertiary ml-auto"
           : "bg-surface-secondary mr-auto",
       )}
-      style={{
-        ...(arriving
+      style={
+        arriving
           ? { animation: `message-in ${MESSAGE_IN_MS}ms var(--ease-standard) both` }
-          : {}),
-        // `content-box`, so the width set is the content's and the padding
-        // stays outside it, the way `w-fit` sizes it.
-        ...(sized
-          ? {
-              width,
-              boxSizing: "content-box",
-              transition: `width ${GROW_WIDTH_MS}ms var(--ease-standard)`,
-            }
-          : {}),
-      }}
+          : undefined
+      }
     >
-      {/* Measured at its own natural width, which is what the bubble follows.
-          Capped where the bubble's own cap leaves it, padding taken out. */}
-      <div ref={content} className={growing ? "w-max max-w-[calc(56ch-2rem)]" : undefined}>
-        {children}
-        {from === "talkeo" && signed ? (
-          <p className="text-text-tertiary mt-1.5 text-xs font-medium">Talkeo</p>
-        ) : null}
-      </div>
+      {children}
+      {from === "talkeo" && signed ? (
+        <p className="text-text-tertiary mt-1.5 text-xs font-medium">Talkeo</p>
+      ) : null}
     </div>
   );
 }
