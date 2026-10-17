@@ -128,6 +128,25 @@ describe("where a surface stays", () => {
     expect(state.anchored[0]!.after).toBe("tt_0");
   });
 
+  it("the next card waits for the message that asks for it", () => {
+    // The name answered on its card: the stage moves to the mode card, which
+    // must not come up under the first message.
+    const answered = through([
+      restored,
+      { kind: "surface ready" },
+      { kind: "named", name: "Ana" },
+      { kind: "confirmed", card: "name" },
+      { kind: "said", text: "Ana" },
+    ]);
+    expect(answered.surface?.kind).toBe("mode");
+    expect(answered.surfaceReady).toBe(false);
+    expect(answered.anchored.map((entry) => entry.key)).toEqual(["name:name"]);
+
+    const asked = through([{ kind: "surface ready" }], answered);
+    expect(asked.anchored.at(-1)!.key).toBe("mode:mode");
+    expect(asked.anchored.at(-1)!.after).not.toBe("tt_0");
+  });
+
   it("still comes up when they answer in the chat before its beat", () => {
     const state = through([
       restored,

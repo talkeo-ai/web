@@ -50,6 +50,13 @@ export type Onboarding = {
    * following its card; the rest keep the last state they were in.
    */
   anchored: AnchoredSurface[];
+  /**
+   * The surface that was up when Talkeo's last message landed: the one that
+   * message asks for. Only that one is owed a place if they answer in the
+   * chat before it came up — a surface that took over since belongs to the
+   * next message, not this one.
+   */
+  askedWith: string;
 };
 
 export type AnchoredSurface = {
@@ -66,6 +73,7 @@ export const nothingYet: Onboarding = {
   surface: null,
   surfaceReady: false,
   anchored: [],
+  askedWith: "",
 };
 
 export function surfaceKey(surface: Surface): string {
@@ -98,18 +106,25 @@ export function step(
   // Answering in the chat before the surface came up does not lose it: it
   // takes its place now, under the message that asked for it and before their
   // answer lands (Joaquin, 17/oct: "si o si").
-  const before =
-    action.kind === "said"
-      ? { ...state, anchored: anchor({ ...state, surfaceReady: true }).anchored }
-      : state;
+  const owed =
+    action.kind === "said" &&
+    state.surface !== null &&
+    surfaceKey(state.surface) === state.askedWith;
+  const before = owed
+    ? { ...state, anchored: anchor({ ...state, surfaceReady: true }).anchored }
+    : state;
 
   const conversation = advance(before.conversation, action);
   const surface = surfaceOf(conversation);
+  const landed =
+    action.kind === "restored" ||
+    (action.kind === "message" && action.message.kind === "turn_done");
 
   return anchor({
     ...before,
     conversation,
     surface,
+    askedWith: landed && surface ? surfaceKey(surface) : before.askedWith,
     // A new turn takes the surface off until the beat after that turn has been
     // said, and it does so whether or not there is one up: a card can land
     // mid-turn and bring a surface with it, and that one waits like any other
@@ -117,9 +132,16 @@ export function step(
     //
     // With nothing to put up it stays open, so nothing is ever holding a beat
     // for a surface that is not coming.
-    surfaceReady: startedTalking(action)
-      ? false
-      : state.surfaceReady || surface === null,
+    //
+    // A different surface taking over also shuts it. Answering the name on its
+    // card settles it there and then, which hands the stage to the mode card
+    // with the gate still open from the name — so the mode card came up at
+    // once, under the first message, before Talkeo had even asked the
+    // question it answers (Joaquin, 17/oct).
+    surfaceReady:
+      startedTalking(action) || isNewSurface(state.surface, surface)
+        ? false
+        : state.surfaceReady || surface === null,
   });
 }
 
@@ -155,6 +177,10 @@ function surfaceOf(conversation: Conversation): Surface | null {
     stage: conversation.stage,
     cards: cardsWithEntrance(conversation),
   });
+}
+
+function isNewSurface(was: Surface | null, now: Surface | null): boolean {
+  return now !== null && was !== null && surfaceKey(was) !== surfaceKey(now);
 }
 
 function startedTalking(action: OnboardingAction): boolean {
