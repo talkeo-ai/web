@@ -234,21 +234,19 @@ function Frame({
 }
 
 /**
- * A choice, as a tile: a solid thing to press, resting on a soft shadow.
- * Picked, its edge and its icon's well turn to the ink colour.
+ * A choice, as in the reference: a grey shape with the icon at its left, and
+ * the label on a bordered face set inside it with a margin of grey all round
+ * its other three sides. The shape has no border of its own, so the face's is
+ * the only outline and nothing runs into anything.
+ *
+ * Picked, the shape turns to the ink colour and the face's edge with it.
  */
 function tile(on: boolean) {
   return cn(
-    "group relative flex cursor-pointer items-stretch overflow-hidden rounded-lg border text-left outline-none select-none",
-    // Hover only firms up the edge. Nothing moves: a tile rising under the
-    // pointer read as the list wobbling (Joaquin, 17/oct).
-    "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
-    "shadow-[0_1px_2px_0_rgb(0_0_0/0.05)]",
+    "group relative flex cursor-pointer items-stretch rounded-[10px] text-left outline-none select-none",
+    "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
-    // The tile's own fill is the icon's well; the body sits on top of it.
-    on
-      ? cn(TONE.picked.edge, TONE.picked.well)
-      : cn(TONE.edge, TONE.edgeHover, TONE.well),
+    on ? TONE.picked.well : TONE.well,
   );
 }
 
@@ -272,17 +270,22 @@ function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
   );
 }
 
-/** What a tile says, on its own face over the well, rounded where it meets it. */
-function TileBody({ children }: { children: React.ReactNode }) {
+/** What a tile says, on its own bordered face inset in the tile. */
+function TileBody({ on, children }: { on: boolean; children: React.ReactNode }) {
   return (
     <span
       className={cn(
-        // Inset from the tile's edge on three sides, so the face floats inside
-        // the tile instead of running into its border, as in the reference.
-        // 3px off an 8px corner leaves 5px, so the two curves stay parallel;
-        // the padding gives back the 6px, so the tile keeps its height.
-        "my-[3px] mr-[3px] flex min-w-0 flex-1 items-center gap-3 rounded-[5px] px-3 py-[7px]",
+        // 3px of the shape left showing above, right and below: 3px off a
+        // 10px corner leaves 7px, so the two curves stay parallel. The
+        // padding gives the 6px back, so the tile keeps its height.
+        "my-[3px] mr-[3px] flex min-w-0 flex-1 items-center gap-3 rounded-[7px] border px-3 py-1.5",
+        "transition-[border-color] duration-(--duration-control) ease-(--ease-standard)",
         TONE.face,
+        // Hover only firms up the edge. Nothing moves: a tile rising under the
+        // pointer read as the list wobbling (Joaquin, 17/oct).
+        on
+          ? TONE.picked.edge
+          : cn(TONE.edge, "group-hover:border-black/[0.18] dark:group-hover:border-white/[0.18]"),
       )}
     >
       {children}
@@ -459,7 +462,7 @@ function OptionRow({
       className={tile(picked)}
     >
       <TileIcon icon={icon} on={picked} />
-      <TileBody>
+      <TileBody on={picked}>
         <span className="text-foreground flex-1 text-[14px] font-medium">
           {label}
         </span>
@@ -525,7 +528,7 @@ function ScopeSurface({
               className={tile(on)}
             >
               <TileIcon icon={AREA_ICON[area]} on={on} />
-              <TileBody>
+              <TileBody on={on}>
                 <span className="text-foreground flex-1 text-[14px] leading-tight font-medium">
                   {t(`scope.${area}`)}
                 </span>
