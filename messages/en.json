@@ -497,6 +497,16 @@
       "next": "Next",
       "edit": "Edit",
       "empty": "—",
+      "example": {
+        "goal": "E.g. follow work meetings without getting lost",
+        "work_on": "E.g. understanding accents and answering quickly",
+        "path": "E.g. at school, then with an app",
+        "comfortable": "E.g. reading technical texts",
+        "wants_to_work": "E.g. speaking without freezing up",
+        "sees_self": "E.g. I understand a lot, speaking is harder",
+        "does": "E.g. product design",
+        "follows": "E.g. tech podcasts and series"
+      },
       "scope": {
         "title": "What would you like to get better at?",
         "hint": "Tick whatever you like. Talkeo can also tick them for you.",

@@ -110,6 +110,16 @@
       "next": "Siguiente",
       "edit": "Editar",
       "empty": "—",
+      "example": {
+        "goal": "Ej.: seguir las reuniones del trabajo sin perderme",
+        "work_on": "Ej.: entender acentos y responder rápido",
+        "path": "Ej.: en el colegio y después con una app",
+        "comfortable": "Ej.: leer textos técnicos",
+        "wants_to_work": "Ej.: hablar sin trabarme",
+        "sees_self": "Ej.: entiendo bastante, pero me cuesta hablar",
+        "does": "Ej.: diseño de producto",
+        "follows": "Ej.: podcasts de tecnología y series"
+      },
       "scope": {
         "title": "¿En qué querés mejorar?",
         "hint": "Marcá lo que quieras. Talkeo también lo puede marcar por vos.",

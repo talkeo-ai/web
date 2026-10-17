@@ -4,22 +4,13 @@ import {
   AudioLines,
   BookA,
   BookOpen,
-  Briefcase,
   Check,
-  Dumbbell,
-  Eye,
   Headphones,
-  Heart,
   Keyboard,
-  ListChecks,
   MessagesSquare,
   Mic,
   PenLine,
-  Route,
-  Smile,
-  Sparkles,
   SpellCheck,
-  Target,
   type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -70,18 +61,6 @@ const AREA_ICON: Record<(typeof AREAS)[number], LucideIcon> = {
   grammar: SpellCheck,
   reading: BookOpen,
   writing: PenLine,
-};
-
-/** The mark beside each line of a card, so a line is found before it is read. */
-const FIELD_ICON: Record<string, LucideIcon> = {
-  goal: Target,
-  work_on: ListChecks,
-  path: Route,
-  comfortable: Smile,
-  wants_to_work: Dumbbell,
-  sees_self: Eye,
-  does: Briefcase,
-  follows: Heart,
 };
 
 /**
@@ -585,9 +564,9 @@ function ScopeSurface({
 /**
  * A card that fills up as they watch, and that they can rewrite.
  *
- * A line nobody has filled yet is a dash and not an empty box: the card is a
- * record of what was understood so far, and a blank reads as something that was
- * asked and left unanswered.
+ * A line nobody has filled yet shows an example answer, in the faint colour of
+ * a placeholder: a blank read as asked and left unanswered, and a dash read as
+ * broken (Joaquin, 17/oct).
  */
 function CardSurface({
   surface,
@@ -615,10 +594,9 @@ function CardSurface({
           {fields.map((field) => (
             <Line
               key={field}
-              icon={FIELD_ICON[field]}
               label={t(`${surface.kind}.${field}`)}
               value={asText(surface.body[field])}
-              empty={t("empty")}
+              example={t(`example.${field}`)}
               readOnly={surface.state === "settled"}
               onCommit={(value) => {
                 onAnswer({ field, value, confirms: false });
@@ -649,12 +627,8 @@ function CardSurface({
   );
 }
 
-/**
- * Where a card's lines sit: straight on the card, edge to edge, split by
- * hairlines. A panel inside the card was a box in a box, and the double frame
- * was most of what made it read heavy.
- */
-const PANEL = cn(TONE.hairline, "-mx-2 flex flex-col divide-y border-t");
+/** Where a card's lines sit: one under the other, a field each. */
+const PANEL = "flex flex-col gap-3 pt-1";
 
 /** Which lines each card shows, in the order it shows them. */
 const FIELDS: Record<string, string[]> = {
@@ -690,18 +664,17 @@ function GoalList({
   const listed = goals.length > 0 ? goals : [{}];
 
   return (
-    // One group of lines per objective, each opened by its own hairline.
-    <ol className="flex flex-col">
+    // One group of fields per objective, further apart than the fields in one.
+    <ol className="flex flex-col gap-5">
       {listed.map((goal, index) => (
         <li key={index} data-slot="surface-goal">
           <dl className={PANEL}>
             {FIELDS.goal.map((field) => (
               <Line
                 key={field}
-                icon={FIELD_ICON[field]}
                 label={t(`goal.${field}`)}
                 value={asText(goal[field])}
-                empty={t("empty")}
+                example={t(`example.${field}`)}
                 readOnly={
                   surface.state === "settled" || index > 0 || goals.length === 0
                 }
@@ -718,65 +691,62 @@ function GoalList({
 }
 
 /**
- * One line of a card: an icon, what the line is, and what Talkeo understood.
+ * One line of a card: what it is, and what Talkeo understood, in a field.
  *
- * The value reads as text and becomes a field only where the pointer or the
- * caret is. A box around every line made the card a form to fill in; it is a
- * record of what was heard, that can be corrected.
+ * Built like the name card's field — label above, the value in the same box —
+ * so every card in the onboarding is made of the same two pieces. A line
+ * nobody has filled yet shows an example of an answer rather than a dash: a
+ * dash read as something broken, an example says what goes there.
  */
 function Line({
-  icon: Icon = Sparkles,
   label,
   value,
-  empty,
+  example,
   readOnly,
   onCommit,
 }: {
-  icon?: LucideIcon;
   label: string;
   value: string;
-  empty: string;
+  example: string;
   readOnly: boolean;
   onCommit: (value: string) => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const showing = draft ?? value;
+  const box = cn(
+    "block w-full rounded-lg border px-3 py-2 text-[14px] leading-[1.5]",
+    TONE.face,
+    TONE.edge,
+  );
 
   return (
-    // One row, label beside value, the way a properties panel reads: the eye
-    // runs down the labels and stops at the value it wants. Stacked, every line
-    // was two lines tall and a card of four empty ones filled the screen.
-    <div className="grid grid-cols-[1rem_minmax(0,9.5rem)_minmax(0,1fr)] items-start gap-x-3 px-4 py-2.5">
-      <Icon
-        aria-hidden
-        strokeWidth={2}
-        className={cn(TONE.icon, "mt-[3px] size-4")}
-      />
-      <dt className="text-text-secondary text-[13px] leading-[1.6]">{label}</dt>
+    <div className="flex flex-col gap-1.5">
+      <dt className="text-text-secondary px-2 text-[13px] leading-snug font-medium">
+        {label}
+      </dt>
       <dd className="min-w-0">
         {readOnly ? (
           <p
             className={cn(
-              "text-[14px] leading-[1.55] whitespace-pre-line",
+              box,
+              "whitespace-pre-line",
               value ? "text-foreground" : "text-text-tertiary",
             )}
           >
-            {value || empty}
+            {value || example}
           </p>
         ) : (
           <textarea
             rows={1}
             value={showing}
-            placeholder={empty}
+            placeholder={example}
             data-slot="surface-line"
-            // `block`: inline, a textarea keeps a descender's worth of space
-            // under it, which is the gap that sat under every editable line.
             className={cn(
-              "text-foreground placeholder:text-text-tertiary field-sizing-content",
-              "-mx-1.5 -my-0.5 block w-[calc(100%+0.75rem)] resize-none rounded-md bg-transparent px-1.5 py-0.5 text-[14px] leading-[1.55]",
-              "outline-none",
-              "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
-              "hover:bg-surface-tertiary focus:bg-surface-tertiary",
+              box,
+              "text-foreground placeholder:text-text-tertiary field-sizing-content resize-none outline-none",
+              "transition-[border-color] duration-(--duration-control) ease-(--ease-standard)",
+              TONE.edgeHover,
+              TONE.focus,
             )}
             onChange={(event) => setDraft(event.target.value)}
             onBlur={() => {
