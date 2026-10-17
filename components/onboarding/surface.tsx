@@ -89,12 +89,15 @@ const FIELD_ICON: Record<string, LucideIcon> = {
  * Every colour a surface uses, in one place, so the card is one palette and
  * not a fill per component.
  *
- * Two rules make it hold together. **Neutrals are a ladder**: page, card, then
- * whatever you can touch is one step closer to you than the card — white on
- * the light card, lighter grey on the dark one. Before, the tiles and the field
- * were the page colour in dark mode, so they read as holes cut in the card.
- * **Green means one thing, "yours"**: what is picked, the field you are in.
- * Nothing decorative is green, so where it appears it says something.
+ * **Black and white only, in steps of light** (Joaquin, 17/oct: no colour on
+ * the options, neither saturated nor muted). Page, card, then whatever you can
+ * touch one step closer to you than the card — white on the light card,
+ * lighter grey on the dark one. A tile's icon sits in a well one step the
+ * other way, darker than its face, so the tile has two parts without any hue.
+ *
+ * **Picked is the ink colour**: the edge, the tick and the well turn to the
+ * text colour, the icon to the page colour. Contrast says "this one" louder
+ * than any tint did, and works the same in both themes.
  *
  * Edges are hairlines of the text colour at low opacity rather than the
  * `border` token, which in dark mode is a grey heavy enough to draw a grid.
@@ -102,72 +105,20 @@ const FIELD_ICON: Record<string, LucideIcon> = {
 const TONE = {
   card: "bg-surface-secondary border border-black/[0.04] dark:border-white/[0.05]",
   edge: "border-black/[0.08] dark:border-white/[0.08]",
-  edgeHover: "hover:border-black/[0.16] dark:hover:border-white/[0.16]",
+  edgeHover: "hover:border-black/[0.18] dark:hover:border-white/[0.18]",
   hairline: "border-black/[0.06] divide-black/[0.06] dark:border-white/[0.06] dark:divide-white/[0.06]",
   /** What you can touch: one step up from the card. */
   face: "bg-background dark:bg-surface-tertiary",
+  /** Behind a tile's icon: one step down from its face. */
+  well: "bg-black/[0.045] dark:bg-black/25",
+  icon: "text-foreground/60 group-hover:text-foreground",
   picked: {
-    edge: "border-accent-500 dark:border-accent-500/70",
-    face: "bg-accent-50 dark:bg-[color-mix(in_oklab,var(--surface-tertiary),var(--color-accent-500)_12%)]",
+    edge: "border-foreground/85",
+    well: "bg-foreground",
+    icon: "text-background",
   },
-  icon: "text-text-secondary",
+  focus: "focus-visible:border-foreground/40",
 } as const;
-
-/**
- * Each option's own colour, carried by its icon and the well behind it.
- *
- * With one grey for all of them the list read as one block, and each option
- * had to be read to be told apart. A hue per option is what the pictures in
- * a picture list do: it is found by its colour before its label is read.
- *
- * Low chroma and one lightness for all of them, the way Notion's tags are
- * coloured: dusty tones that sit in the grey rather than on top of it. The
- * saturated palette they replaced was a box of crayons (Joaquin, 17/oct: "muy
- * infantil"). None of them is the brand's green, which stays the colour of
- * what is picked.
- */
-type Hue = { icon: string; well: string };
-
-const HUE = {
-  sky: {
-    icon: "text-[oklch(0.52_0.06_240)] dark:text-[oklch(0.76_0.05_240)]",
-    well: "bg-[oklch(0.6_0.05_240/0.10)] dark:bg-[oklch(0.7_0.05_240/0.09)]",
-  },
-  violet: {
-    icon: "text-[oklch(0.52_0.06_300)] dark:text-[oklch(0.76_0.05_300)]",
-    well: "bg-[oklch(0.6_0.05_300/0.10)] dark:bg-[oklch(0.7_0.05_300/0.09)]",
-  },
-  amber: {
-    icon: "text-[oklch(0.55_0.06_75)] dark:text-[oklch(0.78_0.05_75)]",
-    well: "bg-[oklch(0.65_0.05_75/0.12)] dark:bg-[oklch(0.7_0.05_75/0.09)]",
-  },
-  rose: {
-    icon: "text-[oklch(0.52_0.06_15)] dark:text-[oklch(0.76_0.05_15)]",
-    well: "bg-[oklch(0.6_0.05_15/0.10)] dark:bg-[oklch(0.7_0.05_15/0.09)]",
-  },
-  teal: {
-    icon: "text-[oklch(0.52_0.05_190)] dark:text-[oklch(0.76_0.045_190)]",
-    well: "bg-[oklch(0.6_0.045_190/0.10)] dark:bg-[oklch(0.7_0.045_190/0.09)]",
-  },
-  orange: {
-    icon: "text-[oklch(0.54_0.06_45)] dark:text-[oklch(0.77_0.05_45)]",
-    well: "bg-[oklch(0.62_0.05_45/0.10)] dark:bg-[oklch(0.7_0.05_45/0.09)]",
-  },
-  indigo: {
-    icon: "text-[oklch(0.5_0.06_270)] dark:text-[oklch(0.75_0.05_270)]",
-    well: "bg-[oklch(0.6_0.05_270/0.10)] dark:bg-[oklch(0.7_0.05_270/0.09)]",
-  },
-} satisfies Record<string, Hue>;
-
-const AREA_HUE: Record<(typeof AREAS)[number], Hue> = {
-  conversation: HUE.sky,
-  listening: HUE.violet,
-  vocabulary: HUE.amber,
-  pronunciation: HUE.rose,
-  grammar: HUE.teal,
-  reading: HUE.orange,
-  writing: HUE.indigo,
-};
 
 export type SurfaceAnswer = {
   /** The card and line this changed, empty when it is not a card edit. */
@@ -212,9 +163,8 @@ export function Surface({
  *
  * Filled like Talkeo's own bubble, so it reads as Talkeo handing something
  * over rather than as a form dropped into the chat. What is inside it is made
- * of the product's own pieces: choices are tiles with the same lip as the
- * buttons, the brand's green marks what is picked, and the action is the
- * raised button. Same type sizes as the chat.
+ * of the product's own pieces in black and white (see `TONE`), and the action
+ * is the primary button. Same type sizes as the chat.
  *
  * It sits in the conversation's own column, held to the left and as wide as
  * Talkeo's bubbles.
@@ -252,7 +202,7 @@ function Frame({
         TONE.card,
         "mr-auto flex w-full max-w-[56ch] flex-col gap-3 rounded-2xl p-3.5",
         "transition-[box-shadow] duration-(--duration-highlight-out) ease-(--ease-standard)",
-        mark && "ring-accent-500/70 ring-2",
+        mark && "ring-foreground/30 ring-2",
       )}
     >
       {title || hint ? (
@@ -266,7 +216,7 @@ function Frame({
             {settled ? (
               <span
                 data-slot="surface-settled"
-                className="text-accent-text inline-flex shrink-0 items-center gap-1 text-[12px] font-medium"
+                className="text-text-secondary inline-flex shrink-0 items-center gap-1 text-[12px] font-medium"
               >
                 <Check aria-hidden className="size-3.5" strokeWidth={2.5} />
                 {t("confirmed")}
@@ -284,11 +234,10 @@ function Frame({
 }
 
 /**
- * A choice, as a tile: a solid thing to press. It rests on a soft shadow and
- * takes a tint of the brand's green when picked. The green is a tint and a border, not a fill:
- * a full lime block next to the text shouted over everything else on the card.
+ * A choice, as a tile: a solid thing to press, resting on a soft shadow.
+ * Picked, its edge and its icon's well turn to the ink colour.
  */
-function tile(on: boolean, hue: Hue) {
+function tile(on: boolean) {
   return cn(
     "group relative flex cursor-pointer items-stretch overflow-hidden rounded-xl border text-left outline-none select-none",
     // Hover only firms up the edge. Nothing moves: a tile rising under the
@@ -296,11 +245,10 @@ function tile(on: boolean, hue: Hue) {
     "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
     "shadow-[0_1px_2px_0_rgb(0_0_0/0.05)]",
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
-    // The tile's own fill is the icon's well, in the option's colour; the body
-    // sits on top of it. Picking it changes the edge and the face, never the
-    // well, so the option keeps its colour whether or not it is picked.
-    hue.well,
-    on ? TONE.picked.edge : cn(TONE.edge, TONE.edgeHover),
+    // The tile's own fill is the icon's well; the body sits on top of it.
+    on
+      ? cn(TONE.picked.edge, TONE.picked.well)
+      : cn(TONE.edge, TONE.edgeHover, TONE.well),
   );
 }
 
@@ -309,11 +257,15 @@ function tile(on: boolean, hue: Hue) {
  * tile reads as one piece with a place for its picture, and the label starts
  * at the same line on every tile.
  */
-function TileIcon({ icon: Icon, hue }: { icon: LucideIcon; hue: Hue }) {
+function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
   return (
     <span
       aria-hidden
-      className={cn("grid w-11 shrink-0 place-items-center", hue.icon)}
+      className={cn(
+        "grid w-11 shrink-0 place-items-center",
+        "transition-[color] duration-(--duration-control) ease-(--ease-standard)",
+        on ? TONE.picked.icon : TONE.icon,
+      )}
     >
       <Icon className="size-[18px]" strokeWidth={1.75} />
     </span>
@@ -321,13 +273,12 @@ function TileIcon({ icon: Icon, hue }: { icon: LucideIcon; hue: Hue }) {
 }
 
 /** What a tile says, on its own face over the well, rounded where it meets it. */
-function TileBody({ on, children }: { on: boolean; children: React.ReactNode }) {
+function TileBody({ children }: { children: React.ReactNode }) {
   return (
     <span
       className={cn(
         "flex min-w-0 flex-1 items-center gap-3 rounded-l-[10px] px-3.5 py-2.5",
-        "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
-        on ? TONE.picked.face : TONE.face,
+        TONE.face,
       )}
     >
       {children}
@@ -392,7 +343,7 @@ function NameSurface({
             TONE.edgeHover,
             // The button's height and corner, so the two read as one line.
             "h-10 min-w-0 flex-1 rounded-xl px-3.5 text-[15px]",
-            "focus-visible:border-accent-500 dark:focus-visible:border-accent-500/70",
+            TONE.focus,
           )}
           value={value}
           onChange={(event) => {
@@ -438,8 +389,8 @@ function ModeSurface({
   const settled = surface.state === "settled";
   const chosen = surface.body.mode;
   const options = [
-    { value: "speak", icon: Mic, hue: HUE.rose, label: t("mode.voice") },
-    { value: "text", icon: Keyboard, hue: HUE.sky, label: t("mode.text") },
+    { value: "speak", icon: Mic, label: t("mode.voice") },
+    { value: "text", icon: Keyboard, label: t("mode.text") },
   ] as const;
   // Settled, only what they chose is left: the other one is a road not taken,
   // and still showing it reads as the question still being open.
@@ -467,7 +418,6 @@ function ModeSurface({
           <OptionRow
             key={option.value}
             icon={option.icon}
-            hue={option.hue}
             label={option.label}
             picked={settled}
             slot={`surface-mode-${option.value}`}
@@ -485,14 +435,12 @@ function ModeSurface({
 /** One of a card's choices, as a tile: what it is, and a press to pick it. */
 function OptionRow({
   icon,
-  hue,
   label,
   picked = false,
   slot,
   onClick,
 }: {
   icon: LucideIcon;
-  hue: Hue;
   label: string;
   /** The one they chose, once it is settled: a tick where the arrow was. */
   picked?: boolean;
@@ -504,10 +452,10 @@ function OptionRow({
       type="button"
       data-slot={slot}
       onClick={onClick}
-      className={tile(picked, hue)}
+      className={tile(picked)}
     >
-      <TileIcon icon={icon} hue={hue} />
-      <TileBody on={picked}>
+      <TileIcon icon={icon} on={picked} />
+      <TileBody>
         <span className="text-foreground flex-1 text-[14px] font-medium">
           {label}
         </span>
@@ -570,10 +518,10 @@ function ScopeSurface({
               data-slot="surface-area"
               data-area={area}
               onClick={() => toggle(area)}
-              className={tile(on, AREA_HUE[area])}
+              className={tile(on)}
             >
-              <TileIcon icon={AREA_ICON[area]} hue={AREA_HUE[area]} />
-              <TileBody on={on}>
+              <TileIcon icon={AREA_ICON[area]} on={on} />
+              <TileBody>
                 <span className="text-foreground flex-1 text-[14px] leading-tight font-medium">
                   {t(`scope.${area}`)}
                 </span>
@@ -835,7 +783,7 @@ function Tick({ on }: { on: boolean }) {
         "grid size-[18px] shrink-0 place-items-center rounded-[5px] border-[1.5px]",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
-          ? "border-accent-500 bg-accent-500 text-accent-950"
+          ? "border-foreground bg-foreground text-background"
           : "border-black/25 group-hover:border-black/40 dark:border-white/25 dark:group-hover:border-white/40",
       )}
     >
