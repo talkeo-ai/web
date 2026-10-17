@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 /** How far from the bottom still counts as following along. */
 const NEAR_BOTTOM_PX = 160;
+/** Under this, growth is a frame of an animation already running. */
+const SMALL_STEP_PX = 24;
 
 function atBottom(node: HTMLElement): boolean {
   return node.scrollTop + node.clientHeight >= node.scrollHeight - NEAR_BOTTOM_PX;
@@ -62,10 +64,18 @@ export function useFollowingScroll() {
 
     const observer = new ResizeObserver(() => {
       if (!following.current) return;
-      // Glided, not set: a new bubble or a new line used to throw the whole
-      // thread up by its height in one frame, which is the jump that read as
-      // the layout shifting under the words.
-      box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
+      const behind = box.scrollHeight - box.clientHeight - box.scrollTop;
+      // Two kinds of growth, followed two ways.
+      //
+      // A bubble growing a line is already animated — it gains a few pixels a
+      // frame — so pinning to the foot each frame IS the smooth motion. Asking
+      // for a smooth scroll there instead restarted the scroll's own animation
+      // on every frame, and the two fought: the stutter on every new line.
+      //
+      // A block arriving whole — a new bubble, a card — is a jump of its full
+      // height in one frame, so that one is glided.
+      if (behind <= SMALL_STEP_PX) box.scrollTop = box.scrollHeight;
+      else box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
     });
 
     observer.observe(inner);
