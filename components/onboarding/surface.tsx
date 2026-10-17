@@ -246,8 +246,10 @@ function NameSurface({
       >
         <div>
           <Input
+            // No autofocus: the card comes up while they may be typing in the
+            // chat field, and taking the caret from there throws their
+            // sentence into the wrong box (Joaquin, 17/oct).
             className="bg-background focus-visible:border-accent-500"
-            autoFocus
             value={value}
             onChange={(event) => {
               // Written as it is stored, while they type. The service raises the
