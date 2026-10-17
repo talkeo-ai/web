@@ -13,7 +13,7 @@ import {
   queueEdit,
   type Outbox,
 } from "./outbox";
-import { surfaceFor, type Surface } from "./surfaces";
+import { agreed, surfaceFor, type Surface } from "./surfaces";
 
 /**
  * The whole screen, as one reduction.
@@ -93,33 +93,51 @@ export function step(
   state: Onboarding,
   action: OnboardingAction,
 ): Onboarding {
-  return settleConfirmed(reduce(state, action));
+  return review(reduce(state, action));
 }
 
 /**
- * A card that is confirmed reads as such where it sits, at once: the press is
- * the answer. Waiting for the next card to come up put "Confirmado" a whole
- * message behind the click (Joaquin, 17/oct).
+ * The cards the conversation has moved past, as records.
+ *
+ * Moving on is the answer: once the next card is up, the one before it was
+ * accepted, whether they pressed its confirm or answered in the chat. What it
+ * reads as follows the Core, not the press: settled, or still taken while a
+ * later stage can change it (`agreed`). And each shows what is now understood
+ * for its card, the first objective as the head of the list it went on in.
+ * Gone over on every step, since a card left behind still changes.
  */
-function settleConfirmed(state: Onboarding): Onboarding {
+function review(state: Onboarding): Onboarding {
+  const current = state.surface ? surfaceKey(state.surface) : "";
   const cards = cardsWithEntrance(state.conversation);
   let changed = false;
   const anchored = state.anchored.map((entry) => {
-    const card = entry.surface.card ? cards[entry.surface.card] : undefined;
-    if (entry.surface.state === "settled" || card?.state !== "confirmed") {
-      return entry;
-    }
+    if (entry.key === current) return entry;
+    const was = entry.surface;
+    const state_ = agreed(was.card, state.conversation.stage);
+    const body = latestBody(was, cards);
+    if (was.state === state_ && sameBody(was.body, body)) return entry;
     changed = true;
-    return {
-      ...entry,
-      surface: {
-        ...entry.surface,
-        state: "settled" as const,
-        body: { ...entry.surface.body, ...card.body },
-      },
-    };
+    return { ...entry, surface: { ...was, state: state_, body } };
   });
   return changed ? { ...state, anchored } : state;
+}
+
+function sameBody(a: Record<string, unknown>, b: Record<string, unknown>) {
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every((k) => a[k] === b[k]);
+}
+
+function latestBody(
+  surface: Surface,
+  cards: Record<string, { body: Record<string, unknown> }>,
+): Record<string, unknown> {
+  if (surface.card === "first_goal") {
+    const list = cards.goals?.body.goals;
+    const head = Array.isArray(list) ? list[0] : undefined;
+    if (head && typeof head === "object") return head as Record<string, unknown>;
+  }
+  const card = surface.card ? cards[surface.card] : undefined;
+  return card?.body ?? surface.body;
 }
 
 function reduce(state: Onboarding, action: OnboardingAction): Onboarding {
@@ -201,38 +219,10 @@ function anchor(state: Onboarding): Onboarding {
   return {
     ...state,
     anchored: [
-      ...settled(state.anchored, cardsWithEntrance(state.conversation)),
+      ...state.anchored,
       { key, after, surface },
     ],
   };
-}
-
-/**
- * The cards the conversation has moved past, as records.
- *
- * Moving on is the answer: once the next card comes up, the one before it was
- * accepted, whether they pressed its confirm or answered in the chat. Left as
- * they were, a name given in the chat kept its empty field and its confirm
- * under a conversation that had already used it (Joaquin, 17/oct). Each takes
- * what was last understood for its card, since a card that was not the current
- * one stopped following it.
- */
-function settled(
-  anchored: AnchoredSurface[],
-  cards: Record<string, { body: Record<string, unknown> }>,
-): AnchoredSurface[] {
-  return anchored.map((entry) => {
-    if (entry.surface.state === "settled") return entry;
-    const card = entry.surface.card ? cards[entry.surface.card] : undefined;
-    return {
-      ...entry,
-      surface: {
-        ...entry.surface,
-        state: "settled",
-        body: card?.body ?? entry.surface.body,
-      },
-    };
-  });
 }
 
 /** What is on screen for where the conversation is. */

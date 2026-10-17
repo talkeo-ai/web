@@ -181,21 +181,47 @@ describe("where a surface stays", () => {
     expect(state.anchored[0]!.surface.state).toBe("settled");
   });
 
-  it.each([
-    [2, "scope_options"],
-    [3, "first_goal"],
-    [4, "goals"],
-    [5, "starting_point"],
-    [6, "about_you"],
-  ])("reads stage %i's card as confirmed on the press, written or not", (stage, card) => {
-    const state = through([
-      { ...restored, stage, name: "Ana" },
-      { kind: "surface ready" },
-      { kind: "confirmed", card },
-    ]);
+  const confirmedBy = (card: string) => ({
+    kind: "message" as const,
+    message: {
+      kind: "event" as const,
+      turn_id: "tt_1",
+      event: {
+        event_id: `ev_${card}`,
+        kind: "card_updated" as const,
+        origin: "inferred" as const,
+        payload: { card, state: "confirmed", body: {} },
+      },
+    },
+  });
 
-    expect(state.anchored.map((entry) => entry.surface.card)).toEqual([card]);
-    expect(state.anchored[0]!.surface.state).toBe("settled");
+  it("waits for the Core to confirm a card, not the press", () => {
+    const state = through([
+      { ...restored, stage: 5, name: "Ana" },
+      { kind: "surface ready" },
+      { kind: "confirmed", card: "starting_point" },
+    ]);
+    expect(state.anchored[0]!.surface.state).not.toBe("settled");
+
+    const after = step(state, confirmedBy("starting_point"));
+    expect(after.anchored[0]!.surface.state).toBe("settled");
+  });
+
+  it("keeps the first objective taken until the objectives stage closes", () => {
+    const goalStage = (stage: number) => ({
+      kind: "message" as const,
+      message: { ...started, turn_id: `tt_${stage}`, stage },
+    });
+    const at4 = through([
+      { ...restored, stage: 3, name: "Ana" },
+      { kind: "surface ready" },
+      confirmedBy("first_goal"),
+      goalStage(4),
+    ]);
+    expect(at4.anchored[0]!.surface.state).toBe("taken");
+
+    const at5 = step(at4, goalStage(5));
+    expect(at5.anchored[0]!.surface.state).toBe("settled");
   });
 
   it("moves on to the mode when Talkeo takes the name in the chat", () => {

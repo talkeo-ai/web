@@ -29,6 +29,13 @@ export type SurfaceState =
   | "asking"
   /** Talkeo filled it from what they said. Editable, and confirming settles it. */
   | "proposed"
+  /**
+   * Agreed to, and still open to change in a later stage: the first objective
+   * goes on in the list of them, and the areas are rewritten whenever an
+   * objective brings in a new one. It is not called confirmed until that stage
+   * has closed (Joaquin, 17/oct: "al final, cuando realmente se confirma").
+   */
+  | "taken"
   /** Settled. A record, re-openable, with nothing to press. */
   | "settled";
 
@@ -48,6 +55,27 @@ export type Surface = {
    */
   confirmable: boolean;
 };
+
+/**
+ * The cards a later stage can still change, and the last stage that can.
+ * The Core's: `write_scope` runs in the objectives stage, and the first
+ * objective is the head of that stage's list (`cards.on_screen`).
+ */
+const OPEN_UNTIL: Record<string, number> = {
+  scope_options: 4,
+  first_goal: 4,
+};
+
+/** Whether this card's yes moves on rather than closes it. */
+export function staysOpen(card: string | undefined): boolean {
+  return card !== undefined && card in OPEN_UNTIL;
+}
+
+/** What an agreed card is by this stage: still open to change, or settled. */
+export function agreed(card: string | undefined, stage: number): SurfaceState {
+  const until = card ? OPEN_UNTIL[card] : undefined;
+  return until !== undefined && stage <= until ? "taken" : "settled";
+}
 
 /**
  * What each stage puts on screen, in order, and whether its yes is asked for.
@@ -94,7 +122,7 @@ export function surfaceFor({
   let last: Surface | null = null;
   for (const spec of owned) {
     const card = cards[spec.card];
-    const state = stateOf(card);
+    const state = card?.state === "confirmed" ? agreed(spec.card, stage) : stateOf(card);
     last = {
       kind: spec.kind,
       card: spec.card,
@@ -102,7 +130,7 @@ export function surfaceFor({
       body: card?.body ?? {},
       confirmable: spec.confirmable,
     };
-    if (state !== "settled") return last;
+    if (state !== "settled" && state !== "taken") return last;
   }
   // All of them settled. The last one stays up as the record it now is, rather
   // than the screen emptying the moment somebody agrees to something.

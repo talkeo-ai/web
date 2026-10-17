@@ -164,25 +164,10 @@ export function openMockInterview(): InterviewChannel {
         stages_total: INTERVIEW_STAGES,
       });
 
-      await wait(FIRST_FRAGMENT_MS);
-      if (closed) return;
-
-      for (const word of visible.split(/(?<=\s)/)) {
-        if (closed) return;
-        queue.push({ kind: "text", turn_id: turn.turn_id, delta: word });
-        await wait(FRAGMENT_MS);
-      }
-      if (turn.word_timings.length) {
-        queue.push({
-          kind: "word_timings",
-          turn_id: turn.turn_id,
-          timings: turn.word_timings,
-        });
-      }
-
       // Their edit comes back as the card it produced, the way the service
-      // answers one: applied, not merely acknowledged. Ahead of the turn's own
-      // events, because it happened before the turn did.
+      // answers one: applied, not merely acknowledged. Right as the turn
+      // starts and before a word of it, as the service sends it: a yes on the
+      // card is settled before any generation (`stage_service`).
       edits.forEach((edit, index) => {
         const body = (bodies[edit.card] ??= {});
         if (edit.card === "goals") foldGoal(body, edit);
@@ -203,6 +188,22 @@ export function openMockInterview(): InterviewChannel {
           },
         });
       });
+      await wait(FIRST_FRAGMENT_MS);
+      if (closed) return;
+
+      for (const word of visible.split(/(?<=\s)/)) {
+        if (closed) return;
+        queue.push({ kind: "text", turn_id: turn.turn_id, delta: word });
+        await wait(FRAGMENT_MS);
+      }
+      if (turn.word_timings.length) {
+        queue.push({
+          kind: "word_timings",
+          turn_id: turn.turn_id,
+          timings: turn.word_timings,
+        });
+      }
+
       for (const event of turn.events) {
         queue.push({ kind: "event", turn_id: turn.turn_id, event });
       }

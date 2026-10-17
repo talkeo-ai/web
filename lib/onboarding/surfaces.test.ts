@@ -71,9 +71,18 @@ describe("what a surface offers", () => {
 
   it("is a record once it is confirmed", () => {
     const cards = {
+      starting_point: { card: "starting_point", state: "confirmed", body: {} },
+    };
+    expect(at(5, cards)?.state).toBe("settled");
+  });
+
+  it("is only taken while a later stage can still change it", () => {
+    // The first objective goes on in the list of them, and the objectives
+    // stage rewrites the areas: neither is confirmed until that stage closes.
+    const cards = {
       first_goal: { card: "first_goal", state: "confirmed", body: {} },
     };
-    expect(at(3, cards)?.state).toBe("settled");
+    expect(at(3, cards)?.state).toBe("taken");
   });
 
   it("has a confirm on every card", () => {

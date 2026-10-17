@@ -458,7 +458,8 @@ export function useInterview(
         dispatch({ kind: "edited", edit });
         return;
       }
-      dispatch({ kind: "confirmed", card: surface.card });
+      // Not settled here: it is confirmed when the Core says so, which it does
+      // ahead of the turn it answers with (`stage_service`).
       send({ edits: [...flush(outbox).edits, edit] });
     },
     [outbox, send, surface, conversation.name, askForMicrophone],

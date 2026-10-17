@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMarkTarget } from "@/components/talkeo/mark-target";
 import type { MicRefusal } from "@/lib/audio/microphone";
-import type { Surface as SurfaceSpec } from "@/lib/onboarding/surfaces";
+import { staysOpen, type Surface as SurfaceSpec } from "@/lib/onboarding/surfaces";
 import { playSound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
@@ -552,7 +552,7 @@ function ScopeSurface({
           <Button
             variant="primary"
             size="sm" className="rounded-lg"
-            disabled={picked.length === 0}
+            disabled={picked.length === 0 || surface.state === "taken"}
             data-slot="surface-confirm"
             onClick={() =>
               onAnswer({ field: "areas", value: picked.join("\n"), confirms: true })
@@ -605,7 +605,7 @@ function CardSurface({
               label={t(`${surface.kind}.${field}`)}
               value={surface.body[field]}
               example={t(`example.${field}`)}
-              readOnly={surface.state === "settled"}
+              readOnly={surface.state === "settled" || surface.state === "taken"}
               onCommit={(value) => {
                 onAnswer({ field, value, confirms: false });
               }}
@@ -627,12 +627,24 @@ function CardSurface({
               size="sm" className="rounded-lg"
               // On once there is something to agree to: what Talkeo wrote,
               // or what they wrote themselves, which goes out with the yes.
-              disabled={surface.state !== "proposed" && !pending}
+              // Off again once agreed and still open to a later stage.
+              disabled={
+                surface.state === "taken" ||
+                (surface.state !== "proposed" && !pending)
+              }
               data-slot="surface-confirm"
               onClick={() => onAnswer({ field: "", value: "", confirms: true })}
             >
-              <Check className="size-4" strokeWidth={2.5} />
-              {t("confirm")}
+              {/* A card a later stage still changes moves on rather than
+                  closes, so it does not say it confirms (Joaquin, 17/oct). */}
+              {staysOpen(surface.card) ? (
+                t("next")
+              ) : (
+                <>
+                  <Check className="size-4" strokeWidth={2.5} />
+                  {t("confirm")}
+                </>
+              )}
             </Button>
           )}
         </Footer>
@@ -688,7 +700,7 @@ function GoalList({
                 label={t(`goal.${field}`)}
                 value={goal[field]}
                 example={t(`example.${field}`)}
-                readOnly={surface.state === "settled"}
+                readOnly={surface.state === "settled" || surface.state === "taken"}
                 onCommit={(value) => {
                   onAnswer({ field: goalField(index, field), value, confirms: false });
                 }}
