@@ -200,13 +200,13 @@ function Frame({
       data-pointed={mark ? "true" : "false"}
       className={cn(
         TONE.card,
-        "mr-auto flex w-full max-w-[56ch] flex-col gap-3 rounded-2xl p-3.5",
+        "mr-auto flex w-full max-w-[56ch] flex-col gap-2 rounded-2xl p-2",
         "transition-[box-shadow] duration-(--duration-highlight-out) ease-(--ease-standard)",
         mark && "ring-foreground/30 ring-2",
       )}
     >
       {title || hint ? (
-        <header className="flex flex-col gap-0.5 px-0.5">
+        <header className="flex flex-col gap-0.5 px-2 pt-1.5 pb-0.5">
           <div className="flex items-center justify-between gap-3">
             {title ? (
               <h2 className="font-heading text-foreground text-[15px] leading-snug font-semibold">
@@ -239,7 +239,7 @@ function Frame({
  */
 function tile(on: boolean) {
   return cn(
-    "group relative flex cursor-pointer items-stretch overflow-hidden rounded-xl border text-left outline-none select-none",
+    "group relative flex cursor-pointer items-stretch overflow-hidden rounded-lg border text-left outline-none select-none",
     // Hover only firms up the edge. Nothing moves: a tile rising under the
     // pointer read as the list wobbling (Joaquin, 17/oct).
     "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
@@ -262,12 +262,12 @@ function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid w-11 shrink-0 place-items-center",
+        "grid w-10 shrink-0 place-items-center",
         "transition-[color] duration-(--duration-control) ease-(--ease-standard)",
         on ? TONE.picked.icon : TONE.icon,
       )}
     >
-      <Icon className="size-[18px]" strokeWidth={1.75} />
+      <Icon className="size-4" strokeWidth={1.75} />
     </span>
   );
 }
@@ -277,7 +277,7 @@ function TileBody({ children }: { children: React.ReactNode }) {
   return (
     <span
       className={cn(
-        "flex min-w-0 flex-1 items-center gap-3 rounded-l-[10px] px-3.5 py-2.5",
+        "flex min-w-0 flex-1 items-center gap-3 rounded-l-[7px] px-3 py-2.5",
         TONE.face,
       )}
     >
@@ -288,7 +288,7 @@ function TileBody({ children }: { children: React.ReactNode }) {
 
 /** Where a card's action goes: under what it acts on, to the right. */
 function Footer({ children }: { children: React.ReactNode }) {
-  return <div className="flex items-center justify-end gap-2">{children}</div>;
+  return <div className="flex items-center justify-end gap-2 pt-1">{children}</div>;
 }
 
 function NameSurface({
@@ -318,7 +318,7 @@ function NameSurface({
       {surface.state === "settled" ? (
         <p
           data-slot="surface-name-settled"
-          className="text-foreground px-0.5 text-[15px] leading-snug"
+          className="text-foreground px-2 pb-1.5 text-[15px] leading-snug"
         >
           {heard}
         </p>
@@ -342,7 +342,7 @@ function NameSurface({
             TONE.edge,
             TONE.edgeHover,
             // The button's height and corner, so the two read as one line.
-            "h-10 min-w-0 flex-1 rounded-xl px-3.5 text-[15px]",
+            "h-10 min-w-0 flex-1 rounded-lg px-3 text-[15px]",
             TONE.focus,
           )}
           value={value}
@@ -357,7 +357,7 @@ function NameSurface({
           aria-label={t("name.question")}
           data-slot="surface-name"
         />
-        <Button type="submit" variant="primary" size="sm" disabled={!written}>
+        <Button type="submit" variant="primary" size="sm" className="rounded-lg" disabled={!written}>
           <Check className="size-4" strokeWidth={2.5} />
           {t("name.cta")}
         </Button>
@@ -410,7 +410,7 @@ function ModeSurface({
           two would not fit a label each. */}
       <div
         className={cn(
-          "grid grid-cols-1 gap-2.5",
+          "grid grid-cols-1 gap-1.5",
           shown.length > 1 && "sm:grid-cols-2",
         )}
       >
@@ -503,7 +503,7 @@ function ScopeSurface({
     >
       {/* One per row, each a picture and a box to tick, as a checklist reads.
           Two across stops the moment a label wraps. */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         {/* Settled, only what they picked, as with the mode. */}
         {AREAS.filter(
           (area) => surface.state !== "settled" || picked.includes(area),
@@ -535,7 +535,7 @@ function ScopeSurface({
         <Footer>
           <Button
             variant="primary"
-            size="sm"
+            size="sm" className="rounded-lg"
             disabled={picked.length === 0}
             data-slot="surface-confirm"
             onClick={() =>
@@ -599,7 +599,7 @@ function CardSurface({
         <Footer>
           <Button
             variant="primary"
-            size="sm"
+            size="sm" className="rounded-lg"
             data-slot="surface-confirm"
             onClick={() => onAnswer({ field: "", value: "", confirms: true })}
           >
@@ -617,7 +617,7 @@ function CardSurface({
  * hairlines. A panel inside the card was a box in a box, and the double frame
  * was most of what made it read heavy.
  */
-const PANEL = cn(TONE.hairline, "-mx-3.5 flex flex-col divide-y border-t");
+const PANEL = cn(TONE.hairline, "-mx-2 flex flex-col divide-y border-t");
 
 /** Which lines each card shows, in the order it shows them. */
 const FIELDS: Record<string, string[]> = {
@@ -709,7 +709,7 @@ function Line({
     // One row, label beside value, the way a properties panel reads: the eye
     // runs down the labels and stops at the value it wants. Stacked, every line
     // was two lines tall and a card of four empty ones filled the screen.
-    <div className="grid grid-cols-[1rem_minmax(0,9.5rem)_minmax(0,1fr)] items-start gap-x-3 px-3.5 py-2">
+    <div className="grid grid-cols-[1rem_minmax(0,9.5rem)_minmax(0,1fr)] items-start gap-x-3 px-4 py-2.5">
       <Icon
         aria-hidden
         strokeWidth={2}
@@ -780,7 +780,7 @@ function Tick({ on }: { on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid size-[18px] shrink-0 place-items-center rounded-[5px] border-[1.5px]",
+        "grid size-4 shrink-0 place-items-center rounded-[4px] border-[1.5px]",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
           ? "border-foreground bg-foreground text-background"
