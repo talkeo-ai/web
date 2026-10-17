@@ -43,12 +43,7 @@ export function Bubble({
         // reading, but at this size that is nearly the whole track and the
         // bubble stops reading as a bubble at all. This is short of it on
         // purpose.
-        "max-w-[56ch] rounded-2xl px-4 py-2.5",
-        // Talkeo's take the whole measure from the first word. Its text streams
-        // in, and a bubble fitted to what had arrived so far widened with every
-        // word until the line wrapped — the bubble changing size under the
-        // letters. Yours is said at once, so it can fit.
-        from === "you" ? "w-fit" : "w-full",
+        "w-fit max-w-[56ch] rounded-2xl px-4 py-2.5",
         // One step apart on the same surface ramp, not two unrelated fills.
         // Talkeo carries the reading so it sits closest to the page; your own
         // line is short and reads as an interruption, so it comes forward.
