@@ -6,7 +6,6 @@ import {
   BookOpen,
   Briefcase,
   Check,
-  ChevronRight,
   Dumbbell,
   Eye,
   Headphones,
@@ -95,9 +94,8 @@ const FIELD_ICON: Record<string, LucideIcon> = {
  * lighter grey on the dark one. A tile's icon sits in a well one step the
  * other way, darker than its face, so the tile has two parts without any hue.
  *
- * **Picked is the ink colour**: the edge, the tick and the well turn to the
- * text colour, the icon to the page colour. Contrast says "this one" louder
- * than any tint did, and works the same in both themes.
+ * **Picked is a step of light and a filled tick**: the well lightens a step
+ * and the tick fills with the text colour. A whole inverted well was too loud.
  *
  * Edges are hairlines of the text colour at low opacity rather than the
  * `border` token, which in dark mode is a grey heavy enough to draw a grid.
@@ -114,8 +112,10 @@ const TONE = {
   icon: "text-foreground/60 group-hover:text-foreground",
   picked: {
     edge: "border-foreground/85",
-    well: "bg-foreground",
-    icon: "text-background",
+    // A step lighter, not inverted: a full white well in dark mode shouted
+    // over the list (Joaquin, 17/oct). The filled tick carries the rest.
+    well: "bg-black/[0.11] dark:bg-white/[0.11]",
+    icon: "text-foreground",
   },
   focus: "focus-visible:border-foreground/40",
 } as const;
@@ -420,7 +420,7 @@ function ModeSurface({
         )}
       >
         {shown.map((option) => (
-          <OptionRow
+          <ModeChoice
             key={option.value}
             icon={option.icon}
             label={option.label}
@@ -437,9 +437,15 @@ function ModeSurface({
   );
 }
 
-/** One of a card's choices, as a tile: what it is, and a press to pick it. */
-function OptionRow({
-  icon,
+/**
+ * One of the two ways to answer, as a plain button with its icon.
+ *
+ * Not a list tile: this is a fork with two roads, pressed once, and the tile
+ * — a picture well and a face — is for lists you go down and tick
+ * (Joaquin, 17/oct). Same height and corner as the card's other buttons.
+ */
+function ModeChoice({
+  icon: Icon,
   label,
   picked = false,
   slot,
@@ -447,7 +453,7 @@ function OptionRow({
 }: {
   icon: LucideIcon;
   label: string;
-  /** The one they chose, once it is settled: a tick where the arrow was. */
+  /** The one they chose, once it is settled: a tick after the label. */
   picked?: boolean;
   slot: string;
   onClick: () => void;
@@ -457,19 +463,24 @@ function OptionRow({
       type="button"
       data-slot={slot}
       onClick={onClick}
-      className={tile(picked)}
+      className={cn(
+        "group flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 outline-none select-none",
+        "text-foreground text-[14px] font-medium",
+        "transition-[border-color,background-color] duration-(--duration-control) ease-(--ease-standard)",
+        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
+        TONE.face,
+        picked ? "border-foreground/30" : cn(TONE.edge, TONE.edgeHover),
+      )}
     >
-      <TileIcon icon={icon} on={picked} />
-      <TileBody>
-        <span className="text-foreground flex-1 text-[14px] leading-snug">
-          {label}
-        </span>
-        {picked ? (
-          <Tick on />
-        ) : (
-          <ChevronRight aria-hidden className="text-text-tertiary size-4" />
-        )}
-      </TileBody>
+      <Icon
+        aria-hidden
+        strokeWidth={1.75}
+        className={cn("size-4", TONE.icon)}
+      />
+      {label}
+      {picked ? (
+        <Check aria-hidden className="text-text-secondary size-4" strokeWidth={2.5} />
+      ) : null}
     </button>
   );
 }
