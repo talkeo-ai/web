@@ -106,16 +106,64 @@ const TONE = {
   hairline: "border-black/[0.06] divide-black/[0.06] dark:border-white/[0.06] dark:divide-white/[0.06]",
   /** What you can touch: one step up from the card. */
   face: "bg-background dark:bg-surface-tertiary",
-  /** The well behind a tile's icon: between the card and the face. */
-  well: "bg-black/[0.035] dark:bg-white/[0.025]",
   picked: {
     edge: "border-accent-500 dark:border-accent-500/70",
     face: "bg-accent-50 dark:bg-[color-mix(in_oklab,var(--surface-tertiary),var(--color-accent-500)_12%)]",
-    well: "bg-accent-100 dark:bg-accent-500/15",
-    icon: "text-accent-800 dark:text-accent-300",
   },
   icon: "text-text-secondary",
 } as const;
+
+/**
+ * Each option's own colour, carried by its icon and the well behind it.
+ *
+ * With one grey for all of them the list read as one block, and each option
+ * had to be read to be told apart. A hue per option is what the pictures in
+ * a picture list do: it is found by its colour before its label is read. They
+ * are muted and the same weight, so none outshouts the rest, and none of them
+ * is the brand's green, which stays the colour of what is picked.
+ */
+type Hue = { icon: string; well: string };
+
+const HUE = {
+  sky: {
+    icon: "text-sky-600 dark:text-sky-400",
+    well: "bg-sky-500/10 dark:bg-sky-400/10",
+  },
+  violet: {
+    icon: "text-violet-600 dark:text-violet-400",
+    well: "bg-violet-500/10 dark:bg-violet-400/10",
+  },
+  amber: {
+    icon: "text-amber-600 dark:text-amber-400",
+    well: "bg-amber-500/12 dark:bg-amber-400/10",
+  },
+  rose: {
+    icon: "text-rose-600 dark:text-rose-400",
+    well: "bg-rose-500/10 dark:bg-rose-400/10",
+  },
+  teal: {
+    icon: "text-teal-600 dark:text-teal-400",
+    well: "bg-teal-500/10 dark:bg-teal-400/10",
+  },
+  orange: {
+    icon: "text-orange-600 dark:text-orange-400",
+    well: "bg-orange-500/10 dark:bg-orange-400/10",
+  },
+  indigo: {
+    icon: "text-indigo-600 dark:text-indigo-400",
+    well: "bg-indigo-500/10 dark:bg-indigo-400/10",
+  },
+} satisfies Record<string, Hue>;
+
+const AREA_HUE: Record<(typeof AREAS)[number], Hue> = {
+  conversation: HUE.sky,
+  listening: HUE.violet,
+  vocabulary: HUE.amber,
+  pronunciation: HUE.rose,
+  grammar: HUE.teal,
+  reading: HUE.orange,
+  writing: HUE.indigo,
+};
 
 export type SurfaceAnswer = {
   /** The card and line this changed, empty when it is not a card edit. */
@@ -217,17 +265,18 @@ function Frame({
  * the brand's green when picked. The green is a tint and a border, not a fill:
  * a full lime block next to the text shouted over everything else on the card.
  */
-function tile(on: boolean) {
+function tile(on: boolean, hue: Hue) {
   return cn(
     "group relative flex cursor-pointer items-stretch overflow-hidden rounded-xl border text-left outline-none select-none",
     "transition-[transform,box-shadow,background-color,border-color] duration-(--duration-press-out) ease-(--ease-standard)",
     "shadow-[0_1px_2px_0_rgb(0_0_0/0.05)] hover:-translate-y-px hover:shadow-[0_3px_8px_-2px_rgb(0_0_0/0.10)]",
     "active:translate-y-0 active:shadow-[0_1px_1px_0_rgb(0_0_0/0.04)] active:duration-(--duration-press-in)",
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
-    // The tile's own fill is the icon's well; the body sits on top of it.
-    on
-      ? cn(TONE.picked.edge, TONE.picked.well)
-      : cn(TONE.edge, TONE.edgeHover, TONE.well),
+    // The tile's own fill is the icon's well, in the option's colour; the body
+    // sits on top of it. Picking it changes the edge and the face, never the
+    // well, so the option keeps its colour whether or not it is picked.
+    hue.well,
+    on ? TONE.picked.edge : cn(TONE.edge, TONE.edgeHover),
   );
 }
 
@@ -236,15 +285,11 @@ function tile(on: boolean) {
  * tile reads as one piece with a place for its picture, and the label starts
  * at the same line on every tile.
  */
-function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
+function TileIcon({ icon: Icon, hue }: { icon: LucideIcon; hue: Hue }) {
   return (
     <span
       aria-hidden
-      className={cn(
-        "grid w-11 shrink-0 place-items-center",
-        "transition-[color] duration-(--duration-control) ease-(--ease-standard)",
-        on ? TONE.picked.icon : cn(TONE.icon, "group-hover:text-foreground"),
-      )}
+      className={cn("grid w-11 shrink-0 place-items-center", hue.icon)}
     >
       <Icon className="size-[18px]" strokeWidth={1.75} />
     </span>
@@ -358,12 +403,14 @@ function ModeSurface({
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <OptionRow
           icon={Mic}
+          hue={HUE.rose}
           label={t("mode.voice")}
           slot="surface-mode-speak"
           onClick={() => onAnswer({ field: "", value: "speak", confirms: true })}
         />
         <OptionRow
           icon={Keyboard}
+          hue={HUE.sky}
           label={t("mode.text")}
           slot="surface-mode-text"
           onClick={() => onAnswer({ field: "", value: "text", confirms: true })}
@@ -377,11 +424,13 @@ function ModeSurface({
 /** One of a card's choices, as a tile: what it is, and a press to pick it. */
 function OptionRow({
   icon,
+  hue,
   label,
   slot,
   onClick,
 }: {
   icon: LucideIcon;
+  hue: Hue;
   label: string;
   slot: string;
   onClick: () => void;
@@ -391,9 +440,9 @@ function OptionRow({
       type="button"
       data-slot={slot}
       onClick={onClick}
-      className={tile(false)}
+      className={tile(false, hue)}
     >
-      <TileIcon icon={icon} on={false} />
+      <TileIcon icon={icon} hue={hue} />
       <TileBody on={false}>
         <span className="text-foreground flex-1 text-[14px] font-medium">
           {label}
@@ -456,9 +505,9 @@ function ScopeSurface({
               data-slot="surface-area"
               data-area={area}
               onClick={() => toggle(area)}
-              className={tile(on)}
+              className={tile(on, AREA_HUE[area])}
             >
-              <TileIcon icon={AREA_ICON[area]} on={on} />
+              <TileIcon icon={AREA_ICON[area]} hue={AREA_HUE[area]} />
               <TileBody on={on}>
                 <span className="text-foreground flex-1 text-[14px] leading-tight font-medium">
                   {t(`scope.${area}`)}
