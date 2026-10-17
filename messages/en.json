@@ -497,7 +497,9 @@
       "next": "Next",
       "edit": "Edit",
       "empty": "—",
+      "add": "Add",
       "example": {
+        "context": "E.g. a week of meetings in March",
         "goal": "E.g. follow work meetings without getting lost",
         "work_on": "E.g. understanding accents and answering quickly",
         "path": "E.g. at school, then with an app",
@@ -521,7 +523,8 @@
       "goal": {
         "title": "Your first objective",
         "goal": "What you want to achieve",
-        "work_on": "What we will work on"
+        "work_on": "What we will work on",
+        "context": "Context"
       },
       "goals": { "title": "Your objectives" },
       "starting_point": {

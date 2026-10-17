@@ -10,6 +10,7 @@ import {
   MessagesSquare,
   Mic,
   PenLine,
+  Plus,
   SpellCheck,
   type LucideIcon,
 } from "lucide-react";
@@ -592,10 +593,11 @@ function CardSurface({
       ) : (
         <dl className={PANEL}>
           {fields.map((field) => (
-            <Line
+            <CardLine
               key={field}
+              field={field}
               label={t(`${surface.kind}.${field}`)}
-              value={asText(surface.body[field])}
+              value={surface.body[field]}
               example={t(`example.${field}`)}
               readOnly={surface.state === "settled"}
               onCommit={(value) => {
@@ -670,10 +672,11 @@ function GoalList({
         <li key={index} data-slot="surface-goal">
           <dl className={PANEL}>
             {FIELDS.goal.map((field) => (
-              <Line
+              <CardLine
                 key={field}
+                field={field}
                 label={t(`goal.${field}`)}
-                value={asText(goal[field])}
+                value={goal[field]}
                 example={t(`example.${field}`)}
                 readOnly={
                   surface.state === "settled" || index > 0 || goals.length === 0
@@ -683,6 +686,17 @@ function GoalList({
                 }}
               />
             ))}
+            {/* What surrounds it, when Talkeo noted any. Read only: the
+                service takes no edit for it, it is added by saying so. */}
+            {asPoints(goal.context).length > 0 ? (
+              <Points
+                label={t("goal.context")}
+                value={asPoints(goal.context)}
+                example=""
+                readOnly
+                onCommit={() => {}}
+              />
+            ) : null}
           </dl>
         </li>
       ))}
@@ -758,6 +772,159 @@ function Line({
             }}
           />
         )}
+      </dd>
+    </div>
+  );
+}
+
+/** One line of a card, drawn as points or as a sentence by what the Core keeps. */
+function CardLine({
+  field,
+  value,
+  ...line
+}: {
+  field: string;
+  label: string;
+  value: unknown;
+  example: string;
+  readOnly: boolean;
+  onCommit: (value: string) => void;
+}) {
+  return LIST_FIELDS.has(field) ? (
+    <Points {...line} value={asPoints(value)} />
+  ) : (
+    <Line {...line} value={asText(value)} />
+  );
+}
+
+/**
+ * The lines the service keeps as a list, one point each.
+ *
+ * `work_on`, `path`, `does`, `follows` and a goal's `context` are arrays in the
+ * Core ("one line each", `stage_tools.py`), and its edits take them back as
+ * one string with a line per point (`cards.apply_edit`). Drawn as one block of
+ * text they read as a paragraph; drawn as points they read as what they are.
+ */
+const LIST_FIELDS: ReadonlySet<string> = new Set([
+  "work_on",
+  "path",
+  "does",
+  "follows",
+  "context",
+]);
+
+function asPoints(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  return typeof value === "string" ? value.split("\n").filter(Boolean) : [];
+}
+
+/**
+ * A list line: the label, and its points in one field, each on its own row
+ * behind a dot. Editable, each point is its own input, Enter starts the next
+ * one and `Add` opens one at the end; the list goes back to the service when
+ * the caret leaves the field, all at once, like the single lines do.
+ */
+function Points({
+  label,
+  value,
+  example,
+  readOnly,
+  onCommit,
+}: {
+  label: string;
+  value: string[];
+  example: string;
+  readOnly: boolean;
+  onCommit: (value: string) => void;
+}) {
+  const t = useTranslations("onboarding.surfaces");
+  const [draft, setDraft] = useState<string[] | null>(null);
+  const [opened, setOpened] = useState(-1);
+  const points = draft ?? value;
+  const shown = !readOnly && points.length === 0 ? [""] : points;
+
+  const change = (index: number, text: string) => {
+    const next = [...shown];
+    next[index] = text;
+    setDraft(next);
+  };
+  const open = (at: number) => {
+    const next = [...shown];
+    next.splice(at, 0, "");
+    setDraft(next);
+    setOpened(at);
+  };
+  const commit = () => {
+    if (draft === null) return;
+    const kept = draft.map((point) => point.trim()).filter(Boolean);
+    if (kept.join("\n") !== value.join("\n")) onCommit(kept.join("\n"));
+    setDraft(null);
+    setOpened(-1);
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <dt className="text-text-secondary px-2 text-[13px] leading-snug font-medium">
+        {label}
+      </dt>
+      <dd
+        className={cn(
+          "flex min-w-0 flex-col rounded-lg border px-3 py-1.5",
+          TONE.face,
+          TONE.edge,
+          !readOnly && cn(TONE.edgeHover, "focus-within:border-foreground/40"),
+          "transition-[border-color] duration-(--duration-control) ease-(--ease-standard)",
+        )}
+        onBlur={(event) => {
+          // Only when the caret leaves the whole field, not on moving between
+          // its points.
+          if (!event.currentTarget.contains(event.relatedTarget as Node)) commit();
+        }}
+      >
+        {readOnly && points.length === 0 ? (
+          <p className="text-text-tertiary py-0.5 text-[14px] leading-[1.5]">{example}</p>
+        ) : (
+          <ul className="flex flex-col">
+            {shown.map((point, index) => (
+              <li key={index} className="flex items-start gap-2.5 py-0.5">
+                <span
+                  aria-hidden
+                  className="bg-text-tertiary mt-[9px] size-1 shrink-0 rounded-full"
+                />
+                {readOnly ? (
+                  <p className="text-foreground text-[14px] leading-[1.5]">{point}</p>
+                ) : (
+                  <input
+                    value={point}
+                    // Only the one they just opened: never on the card coming up.
+                    autoFocus={index === opened}
+                    placeholder={index === 0 ? example : ""}
+                    data-slot="surface-point"
+                    aria-label={label}
+                    className="text-foreground placeholder:text-text-tertiary min-w-0 flex-1 bg-transparent text-[14px] leading-[1.5] outline-none"
+                    onChange={(event) => change(index, event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter") return;
+                      event.preventDefault();
+                      if (point.trim()) open(index + 1);
+                    }}
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {!readOnly && shown.some((point) => point.trim()) ? (
+          <button
+            type="button"
+            onClick={() => open(shown.length)}
+            data-slot="surface-point-add"
+            className="text-text-secondary hover:text-foreground -ml-0.5 flex w-fit cursor-pointer items-center gap-1.5 py-1 text-[13px] font-medium outline-none"
+          >
+            <Plus aria-hidden className="size-3.5" strokeWidth={2.25} />
+            {t("add")}
+          </button>
+        ) : null}
       </dd>
     </div>
   );
