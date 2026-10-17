@@ -94,8 +94,8 @@ const FIELD_ICON: Record<string, LucideIcon> = {
  * lighter grey on the dark one. A tile's icon sits in a well one step the
  * other way, darker than its face, so the tile has two parts without any hue.
  *
- * **Picked is the one green thing**: the well takes a tint of the brand's
- * green, the icon its dark shade, and the tick fills with it.
+ * **Picked is the one green thing**: the icon turns green and the tick fills
+ * with it. The grey stays grey.
  *
  * Edges are hairlines of the text colour at low opacity rather than the
  * `border` token, which in dark mode is a grey heavy enough to draw a grid.
@@ -116,11 +116,11 @@ const TONE = {
     // neutral, so the one green thing is the one that is yours. A tint on the
     // well, not a fill — a white well shouted, a lighter grey did not read as
     // picked at all (Joaquin, 17/oct).
-    // Solid shades of the green rather than the lime at low opacity: over the
-    // dark grey that mixed into olive. The palette's own deep and pale steps
-    // stay clean green in both themes.
-    well: "bg-accent-100 dark:bg-accent-950",
-    icon: "text-accent-800 dark:text-accent-300",
+    // The well stays grey: any green behind the icon, tinted or solid, showed
+    // as a green frame round the whole row, because the well shows on three
+    // sides of the face (Joaquin, 17/oct). The icon and the tick say it.
+    well: "bg-black/[0.045] dark:bg-black/25",
+    icon: "text-accent-700 dark:text-accent-400",
     tick: "border-accent-500 bg-accent-500 text-accent-950",
   },
   focus: "focus-visible:border-foreground/40",
