@@ -235,18 +235,22 @@ function Frame({
 
 /**
  * A choice, as in the reference: a grey shape with the icon at its left, and
- * the label on a bordered face set inside it with a margin of grey all round
- * its other three sides. The shape has no border of its own, so the face's is
- * the only outline and nothing runs into anything.
+ * the label on a face set inside it with a margin of grey round its other
+ * three sides. No borders on either: the two tones are the whole drawing, and
+ * a line on top of them was what made it look busy.
  *
- * Picked, the shape turns to the ink colour and the face's edge with it.
+ * Picked, the shape turns to the ink colour. Hovered, it firms up a step.
+ * Nothing moves: a tile rising under the pointer read as the list wobbling
+ * (Joaquin, 17/oct).
  */
 function tile(on: boolean) {
   return cn(
-    "group relative flex cursor-pointer items-stretch rounded-[10px] text-left outline-none select-none",
+    "group relative flex cursor-pointer items-stretch rounded-2xl text-left outline-none select-none",
     "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
-    on ? TONE.picked.well : TONE.well,
+    on
+      ? TONE.picked.well
+      : cn(TONE.well, "hover:bg-black/[0.08] dark:hover:bg-black/40"),
   );
 }
 
@@ -260,32 +264,25 @@ function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid w-10 shrink-0 place-items-center",
+        "grid w-13 shrink-0 place-items-center",
         "transition-[color] duration-(--duration-control) ease-(--ease-standard)",
         on ? TONE.picked.icon : TONE.icon,
       )}
     >
-      <Icon className="size-4" strokeWidth={1.75} />
+      <Icon className="size-5" strokeWidth={1.6} />
     </span>
   );
 }
 
-/** What a tile says, on its own bordered face inset in the tile. */
-function TileBody({ on, children }: { on: boolean; children: React.ReactNode }) {
+/** What a tile says, on its own face inset in the tile. */
+function TileBody({ children }: { children: React.ReactNode }) {
   return (
     <span
       className={cn(
-        // 3px of the shape left showing above, right and below: 3px off a
-        // 10px corner leaves 7px, so the two curves stay parallel. The
-        // padding gives the 6px back, so the tile keeps its height.
-        "my-[3px] mr-[3px] flex min-w-0 flex-1 items-center gap-3 rounded-[7px] border px-3 py-1.5",
-        "transition-[border-color] duration-(--duration-control) ease-(--ease-standard)",
+        // 4px of the shape left showing above, right and below: 4px off a
+        // 16px corner leaves 12px, so the two curves stay parallel.
+        "my-1 mr-1 flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-xl py-3 pr-3.5 pl-4",
         TONE.face,
-        // Hover only firms up the edge. Nothing moves: a tile rising under the
-        // pointer read as the list wobbling (Joaquin, 17/oct).
-        on
-          ? TONE.picked.edge
-          : cn(TONE.edge, "group-hover:border-black/[0.18] dark:group-hover:border-white/[0.18]"),
       )}
     >
       {children}
@@ -417,7 +414,7 @@ function ModeSurface({
           two would not fit a label each. */}
       <div
         className={cn(
-          "grid grid-cols-1 gap-1.5",
+          "grid grid-cols-1 gap-2",
           shown.length > 1 && "sm:grid-cols-2",
         )}
       >
@@ -462,8 +459,8 @@ function OptionRow({
       className={tile(picked)}
     >
       <TileIcon icon={icon} on={picked} />
-      <TileBody on={picked}>
-        <span className="text-foreground flex-1 text-[14px] font-medium">
+      <TileBody>
+        <span className="text-foreground flex-1 text-[15px] leading-snug">
           {label}
         </span>
         {picked ? (
@@ -510,7 +507,7 @@ function ScopeSurface({
     >
       {/* One per row, each a picture and a box to tick, as a checklist reads.
           Two across stops the moment a label wraps. */}
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         {/* Settled, only what they picked, as with the mode. */}
         {AREAS.filter(
           (area) => surface.state !== "settled" || picked.includes(area),
@@ -528,8 +525,8 @@ function ScopeSurface({
               className={tile(on)}
             >
               <TileIcon icon={AREA_ICON[area]} on={on} />
-              <TileBody on={on}>
-                <span className="text-foreground flex-1 text-[14px] leading-tight font-medium">
+              <TileBody>
+                <span className="text-foreground flex-1 text-[15px] leading-snug">
                   {t(`scope.${area}`)}
                 </span>
                 <Tick on={on} />
@@ -787,7 +784,7 @@ function Tick({ on }: { on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid size-4 shrink-0 place-items-center rounded-[4px] border-[1.5px]",
+        "grid size-[22px] shrink-0 place-items-center rounded-[7px] border-[1.5px]",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
           ? "border-foreground bg-foreground text-background"
@@ -797,7 +794,7 @@ function Tick({ on }: { on: boolean }) {
       <Check
         strokeWidth={3}
         className={cn(
-          "size-3 transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
+          "size-3.5 transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
           on ? "scale-100 opacity-100" : "scale-50 opacity-0",
         )}
       />
