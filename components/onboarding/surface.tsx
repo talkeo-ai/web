@@ -607,22 +607,26 @@ function CardSurface({
           ))}
         </dl>
       )}
-      {surface.confirmable && surface.state === "proposed" ? (
+      {/* Always there on a card that has one: off while there is nothing
+          to agree to yet, on once Talkeo has written it, `Confirmed` after.
+          Appearing only once it could be pressed, it seemed to come from
+          nowhere (Joaquin, 17/oct). */}
+      {surface.confirmable ? (
         <Footer>
-          <Button
-            variant="primary"
-            size="sm" className="rounded-lg"
-            data-slot="surface-confirm"
-            onClick={() => onAnswer({ field: "", value: "", confirms: true })}
-          >
-            <Check className="size-4" strokeWidth={2.5} />
-            {t("confirm")}
-          </Button>
-        </Footer>
-      ) : null}
-      {surface.confirmable && surface.state === "settled" ? (
-        <Footer>
-          <Confirmed />
+          {surface.state === "settled" ? (
+            <Confirmed />
+          ) : (
+            <Button
+              variant="primary"
+              size="sm" className="rounded-lg"
+              disabled={surface.state !== "proposed"}
+              data-slot="surface-confirm"
+              onClick={() => onAnswer({ field: "", value: "", confirms: true })}
+            >
+              <Check className="size-4" strokeWidth={2.5} />
+              {t("confirm")}
+            </Button>
+          )}
         </Footer>
       ) : null}
     </Frame>
