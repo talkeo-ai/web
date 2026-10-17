@@ -299,20 +299,24 @@ function CardSurface({
 
   return (
     <Frame title={title} target={`card:${surface.card ?? ""}`}>
-      <dl className="flex flex-col gap-4">
-        {fields.map((field) => (
-          <Line
-            key={field}
-            label={t(`${surface.kind}.${field}`)}
-            value={asText(surface.body[field])}
-            empty={t("empty")}
-            readOnly={surface.state === "settled"}
-            onCommit={(value) => {
-              onAnswer({ field, value, confirms: false });
-            }}
-          />
-        ))}
-      </dl>
+      {surface.kind === "goals" ? (
+        <GoalList surface={surface} onAnswer={onAnswer} />
+      ) : (
+        <dl className="flex flex-col gap-4">
+          {fields.map((field) => (
+            <Line
+              key={field}
+              label={t(`${surface.kind}.${field}`)}
+              value={asText(surface.body[field])}
+              empty={t("empty")}
+              readOnly={surface.state === "settled"}
+              onCommit={(value) => {
+                onAnswer({ field, value, confirms: false });
+              }}
+            />
+          ))}
+        </dl>
+      )}
       {surface.confirmable && surface.state === "proposed" ? (
         <Button
           size="lg"
@@ -329,10 +333,61 @@ function CardSurface({
 /** Which lines each card shows, in the order it shows them. */
 const FIELDS: Record<string, string[]> = {
   goal: ["goal", "work_on"],
-  goals: ["goal", "work_on"],
   starting_point: ["path", "comfortable", "wants_to_work", "sees_self"],
   about_you: ["does", "follows"],
 };
+
+/**
+ * The objectives: the one card that is a list of things rather than a set of
+ * fields. The service sends `{ goals: [{ goal, work_on }, …] }`.
+ *
+ * ⚠ It used to be read as the single-goal card, `body.goal` and `body.work_on`,
+ * which this body does not have — so it showed two empty lines labelled with raw
+ * keys, because `goals` has no labels of its own. Each objective reads with the
+ * first goal's labels.
+ *
+ * Only the first is editable: an edit on this card names a field and not an
+ * objective, and the service applies it to the first one (`cards.apply_edit`).
+ * The rest are corrected by saying so.
+ */
+function GoalList({
+  surface,
+  onAnswer,
+}: {
+  surface: SurfaceSpec;
+  onAnswer: (answer: SurfaceAnswer) => void;
+}) {
+  const t = useTranslations("onboarding.surfaces");
+  const goals = Array.isArray(surface.body.goals)
+    ? (surface.body.goals as Record<string, unknown>[])
+    : [];
+  const listed = goals.length > 0 ? goals : [{}];
+
+  return (
+    <ol className="flex flex-col gap-8">
+      {listed.map((goal, index) => (
+        <li key={index} data-slot="surface-goal">
+          <dl className="flex flex-col gap-4">
+            {FIELDS.goal.map((field) => (
+              <Line
+                key={field}
+                label={t(`goal.${field}`)}
+                value={asText(goal[field])}
+                empty={t("empty")}
+                readOnly={
+                  surface.state === "settled" || index > 0 || goals.length === 0
+                }
+                onCommit={(value) => {
+                  onAnswer({ field, value, confirms: false });
+                }}
+              />
+            ))}
+          </dl>
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 function Line({
   label,
