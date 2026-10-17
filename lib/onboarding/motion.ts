@@ -16,10 +16,13 @@
 /** A message fading into the thread. */
 export const MESSAGE_IN_MS = 620;
 
+/** A card opening its room in the thread. Quicker than a message fading. */
+export const SURFACE_IN_MS = 380;
+
 /**
  * How long after a turn has been WRITTEN the surface comes up under it.
  *
  * Not zero, but barely: on the same frame as the last word the two arrive as
  * one event. Any longer reads as a wait (Joaquin, 17/oct: "al toque").
  */
-export const SURFACE_AFTER_MS = 120;
+export const SURFACE_AFTER_MS = 40;

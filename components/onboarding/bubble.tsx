@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 import { TurnText } from "@/components/talkeo/turn-text";
-import { MESSAGE_IN_MS } from "@/lib/onboarding/motion";
+import { MESSAGE_IN_MS, SURFACE_IN_MS } from "@/lib/onboarding/motion";
 import { splitLines } from "@/lib/talkeo/lines";
 import { stripVoiceTags } from "@/lib/talkeo/voice-tags";
 import { cn } from "@/lib/utils";
@@ -95,7 +95,7 @@ export function Arriving({ children }: { children: ReactNode }) {
         // `minmax(0, …)` at both ends: a bare `0fr` stops at the content's own
         // minimum and the row never actually closes.
         gridTemplateRows: grown ? "minmax(0, 1fr)" : "minmax(0, 0fr)",
-        transition: `grid-template-rows ${MESSAGE_IN_MS}ms var(--ease-entrance)`,
+        transition: `grid-template-rows ${SURFACE_IN_MS}ms var(--ease-entrance)`,
       }}
     >
       <div className="overflow-hidden">
