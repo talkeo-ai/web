@@ -102,3 +102,29 @@ describe("the surface's gate", () => {
     expect(state.surfaceReady).toBe(false);
   });
 });
+
+describe("where a surface stays", () => {
+  it("comes up under the message that asked for it", () => {
+    const state = through([restored, { kind: "surface ready" }]);
+
+    expect(state.anchored).toHaveLength(1);
+    expect(state.anchored[0]!.after).toBe("tt_0");
+  });
+
+  it("is not there before its beat", () => {
+    expect(through([restored]).anchored).toHaveLength(0);
+  });
+
+  it("stays when they answer and the next turn starts", () => {
+    const state = through([
+      restored,
+      { kind: "surface ready" },
+      { kind: "said", text: "Ana" },
+      { kind: "message", message: started },
+    ]);
+
+    expect(state.surfaceReady).toBe(false);
+    expect(state.anchored).toHaveLength(1);
+    expect(state.anchored[0]!.after).toBe("tt_0");
+  });
+});

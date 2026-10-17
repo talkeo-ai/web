@@ -8,6 +8,7 @@ import type { OpenedInterview } from "@/app/[locale]/(app)/onboarding/actions";
 import { MarkTargets, useFireMark } from "@/components/talkeo/mark-target";
 import { Button } from "@/components/ui/button";
 import { useFollowingScroll } from "@/lib/onboarding/use-following-scroll";
+import { surfaceKey } from "@/lib/onboarding/machine";
 import { useInterview } from "@/lib/onboarding/use-interview";
 import { heardSoFar } from "@/lib/onboarding/conversation";
 import { useRouter } from "@/lib/i18n/navigation";
@@ -54,10 +55,10 @@ function Screen({
   const fire = useFireMark();
   const scroll = useFollowingScroll();
   const run = useInterview(opened, { onMark: fire });
-  const { conversation, surface, surfaceReady, live, playback } = run;
+  const { conversation, surface, anchored, live, playback } = run;
 
   const heard = heardSoFar(conversation.transcript);
-  const showing = surface && surfaceReady ? surface : null;
+  const currentKey = surface ? surfaceKey(surface) : null;
 
   return (
     <div data-slot="onboarding" className="flex h-dvh flex-col">
@@ -117,20 +118,25 @@ function Screen({
           live={live}
           playback={playback}
           heard={heard}
-          surface={
-            showing
-              ? {
-                  key: `${showing.kind}:${showing.card ?? ""}`,
-                  node: (
-                    <Surface
-                      surface={showing}
-                      refusal={run.micRefusal}
-                      onAnswer={run.answerSurface}
-                    />
-                  ),
-                }
-              : null
-          }
+          surfaces={anchored.map((entry) => {
+            // Only the one for where the conversation is can be answered: an
+            // answer goes to the current stage, so a card left behind is a
+            // record of what was said, and `inert` keeps it one.
+            const current = currentKey === entry.key;
+            return {
+              key: entry.key,
+              after: entry.after,
+              node: (
+                <div inert={!current}>
+                  <Surface
+                    surface={entry.surface}
+                    refusal={current ? run.micRefusal : ""}
+                    onAnswer={run.answerSurface}
+                  />
+                </div>
+              ),
+            };
+          })}
           viewport={scroll.viewport}
           column={scroll.column}
           scrolled={scroll.scrolled}

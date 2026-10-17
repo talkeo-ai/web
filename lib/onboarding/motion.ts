@@ -17,15 +17,9 @@
 export const MESSAGE_IN_MS = 620;
 
 /**
- * How long after a turn has been SAID the surface takes its place.
+ * How long after a turn has been WRITTEN the surface comes up under it.
  *
- * Not zero: Talkeo says what the surface is for, and putting it up on the same
- * frame as the last word makes the two arrive as one event rather than as a
- * sentence and then the thing it was about. Long enough to read as a beat,
- * short enough not to read as a wait.
- *
- * ⚠ Said, not sent. Measured from the end of the STREAM it fired 400 ms after
- * the words arrived and then sat beside them for the eight seconds it took to
- * speak them. What it waits for now is the voice — `use-interview.ts`.
+ * Not zero, but barely: on the same frame as the last word the two arrive as
+ * one event. Any longer reads as a wait (Joaquin, 17/oct: "al toque").
  */
-export const SURFACE_AFTER_MS = 400;
+export const SURFACE_AFTER_MS = 120;

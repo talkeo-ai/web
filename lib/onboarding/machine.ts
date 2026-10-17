@@ -41,6 +41,23 @@ export type Onboarding = {
    * then the thing it was about.
    */
   surfaceReady: boolean;
+  /**
+   * Every surface that has been up, where it first came up in the thread.
+   *
+   * A card is part of the conversation, not a panel over its foot: once shown
+   * it stays under the message that asked for it, the way a message does,
+   * whatever is said after. The one for where the conversation is keeps
+   * following its card; the rest keep the last state they were in.
+   */
+  anchored: AnchoredSurface[];
+};
+
+export type AnchoredSurface = {
+  /** One per surface: its kind and its card. */
+  key: string;
+  /** The thread entry it sits under. Empty when it came up before any. */
+  after: string;
+  surface: Surface;
 };
 
 export const nothingYet: Onboarding = {
@@ -48,7 +65,12 @@ export const nothingYet: Onboarding = {
   outbox: nothingPending,
   surface: null,
   surfaceReady: false,
+  anchored: [],
 };
+
+export function surfaceKey(surface: Surface): string {
+  return `${surface.kind}:${surface.card ?? ""}`;
+}
 
 export type OnboardingAction =
   | ConversationAction
@@ -70,13 +92,13 @@ export function step(
     return { ...state, outbox: flush(state.outbox).rest };
   }
   if (action.kind === "surface ready") {
-    return { ...state, surfaceReady: true };
+    return anchor({ ...state, surfaceReady: true });
   }
 
   const conversation = advance(state.conversation, action);
   const surface = surfaceOf(conversation);
 
-  return {
+  return anchor({
     ...state,
     conversation,
     surface,
@@ -90,7 +112,33 @@ export function step(
     surfaceReady: startedTalking(action)
       ? false
       : state.surfaceReady || surface === null,
-  };
+  });
+}
+
+/**
+ * Keeps the surface for where the conversation is in the thread.
+ *
+ * It takes its place the first time it is allowed up — the beat after the
+ * turn that asked for it — under whatever was said last. From then on it only
+ * follows its card: a new turn starting does not take it away, and neither
+ * does the conversation moving on to the next one.
+ */
+function anchor(state: Onboarding): Onboarding {
+  const { surface } = state;
+  if (!surface) return state;
+  const key = surfaceKey(surface);
+  const at = state.anchored.findIndex((entry) => entry.key === key);
+
+  if (at >= 0) {
+    if (state.anchored[at]!.surface === surface) return state;
+    const anchored = [...state.anchored];
+    anchored[at] = { ...anchored[at]!, surface };
+    return { ...state, anchored };
+  }
+
+  if (!state.surfaceReady) return state;
+  const after = state.conversation.thread.at(-1)?.id ?? "";
+  return { ...state, anchored: [...state.anchored, { key, after, surface }] };
 }
 
 /** What is on screen for where the conversation is. */

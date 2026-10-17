@@ -355,25 +355,28 @@ export function useInterview(
   const playback = useTurnPlayback(live ?? told, { onMark, playhead: player });
 
   /**
-   * The surface appears once the turn it belongs to has been SAID.
+   * The surface appears as soon as the turn it belongs to has been WRITTEN.
    *
    * ⚠ The three conditions are three different things and it needs all of them.
    * `told` is that Talkeo has spoken at all — the surface is one of the ways to
    * answer its question, never a question of its own, so it cannot precede one.
-   * `conversation.turn` is that the stream is over. `playback.done` is that the
-   * VOICE is, which is the one that was missing: gated on the stream alone, the
-   * surface went up 400 ms after the words arrived and sat there for the eight
-   * seconds it took to say them.
+   * `conversation.turn` is that the stream is over. `playback.written` is that
+   * the last word is on screen: gated on the stream alone, the surface went up
+   * before the words had been written out.
+   *
+   * Written, not spoken (Joaquin, 17/oct). It used to wait for the voice, and
+   * the text runs ahead of the voice — so the card sat a few seconds behind a
+   * message that was already there to read.
    */
   useEffect(() => {
-    if (!told || conversation.turn || !playback.done) return;
+    if (!told || conversation.turn || !playback.written) return;
     if (surfaceReady || !surface) return;
     const waiting = setTimeout(
       () => dispatch({ kind: "surface ready" }),
       SURFACE_AFTER_MS,
     );
     return () => clearTimeout(waiting);
-  }, [told, conversation.turn, playback.done, surfaceReady, surface]);
+  }, [told, conversation.turn, playback.written, surfaceReady, surface]);
 
   // --- what the screens do -------------------------------------------------
 
