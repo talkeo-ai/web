@@ -118,40 +118,44 @@ const TONE = {
  *
  * With one grey for all of them the list read as one block, and each option
  * had to be read to be told apart. A hue per option is what the pictures in
- * a picture list do: it is found by its colour before its label is read. They
- * are muted and the same weight, so none outshouts the rest, and none of them
- * is the brand's green, which stays the colour of what is picked.
+ * a picture list do: it is found by its colour before its label is read.
+ *
+ * Low chroma and one lightness for all of them, the way Notion's tags are
+ * coloured: dusty tones that sit in the grey rather than on top of it. The
+ * saturated palette they replaced was a box of crayons (Joaquin, 17/oct: "muy
+ * infantil"). None of them is the brand's green, which stays the colour of
+ * what is picked.
  */
 type Hue = { icon: string; well: string };
 
 const HUE = {
   sky: {
-    icon: "text-sky-600 dark:text-sky-400",
-    well: "bg-sky-500/10 dark:bg-sky-400/10",
+    icon: "text-[oklch(0.52_0.06_240)] dark:text-[oklch(0.76_0.05_240)]",
+    well: "bg-[oklch(0.6_0.05_240/0.10)] dark:bg-[oklch(0.7_0.05_240/0.09)]",
   },
   violet: {
-    icon: "text-violet-600 dark:text-violet-400",
-    well: "bg-violet-500/10 dark:bg-violet-400/10",
+    icon: "text-[oklch(0.52_0.06_300)] dark:text-[oklch(0.76_0.05_300)]",
+    well: "bg-[oklch(0.6_0.05_300/0.10)] dark:bg-[oklch(0.7_0.05_300/0.09)]",
   },
   amber: {
-    icon: "text-amber-600 dark:text-amber-400",
-    well: "bg-amber-500/12 dark:bg-amber-400/10",
+    icon: "text-[oklch(0.55_0.06_75)] dark:text-[oklch(0.78_0.05_75)]",
+    well: "bg-[oklch(0.65_0.05_75/0.12)] dark:bg-[oklch(0.7_0.05_75/0.09)]",
   },
   rose: {
-    icon: "text-rose-600 dark:text-rose-400",
-    well: "bg-rose-500/10 dark:bg-rose-400/10",
+    icon: "text-[oklch(0.52_0.06_15)] dark:text-[oklch(0.76_0.05_15)]",
+    well: "bg-[oklch(0.6_0.05_15/0.10)] dark:bg-[oklch(0.7_0.05_15/0.09)]",
   },
   teal: {
-    icon: "text-teal-600 dark:text-teal-400",
-    well: "bg-teal-500/10 dark:bg-teal-400/10",
+    icon: "text-[oklch(0.52_0.05_190)] dark:text-[oklch(0.76_0.045_190)]",
+    well: "bg-[oklch(0.6_0.045_190/0.10)] dark:bg-[oklch(0.7_0.045_190/0.09)]",
   },
   orange: {
-    icon: "text-orange-600 dark:text-orange-400",
-    well: "bg-orange-500/10 dark:bg-orange-400/10",
+    icon: "text-[oklch(0.54_0.06_45)] dark:text-[oklch(0.77_0.05_45)]",
+    well: "bg-[oklch(0.62_0.05_45/0.10)] dark:bg-[oklch(0.7_0.05_45/0.09)]",
   },
   indigo: {
-    icon: "text-indigo-600 dark:text-indigo-400",
-    well: "bg-indigo-500/10 dark:bg-indigo-400/10",
+    icon: "text-[oklch(0.5_0.06_270)] dark:text-[oklch(0.75_0.05_270)]",
+    well: "bg-[oklch(0.6_0.05_270/0.10)] dark:bg-[oklch(0.7_0.05_270/0.09)]",
   },
 } satisfies Record<string, Hue>;
 
@@ -188,7 +192,7 @@ export function Surface({
     return <NameSurface surface={surface} onAnswer={onAnswer} />;
   }
   if (surface.kind === "mode") {
-    return <ModeSurface refusal={refusal} onAnswer={onAnswer} />;
+    return <ModeSurface surface={surface} refusal={refusal} onAnswer={onAnswer} />;
   }
   if (surface.kind === "scope") {
     return <ScopeSurface surface={surface} onAnswer={onAnswer} />;
@@ -220,6 +224,7 @@ function Frame({
   title,
   hint,
   target,
+  settled = false,
   children,
 }: {
   kind: string;
@@ -227,13 +232,21 @@ function Frame({
   hint?: string;
   /** What a mark in the turn points at, so the voice can light this up. */
   target?: string;
+  /**
+   * Answered and agreed. The card stays as the record of it: the hint, which
+   * was about how to answer, goes, and a quiet mark beside the title says it
+   * is done.
+   */
+  settled?: boolean;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("onboarding.surfaces");
   const mark = useMarkTarget(target ?? "");
   return (
     <section
       data-slot="surface"
       data-kind={kind}
+      data-settled={settled ? "true" : "false"}
       data-pointed={mark ? "true" : "false"}
       className={cn(
         TONE.card,
@@ -244,12 +257,23 @@ function Frame({
     >
       {title || hint ? (
         <header className="flex flex-col gap-0.5 px-0.5">
-          {title ? (
-            <h2 className="font-heading text-foreground text-[15px] leading-snug font-semibold">
-              {title}
-            </h2>
-          ) : null}
-          {hint ? (
+          <div className="flex items-center justify-between gap-3">
+            {title ? (
+              <h2 className="font-heading text-foreground text-[15px] leading-snug font-semibold">
+                {title}
+              </h2>
+            ) : null}
+            {settled ? (
+              <span
+                data-slot="surface-settled"
+                className="text-accent-text inline-flex shrink-0 items-center gap-1 text-[12px] font-medium"
+              >
+                <Check aria-hidden className="size-3.5" strokeWidth={2.5} />
+                {t("confirmed")}
+              </span>
+            ) : null}
+          </div>
+          {hint && !settled ? (
             <p className="text-text-secondary text-[13px] leading-snug">{hint}</p>
           ) : null}
         </header>
@@ -338,9 +362,18 @@ function NameSurface({
       title={t("name.question")}
       hint={t("name.hint")}
       target="control:name"
+      settled={surface.state === "settled"}
     >
-      {/* The action beside the field, as one line: under it, a single
-          button took a row of its own. */}
+      {surface.state === "settled" ? (
+        <p
+          data-slot="surface-name-settled"
+          className="text-foreground px-0.5 text-[15px] leading-snug"
+        >
+          {heard}
+        </p>
+      ) : (
+      // The action beside the field, as one line: under it, a single button
+      // took a row of its own.
       <form
         className="flex items-center gap-2"
         onSubmit={(event) => {
@@ -378,6 +411,7 @@ function NameSurface({
           {t("name.cta")}
         </Button>
       </form>
+      )}
     </Frame>
   );
 }
@@ -392,37 +426,56 @@ function NameSurface({
  * which left somebody in a view with no input and no explanation.
  */
 function ModeSurface({
+  surface,
   refusal,
   onAnswer,
 }: {
+  surface: SurfaceSpec;
   refusal?: MicRefusal | "";
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding");
+  const settled = surface.state === "settled";
+  const chosen = surface.body.mode;
+  const options = [
+    { value: "speak", icon: Mic, hue: HUE.rose, label: t("mode.voice") },
+    { value: "text", icon: Keyboard, hue: HUE.sky, label: t("mode.text") },
+  ] as const;
+  // Settled, only what they chose is left: the other one is a road not taken,
+  // and still showing it reads as the question still being open.
+  // Until the service echoes which one it was, both stay rather than none.
+  const theirs = options.filter((option) => option.value === chosen);
+  const shown = settled && theirs.length > 0 ? theirs : options;
+
   return (
     <Frame
       kind="mode"
       title={t("mode.question")}
       hint={t("mode.hint")}
       target="control:mode"
+      settled={settled}
     >
       {/* Side by side, as the two answers to one question; stacked only where
           two would not fit a label each. */}
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-        <OptionRow
-          icon={Mic}
-          hue={HUE.rose}
-          label={t("mode.voice")}
-          slot="surface-mode-speak"
-          onClick={() => onAnswer({ field: "", value: "speak", confirms: true })}
-        />
-        <OptionRow
-          icon={Keyboard}
-          hue={HUE.sky}
-          label={t("mode.text")}
-          slot="surface-mode-text"
-          onClick={() => onAnswer({ field: "", value: "text", confirms: true })}
-        />
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-2.5",
+          shown.length > 1 && "sm:grid-cols-2",
+        )}
+      >
+        {shown.map((option) => (
+          <OptionRow
+            key={option.value}
+            icon={option.icon}
+            hue={option.hue}
+            label={option.label}
+            picked={settled}
+            slot={`surface-mode-${option.value}`}
+            onClick={() =>
+              onAnswer({ field: "", value: option.value, confirms: true })
+            }
+          />
+        ))}
       </div>
       {refusal ? <MicNotice refusal={refusal} className="text-left" /> : null}
     </Frame>
@@ -434,12 +487,15 @@ function OptionRow({
   icon,
   hue,
   label,
+  picked = false,
   slot,
   onClick,
 }: {
   icon: LucideIcon;
   hue: Hue;
   label: string;
+  /** The one they chose, once it is settled: a tick where the arrow was. */
+  picked?: boolean;
   slot: string;
   onClick: () => void;
 }) {
@@ -448,17 +504,18 @@ function OptionRow({
       type="button"
       data-slot={slot}
       onClick={onClick}
-      className={tile(false, hue)}
+      className={tile(picked, hue)}
     >
       <TileIcon icon={icon} hue={hue} />
-      <TileBody on={false}>
+      <TileBody on={picked}>
         <span className="text-foreground flex-1 text-[14px] font-medium">
           {label}
         </span>
-        <ChevronRight
-          aria-hidden
-          className="text-text-tertiary size-4"
-        />
+        {picked ? (
+          <Tick on />
+        ) : (
+          <ChevronRight aria-hidden className="text-text-tertiary size-4" />
+        )}
       </TileBody>
     </button>
   );
@@ -494,11 +551,15 @@ function ScopeSurface({
       title={t("scope.title")}
       hint={t("scope.hint")}
       target="control:scope"
+      settled={surface.state === "settled"}
     >
       {/* One per row, each a picture and a box to tick, as a checklist reads.
           Two across stops the moment a label wraps. */}
       <div className="flex flex-col gap-2">
-        {AREAS.map((area) => {
+        {/* Settled, only what they picked, as with the mode. */}
+        {AREAS.filter(
+          (area) => surface.state !== "settled" || picked.includes(area),
+        ).map((area) => {
           const on = picked.includes(area);
           return (
             <button
@@ -561,7 +622,12 @@ function CardSurface({
   const fields = FIELDS[surface.kind] ?? [];
 
   return (
-    <Frame kind={surface.kind} title={title} target={`card:${surface.card ?? ""}`}>
+    <Frame
+      kind={surface.kind}
+      title={title}
+      target={`card:${surface.card ?? ""}`}
+      settled={surface.state === "settled"}
+    >
       {surface.kind === "goals" ? (
         <GoalList surface={surface} onAnswer={onAnswer} />
       ) : (

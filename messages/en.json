@@ -493,6 +493,7 @@
     },
     "surfaces": {
       "confirm": "Confirm",
+      "confirmed": "Confirmed",
       "next": "Next",
       "edit": "Edit",
       "empty": "—",

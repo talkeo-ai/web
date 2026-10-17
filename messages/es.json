@@ -106,6 +106,7 @@
     },
     "surfaces": {
       "confirm": "Confirmar",
+      "confirmed": "Confirmado",
       "next": "Siguiente",
       "edit": "Editar",
       "empty": "—",
