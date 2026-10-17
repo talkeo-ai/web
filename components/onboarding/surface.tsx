@@ -121,7 +121,8 @@ const TONE = {
     // sides of the face (Joaquin, 17/oct). The icon and the tick say it.
     well: "bg-black/[0.045] dark:bg-black/25",
     icon: "text-accent-700 dark:text-accent-400",
-    tick: "border-accent-500 bg-accent-500 text-accent-950",
+    ring: "border-accent-500",
+    dot: "bg-accent-500",
   },
   focus: "focus-visible:border-foreground/40",
 } as const;
@@ -816,19 +817,20 @@ function Tick({ on }: { on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        // As in the reference: a rounded square, a light 1.5px edge, the size
-        // of a capital letter and a half.
-        "grid size-[22px] shrink-0 place-items-center rounded-[6px] border-[1.5px]",
-        "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
+        // Two circles, no check (Joaquin, 17/oct): a ring, and picked, a dot
+        // inside it with a gap all round, so the ring still reads.
+        "grid size-5 shrink-0 place-items-center rounded-full border-[1.5px]",
+        "transition-[border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
-          ? TONE.picked.tick
+          ? TONE.picked.ring
           : "border-black/25 group-hover:border-black/40 dark:border-white/25 dark:group-hover:border-white/40",
       )}
     >
-      <Check
-        strokeWidth={3}
+      <span
         className={cn(
-          "size-3 transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
+          "size-2.5 rounded-full",
+          TONE.picked.dot,
+          "transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
           on ? "scale-100 opacity-100" : "scale-50 opacity-0",
         )}
       />
