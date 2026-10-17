@@ -186,31 +186,51 @@ function Frame({
  */
 function tile(on: boolean) {
   return cn(
-    "group relative flex cursor-pointer items-center gap-2.5 rounded-xl border text-left outline-none select-none",
+    "group relative flex cursor-pointer items-stretch overflow-hidden rounded-xl border text-left outline-none select-none",
     "transition-[transform,box-shadow,background-color,border-color] duration-(--duration-press-out) ease-(--ease-standard)",
     "shadow-[0_1px_2px_0_rgb(0_0_0/0.05)] hover:-translate-y-px hover:shadow-[0_3px_8px_-2px_rgb(0_0_0/0.10)]",
     "active:translate-y-0 active:shadow-[0_1px_1px_0_rgb(0_0_0/0.04)] active:duration-(--duration-press-in)",
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
+    // The tile's own fill is the icon's well; the body sits on top of it.
     on
-      ? "border-accent-500 bg-accent-50 dark:bg-accent-500/10"
-      : "border-border bg-background hover:border-border-strong",
+      ? "border-accent-500 bg-accent-500/20"
+      : "border-border bg-surface-tertiary hover:border-border-strong",
   );
 }
 
-/** The round mark a tile carries its icon in; green when the tile is picked. */
+/**
+ * The tile's icon, in a well down its left side rather than a circle: the
+ * tile reads as one piece with a place for its picture, and the label starts
+ * at the same line on every tile.
+ */
 function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
   return (
     <span
       aria-hidden
       className={cn(
-        "grid size-7 shrink-0 place-items-center rounded-full",
-        "transition-[background-color,color] duration-(--duration-control) ease-(--ease-standard)",
+        "grid w-11 shrink-0 place-items-center",
+        "transition-[color] duration-(--duration-control) ease-(--ease-standard)",
         on
-          ? "bg-accent-500/25 text-accent-800 dark:text-accent-300"
-          : "bg-surface-secondary text-text-secondary group-hover:text-foreground",
+          ? "text-accent-800 dark:text-accent-300"
+          : "text-text-secondary group-hover:text-foreground",
       )}
     >
-      <Icon className="size-4" strokeWidth={2} />
+      <Icon className="size-[18px]" strokeWidth={1.75} />
+    </span>
+  );
+}
+
+/** What a tile says, on its own face over the well, rounded where it meets it. */
+function TileBody({ on, children }: { on: boolean; children: React.ReactNode }) {
+  return (
+    <span
+      className={cn(
+        "flex min-w-0 flex-1 items-center gap-3 rounded-l-[10px] px-3.5 py-2.5",
+        "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
+        on ? "bg-accent-50 dark:bg-[color-mix(in_oklab,var(--background),var(--color-accent-500)_8%)]" : "bg-background",
+      )}
+    >
+      {children}
     </span>
   );
 }
@@ -335,20 +355,22 @@ function OptionRow({
       type="button"
       data-slot={slot}
       onClick={onClick}
-      className={cn(tile(false), "px-3 py-2.5")}
+      className={tile(false)}
     >
       <TileIcon icon={icon} on={false} />
-      <span className="text-foreground flex-1 text-[14px] font-medium">
-        {label}
-      </span>
-      <ChevronRight
-        aria-hidden
-        className={cn(
-          "text-text-tertiary size-4",
-          "transition-transform duration-(--duration-control) ease-(--ease-standard)",
-          "group-hover:translate-x-0.5",
-        )}
-      />
+      <TileBody on={false}>
+        <span className="text-foreground flex-1 text-[14px] font-medium">
+          {label}
+        </span>
+        <ChevronRight
+          aria-hidden
+          className={cn(
+            "text-text-tertiary size-4",
+            "transition-transform duration-(--duration-control) ease-(--ease-standard)",
+            "group-hover:translate-x-0.5",
+          )}
+        />
+      </TileBody>
     </button>
   );
 }
@@ -384,9 +406,9 @@ function ScopeSurface({
       hint={t("scope.hint")}
       target="control:scope"
     >
-      {/* Two across: seven areas in one column was a long list to read down;
-          as tiles they are seven things to look at once. */}
-      <div className="grid grid-cols-2 gap-2.5">
+      {/* One per row, each a picture and a box to tick, as a checklist reads.
+          Two across stops the moment a label wraps. */}
+      <div className="flex flex-col gap-2">
         {AREAS.map((area) => {
           const on = picked.includes(area);
           return (
@@ -398,13 +420,15 @@ function ScopeSurface({
               data-slot="surface-area"
               data-area={area}
               onClick={() => toggle(area)}
-              className={cn(tile(on), "px-2.5 py-2")}
+              className={tile(on)}
             >
               <TileIcon icon={AREA_ICON[area]} on={on} />
-              <span className="text-foreground flex-1 text-[14px] leading-tight font-medium">
-                {t(`scope.${area}`)}
-              </span>
-              <Tick on={on} />
+              <TileBody on={on}>
+                <span className="text-foreground flex-1 text-[14px] leading-tight font-medium">
+                  {t(`scope.${area}`)}
+                </span>
+                <Tick on={on} />
+              </TileBody>
             </button>
           );
         })}
@@ -654,7 +678,7 @@ function Tick({ on }: { on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid size-[18px] shrink-0 place-items-center rounded-full border-[1.5px]",
+        "grid size-[18px] shrink-0 place-items-center rounded-[5px] border-[1.5px]",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
           ? "border-accent-500 bg-accent-500 text-accent-950"
