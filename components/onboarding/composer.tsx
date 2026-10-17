@@ -60,7 +60,9 @@ export function Composer({
 }) {
   const [text, setText] = useState("");
   const action = composerAction({ text, inCall, canCall });
-  const ready = action === "send" && canSend;
+  // With calling not on offer, an empty field shows send too: one with nothing
+  // to send, which stays off.
+  const ready = action === "send" && canSend && text.trim().length > 0;
 
   const act = () => {
     if (action === "call") return onCall();
