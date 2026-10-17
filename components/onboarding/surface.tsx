@@ -94,8 +94,8 @@ const FIELD_ICON: Record<string, LucideIcon> = {
  * lighter grey on the dark one. A tile's icon sits in a well one step the
  * other way, darker than its face, so the tile has two parts without any hue.
  *
- * **Picked is a step of light and a filled tick**: the well lightens a step
- * and the tick fills with the text colour. A whole inverted well was too loud.
+ * **Picked is the one green thing**: the well takes a tint of the brand's
+ * green, the icon its dark shade, and the tick fills with it.
  *
  * Edges are hairlines of the text colour at low opacity rather than the
  * `border` token, which in dark mode is a grey heavy enough to draw a grid.
@@ -112,10 +112,13 @@ const TONE = {
   icon: "text-foreground/60 group-hover:text-foreground",
   picked: {
     edge: "border-foreground/85",
-    // A step lighter, not inverted: a full white well in dark mode shouted
-    // over the list (Joaquin, 17/oct). The filled tick carries the rest.
-    well: "bg-black/[0.11] dark:bg-white/[0.11]",
-    icon: "text-foreground",
+    // The brand's green, and only here: everything else on the card is
+    // neutral, so the one green thing is the one that is yours. A tint on the
+    // well, not a fill — a white well shouted, a lighter grey did not read as
+    // picked at all (Joaquin, 17/oct).
+    well: "bg-accent-500/15 dark:bg-accent-500/[0.13]",
+    icon: "text-accent-800 dark:text-accent-400",
+    tick: "border-accent-500 bg-accent-500 text-accent-950",
   },
   focus: "focus-visible:border-foreground/40",
 } as const;
@@ -799,7 +802,7 @@ function Tick({ on }: { on: boolean }) {
         "grid size-[18px] shrink-0 place-items-center rounded-[5px] border-[1.5px]",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
-          ? "border-foreground bg-foreground text-background"
+          ? TONE.picked.tick
           : "border-black/25 group-hover:border-black/40 dark:border-white/25 dark:group-hover:border-white/40",
       )}
     >
