@@ -245,7 +245,7 @@ function Frame({
  */
 function tile(on: boolean) {
   return cn(
-    "group relative flex cursor-pointer items-stretch rounded-2xl text-left outline-none select-none",
+    "group relative flex cursor-pointer items-stretch rounded-xl text-left outline-none select-none",
     "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
     on
@@ -264,12 +264,12 @@ function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid w-13 shrink-0 place-items-center",
+        "grid w-11 shrink-0 place-items-center",
         "transition-[color] duration-(--duration-control) ease-(--ease-standard)",
         on ? TONE.picked.icon : TONE.icon,
       )}
     >
-      <Icon className="size-5" strokeWidth={1.6} />
+      <Icon className="size-[18px]" strokeWidth={1.75} />
     </span>
   );
 }
@@ -279,9 +279,10 @@ function TileBody({ children }: { children: React.ReactNode }) {
   return (
     <span
       className={cn(
-        // 4px of the shape left showing above, right and below: 4px off a
-        // 16px corner leaves 12px, so the two curves stay parallel.
-        "my-1 mr-1 flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-xl py-3 pr-3.5 pl-4",
+        // 3px of the shape left showing above, right and below: 3px off a
+        // 12px corner leaves 9px, so the two curves stay parallel. 44px in
+        // all, a step over the 40px field and buttons on the same card.
+        "my-[3px] mr-[3px] flex min-h-[38px] min-w-0 flex-1 items-center gap-3 rounded-[9px] py-2 pr-3 pl-3.5",
         TONE.face,
       )}
     >
@@ -414,7 +415,7 @@ function ModeSurface({
           two would not fit a label each. */}
       <div
         className={cn(
-          "grid grid-cols-1 gap-2",
+          "grid grid-cols-1 gap-1.5",
           shown.length > 1 && "sm:grid-cols-2",
         )}
       >
@@ -460,7 +461,7 @@ function OptionRow({
     >
       <TileIcon icon={icon} on={picked} />
       <TileBody>
-        <span className="text-foreground flex-1 text-[15px] leading-snug">
+        <span className="text-foreground flex-1 text-[14px] leading-snug">
           {label}
         </span>
         {picked ? (
@@ -507,7 +508,7 @@ function ScopeSurface({
     >
       {/* One per row, each a picture and a box to tick, as a checklist reads.
           Two across stops the moment a label wraps. */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         {/* Settled, only what they picked, as with the mode. */}
         {AREAS.filter(
           (area) => surface.state !== "settled" || picked.includes(area),
@@ -526,7 +527,7 @@ function ScopeSurface({
             >
               <TileIcon icon={AREA_ICON[area]} on={on} />
               <TileBody>
-                <span className="text-foreground flex-1 text-[15px] leading-snug">
+                <span className="text-foreground flex-1 text-[14px] leading-snug">
                   {t(`scope.${area}`)}
                 </span>
                 <Tick on={on} />
@@ -784,7 +785,7 @@ function Tick({ on }: { on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid size-[22px] shrink-0 place-items-center rounded-[7px] border-[1.5px]",
+        "grid size-[18px] shrink-0 place-items-center rounded-[5px] border-[1.5px]",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
           ? "border-foreground bg-foreground text-background"
@@ -794,7 +795,7 @@ function Tick({ on }: { on: boolean }) {
       <Check
         strokeWidth={3}
         className={cn(
-          "size-3.5 transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
+          "size-3 transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
           on ? "scale-100 opacity-100" : "scale-50 opacity-0",
         )}
       />
