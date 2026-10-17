@@ -147,6 +147,28 @@ describe("where a surface stays", () => {
     expect(asked.anchored.at(-1)!.after).not.toBe("tt_0");
   });
 
+  it("settles the card before once the next one comes up, with what was understood", () => {
+    const state = through([
+      restored,
+      { kind: "surface ready" },
+      { kind: "said", text: "Ana" },
+      // What the service's turn does with a name said in the chat: it takes it
+      // and the stage hands over to the mode in the same step, so the name's
+      // own anchored card never saw itself settle.
+      { kind: "named", name: "Ana" },
+      { kind: "confirmed", card: "name" },
+      { kind: "surface ready" },
+    ]);
+
+    expect(state.anchored.map((entry) => entry.key)).toEqual([
+      "name:name",
+      "mode:mode",
+    ]);
+    expect(state.anchored[0]!.surface.state).toBe("settled");
+    expect(state.anchored[0]!.surface.body).toEqual({ name: "Ana" });
+    expect(state.anchored[1]!.surface.state).not.toBe("settled");
+  });
+
   it("still comes up when they answer in the chat before its beat", () => {
     const state = through([
       restored,

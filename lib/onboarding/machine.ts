@@ -168,7 +168,41 @@ function anchor(state: Onboarding): Onboarding {
 
   if (!state.surfaceReady) return state;
   const after = state.conversation.thread.at(-1)?.id ?? "";
-  return { ...state, anchored: [...state.anchored, { key, after, surface }] };
+  return {
+    ...state,
+    anchored: [
+      ...settled(state.anchored, cardsWithEntrance(state.conversation)),
+      { key, after, surface },
+    ],
+  };
+}
+
+/**
+ * The cards the conversation has moved past, as records.
+ *
+ * Moving on is the answer: once the next card comes up, the one before it was
+ * accepted, whether they pressed its confirm or answered in the chat. Left as
+ * they were, a name given in the chat kept its empty field and its confirm
+ * under a conversation that had already used it (Joaquin, 17/oct). Each takes
+ * what was last understood for its card, since a card that was not the current
+ * one stopped following it.
+ */
+function settled(
+  anchored: AnchoredSurface[],
+  cards: Record<string, { body: Record<string, unknown> }>,
+): AnchoredSurface[] {
+  return anchored.map((entry) => {
+    if (entry.surface.state === "settled") return entry;
+    const card = entry.surface.card ? cards[entry.surface.card] : undefined;
+    return {
+      ...entry,
+      surface: {
+        ...entry.surface,
+        state: "settled",
+        body: card?.body ?? entry.surface.body,
+      },
+    };
+  });
 }
 
 /** What is on screen for where the conversation is. */
