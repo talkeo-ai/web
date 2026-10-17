@@ -66,7 +66,7 @@ test("answering on the surface moves the conversation on", async ({ page }) => {
   const field = page.locator('[data-slot="surface-name"]');
   await expect(field).toBeVisible(TURN);
   await field.fill("Ana");
-  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByRole("button", { name: "Confirmar" }).click();
 
   // The second entrance line, which is the one asking how they want to answer.
   await expect(page.locator('[data-slot="surface-mode-speak"]')).toBeVisible(

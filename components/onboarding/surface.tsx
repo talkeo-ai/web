@@ -185,7 +185,7 @@ export function Surface({
   const t = useTranslations("onboarding");
 
   if (surface.kind === "name") {
-    return <NameSurface onAnswer={onAnswer} />;
+    return <NameSurface surface={surface} onAnswer={onAnswer} />;
   }
   if (surface.kind === "mode") {
     return <ModeSurface refusal={refusal} onAnswer={onAnswer} />;
@@ -260,17 +260,17 @@ function Frame({
 }
 
 /**
- * A choice, as a tile: a solid thing to press. It rests on a soft shadow,
- * rises a pixel under the pointer, settles when pressed and takes a tint of
- * the brand's green when picked. The green is a tint and a border, not a fill:
+ * A choice, as a tile: a solid thing to press. It rests on a soft shadow and
+ * takes a tint of the brand's green when picked. The green is a tint and a border, not a fill:
  * a full lime block next to the text shouted over everything else on the card.
  */
 function tile(on: boolean, hue: Hue) {
   return cn(
     "group relative flex cursor-pointer items-stretch overflow-hidden rounded-xl border text-left outline-none select-none",
-    "transition-[transform,box-shadow,background-color,border-color] duration-(--duration-press-out) ease-(--ease-standard)",
-    "shadow-[0_1px_2px_0_rgb(0_0_0/0.05)] hover:-translate-y-px hover:shadow-[0_3px_8px_-2px_rgb(0_0_0/0.10)]",
-    "active:translate-y-0 active:shadow-[0_1px_1px_0_rgb(0_0_0/0.04)] active:duration-(--duration-press-in)",
+    // Hover only firms up the edge. Nothing moves: a tile rising under the
+    // pointer read as the list wobbling (Joaquin, 17/oct).
+    "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
+    "shadow-[0_1px_2px_0_rgb(0_0_0/0.05)]",
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
     // The tile's own fill is the icon's well, in the option's colour; the body
     // sits on top of it. Picking it changes the edge and the face, never the
@@ -317,12 +317,19 @@ function Footer({ children }: { children: React.ReactNode }) {
 }
 
 function NameSurface({
+  surface,
   onAnswer,
 }: {
+  surface: SurfaceSpec;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding");
-  const [value, setValue] = useState("");
+  // What Talkeo heard, until they touch it: the field can arrive empty or
+  // already filled from what they said in the chat, and the one action reads
+  // as confirming in both cases. Derived and not copied, like the areas.
+  const heard = typeof surface.body.name === "string" ? surface.body.name : "";
+  const [theirs, setTheirs] = useState<string | null>(null);
+  const value = theirs ?? heard;
   const written = value.trim();
 
   return (
@@ -332,43 +339,44 @@ function NameSurface({
       hint={t("name.hint")}
       target="control:name"
     >
+      {/* The action beside the field, as one line: under it, a single
+          button took a row of its own. */}
       <form
-        className="flex flex-col gap-3"
+        className="flex items-center gap-2"
         onSubmit={(event) => {
           event.preventDefault();
           if (!written) return;
           onAnswer({ field: "", value: written, confirms: true });
         }}
       >
-        <div>
-          <Input
-            // No autofocus: the card comes up while they may be typing in the
-            // chat field, and taking the caret from there throws their
-            // sentence into the wrong box (Joaquin, 17/oct).
-            className={cn(
-              TONE.face,
-              TONE.edge,
-              TONE.edgeHover,
-              "focus-visible:border-accent-500 dark:focus-visible:border-accent-500/70",
-            )}
-            value={value}
-            onChange={(event) => {
-              // Written as it is stored, while they type. The service raises the
-              // first letter of every word and lowers nothing, so a field that
-              // did not would show `martin` next to a greeting that says
-              // `Martin` — the same name spelled two ways on one screen.
-              setValue(writtenName(event.target.value));
-            }}
-            placeholder={t("name.placeholder")}
-            aria-label={t("name.question")}
-            data-slot="surface-name"
-          />
-        </div>
-        <Footer>
-          <Button type="submit" variant="primary" size="sm" disabled={!written}>
-            {t("name.cta")}
-          </Button>
-        </Footer>
+        <Input
+          // No autofocus: the card comes up while they may be typing in the
+          // chat field, and taking the caret from there throws their
+          // sentence into the wrong box (Joaquin, 17/oct).
+          className={cn(
+            TONE.face,
+            TONE.edge,
+            TONE.edgeHover,
+            // The button's height and corner, so the two read as one line.
+            "h-10 min-w-0 flex-1 rounded-xl px-3.5 text-[15px]",
+            "focus-visible:border-accent-500 dark:focus-visible:border-accent-500/70",
+          )}
+          value={value}
+          onChange={(event) => {
+            // Written as it is stored, while they type. The service raises the
+            // first letter of every word and lowers nothing, so a field that
+            // did not would show `martin` next to a greeting that says
+            // `Martin` — the same name spelled two ways on one screen.
+            setTheirs(writtenName(event.target.value));
+          }}
+          placeholder={t("name.placeholder")}
+          aria-label={t("name.question")}
+          data-slot="surface-name"
+        />
+        <Button type="submit" variant="primary" size="sm" disabled={!written}>
+          <Check className="size-4" strokeWidth={2.5} />
+          {t("name.cta")}
+        </Button>
       </form>
     </Frame>
   );
@@ -449,11 +457,7 @@ function OptionRow({
         </span>
         <ChevronRight
           aria-hidden
-          className={cn(
-            "text-text-tertiary size-4",
-            "transition-transform duration-(--duration-control) ease-(--ease-standard)",
-            "group-hover:translate-x-0.5",
-          )}
+          className="text-text-tertiary size-4"
         />
       </TileBody>
     </button>

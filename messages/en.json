@@ -454,7 +454,7 @@
       "question": "What's your name?",
       "hint": "So Talkeo knows what to call you.",
       "placeholder": "Your name",
-      "cta": "Continue"
+      "cta": "Confirm"
     },
     "mode": {
       "question": "How would you like to answer?",

@@ -67,7 +67,7 @@
       "question": "¿Cómo te llamás?",
       "hint": "Para que Talkeo sepa cómo decirte.",
       "placeholder": "Tu nombre",
-      "cta": "Continuar"
+      "cta": "Confirmar"
     },
     "mode": {
       "question": "¿Cómo querés responder?",
