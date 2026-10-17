@@ -39,8 +39,8 @@ import { MicNotice } from "./mic-notice";
  * `asking` is empty and the action reads as answering; `proposed` is what Talkeo
  * understood, editable, and the action is agreeing; `settled` is a record.
  *
- * Two stages have no confirm at all — there is nothing on them for the person to
- * validate, so asking for a yes would be asking for one nobody needs.
+ * Every card is edited by hand or by Talkeo and confirmed by hand or by Talkeo
+ * (Joaquin, 17/oct), so every card has its confirm.
  */
 
 /** The areas, in the order they are shown. Their labels are copy. */
@@ -117,11 +117,14 @@ export type SurfaceAnswer = {
 export function Surface({
   surface,
   refusal,
+  pending = false,
   onAnswer,
 }: {
   surface: SurfaceSpec;
   /** Why the microphone did not open, for the surface that offers it. */
   refusal?: MicRefusal | "";
+  /** Whether they changed something on this card that has not gone out yet. */
+  pending?: boolean;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding");
@@ -139,6 +142,7 @@ export function Surface({
     <CardSurface
       surface={surface}
       title={t(`surfaces.${surface.kind}.title`)}
+      pending={pending}
       onAnswer={onAnswer}
     />
   );
@@ -572,10 +576,12 @@ function ScopeSurface({
 function CardSurface({
   surface,
   title,
+  pending,
   onAnswer,
 }: {
   surface: SurfaceSpec;
   title: string;
+  pending: boolean;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding.surfaces");
@@ -619,7 +625,9 @@ function CardSurface({
             <Button
               variant="primary"
               size="sm" className="rounded-lg"
-              disabled={surface.state !== "proposed"}
+              // On once there is something to agree to: what Talkeo wrote,
+              // or what they wrote themselves, which goes out with the yes.
+              disabled={surface.state !== "proposed" && !pending}
               data-slot="surface-confirm"
               onClick={() => onAnswer({ field: "", value: "", confirms: true })}
             >
@@ -638,7 +646,7 @@ const PANEL = "flex flex-col gap-3 pt-1";
 
 /** Which lines each card shows, in the order it shows them. */
 const FIELDS: Record<string, string[]> = {
-  goal: ["goal", "work_on"],
+  goal: ["goal", "work_on", "context"],
   starting_point: ["path", "comfortable", "wants_to_work", "sees_self"],
   about_you: ["does", "follows"],
 };
@@ -652,9 +660,7 @@ const FIELDS: Record<string, string[]> = {
  * keys, because `goals` has no labels of its own. Each objective reads with the
  * first goal's labels.
  *
- * Only the first is editable: an edit on this card names a field and not an
- * objective, and the service applies it to the first one (`cards.apply_edit`).
- * The rest are corrected by saying so.
+ * Every objective is editable, each edit naming its objective (`goalField`).
  */
 function GoalList({
   surface,
@@ -682,30 +688,30 @@ function GoalList({
                 label={t(`goal.${field}`)}
                 value={goal[field]}
                 example={t(`example.${field}`)}
-                readOnly={
-                  surface.state === "settled" || index > 0 || goals.length === 0
-                }
+                readOnly={surface.state === "settled"}
                 onCommit={(value) => {
-                  onAnswer({ field, value, confirms: false });
+                  onAnswer({ field: goalField(index, field), value, confirms: false });
                 }}
               />
             ))}
-            {/* What surrounds it, when Talkeo noted any. Read only: the
-                service takes no edit for it, it is added by saying so. */}
-            {asPoints(goal.context).length > 0 ? (
-              <Points
-                label={t("goal.context")}
-                value={asPoints(goal.context)}
-                example=""
-                readOnly
-                onCommit={() => {}}
-              />
-            ) : null}
           </dl>
         </li>
       ))}
     </ol>
   );
+}
+
+/**
+ * The field an edit of one objective names.
+ *
+ * The first is the plain field, which is what the Core takes today and applies
+ * to the first objective. The others are `goals.<index>.<field>`, because every
+ * objective is editable by hand (Joaquin, 17/oct) and an edit names a field,
+ * not an objective. ⚠ The Core does not read that form yet and drops it; it is
+ * the shape it is to follow.
+ */
+function goalField(index: number, field: string): string {
+  return index === 0 ? field : `goals.${index}.${field}`;
 }
 
 /**
@@ -772,12 +778,14 @@ function Line({
               TONE.edgeHover,
               TONE.focus,
             )}
-            onChange={(event) => setDraft(event.target.value)}
-            onBlur={() => {
-              // Committed on leaving the line rather than on every keystroke:
-              // an edit travels with their next turn, and one per character
-              // would be a queue of a hundred versions of the same sentence.
-              if (draft !== null && draft !== value) onCommit(draft);
+            onChange={(event) => {
+              // Queued as they type, not on leaving the line: the queue keeps
+              // one edit per line (`queueEdit`), so this is not a hundred
+              // versions, and the card's confirm can light up the moment there
+              // is something of theirs to agree to. Nothing goes out until
+              // their next turn or their confirm.
+              setDraft(event.target.value);
+              onCommit(event.target.value);
             }}
           />
         )}
@@ -830,8 +838,8 @@ function asPoints(value: unknown): string[] {
 /**
  * A list line: the label, and its points in one field, each on its own row
  * behind a dot. Editable, each point is its own input, Enter starts the next
- * one and `Add` opens one at the end; the list goes back to the service when
- * the caret leaves the field, all at once, like the single lines do.
+ * one and `Add` opens one at the end; the whole list is queued as one edit, a
+ * line per point, as they type.
  */
 function Points({
   label,
@@ -860,6 +868,13 @@ function Points({
     const next = [...shown];
     next[index] = text;
     setDraft(next);
+    // As they type, like a single line, and for the same reason.
+    onCommit(
+      next
+        .map((point) => point.trim())
+        .filter(Boolean)
+        .join("\n"),
+    );
   };
   const open = (at: number) => {
     const next = [...shown];
@@ -867,12 +882,11 @@ function Points({
     setDraft(next);
     setOpened(at);
   };
+  // Leaving the field only tidies it: the empty points go. What they wrote is
+  // already queued, as they typed it.
   const commit = () => {
     if (draft === null) return;
-    const kept = draft.map((point) => point.trim()).filter(Boolean);
-    if (kept.join("\n") !== over) onCommit(kept.join("\n"));
-    // The empty points go; what they wrote stays on screen.
-    setDraft(kept);
+    setDraft(draft.map((point) => point.trim()).filter(Boolean));
     setOpened(-1);
   };
 

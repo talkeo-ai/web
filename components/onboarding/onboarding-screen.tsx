@@ -131,6 +131,12 @@ function Screen({
                   <Surface
                     surface={entry.surface}
                     refusal={current ? run.micRefusal : ""}
+                    pending={
+                      current &&
+                      run.outbox.pending.some(
+                        (edit) => edit.card === entry.surface.card,
+                      )
+                    }
                     onAnswer={run.answerSurface}
                   />
                 </div>

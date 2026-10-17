@@ -87,6 +87,22 @@ function asField(field: string, value: string): unknown {
     .filter(Boolean);
 }
 
+/**
+ * An edit of the objectives list, into the list. A plain field is the first
+ * objective, `goals.<index>.<field>` any other — the form the screen sends.
+ */
+function foldGoal(body: Record<string, unknown>, edit: CardEdit) {
+  const goals = Array.isArray(body.goals)
+    ? (body.goals as Record<string, unknown>[])
+    : [];
+  const named = /^goals\.(\d+)\.(\w+)$/.exec(edit.field);
+  const index = named ? Number(named[1]) : 0;
+  const field = named ? named[2]! : edit.field;
+  if (!field) return;
+  goals[index] = { ...goals[index], [field]: asField(field, edit.value) };
+  body.goals = goals;
+}
+
 export function openMockInterview(): InterviewChannel {
   const queue = new MessageQueue<InterviewMessage>();
   let next = 0;
@@ -168,7 +184,8 @@ export function openMockInterview(): InterviewChannel {
       // events, because it happened before the turn did.
       edits.forEach((edit, index) => {
         const body = (bodies[edit.card] ??= {});
-        if (edit.field) body[edit.field] = asField(edit.field, edit.value);
+        if (edit.card === "goals") foldGoal(body, edit);
+        else if (edit.field) body[edit.field] = asField(edit.field, edit.value);
         queue.push({
           kind: "event",
           turn_id: turn.turn_id,
@@ -193,6 +210,7 @@ export function openMockInterview(): InterviewChannel {
       if (stage >= 4 && !goalsShown) {
         goalsShown = true;
         const first = bodies.first_goal;
+        bodies.goals = { goals: first ? [{ ...first }] : [] };
         queue.push({
           kind: "event",
           turn_id: turn.turn_id,

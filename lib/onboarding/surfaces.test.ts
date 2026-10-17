@@ -76,11 +76,12 @@ describe("what a surface offers", () => {
     expect(at(3, cards)?.state).toBe("settled");
   });
 
-  it("has no confirm on the two stages that autosave", () => {
-    // Nothing there for the person to validate, so asking for a yes would be
-    // asking for one nobody needs.
-    expect(at(5)?.confirmable).toBe(false);
-    expect(at(6)?.confirmable).toBe(false);
-    expect(at(3)?.confirmable).toBe(true);
+  it("has a confirm on every card", () => {
+    // Every card is edited by hand or by Talkeo and confirmed by hand or by
+    // Talkeo (Joaquin, 17/oct). The two that used to autosave had no confirm,
+    // and were the only cards that did not look like the rest.
+    for (const stage of [3, 4, 5, 6]) {
+      expect(at(stage)?.confirmable).toBe(true);
+    }
   });
 });

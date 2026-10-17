@@ -41,9 +41,10 @@ export type Surface = {
   /**
    * Whether it has a confirm at all.
    *
-   * Two of the stages autosave — there is nothing for the person to validate, so
-   * offering a yes would be asking for one nobody needs. They are edited and
-   * that is all.
+   * Every card does now: each is edited by hand or by Talkeo, and confirmed by
+   * hand or by Talkeo (Joaquin, 17/oct). ⚠ The Core still autosaves the
+   * starting point and the interests and takes no confirm for them from the
+   * screen; it is to follow. Kept as a flag for the surfaces with no card.
    */
   confirmable: boolean;
 };
@@ -69,8 +70,8 @@ const OF_STAGE: Record<
   2: [{ kind: "scope", card: "scope_options", confirmable: true }],
   3: [{ kind: "goal", card: "first_goal", confirmable: true }],
   4: [{ kind: "goals", card: "goals", confirmable: true }],
-  5: [{ kind: "starting_point", card: "starting_point", confirmable: false }],
-  6: [{ kind: "about_you", card: "about_you", confirmable: false }],
+  5: [{ kind: "starting_point", card: "starting_point", confirmable: true }],
+  6: [{ kind: "about_you", card: "about_you", confirmable: true }],
 };
 
 /**
