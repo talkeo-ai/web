@@ -262,12 +262,12 @@ function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid w-10 shrink-0 place-items-center",
+        "grid w-14 shrink-0 place-items-center",
         "transition-[color] duration-(--duration-control) ease-(--ease-standard)",
         on ? TONE.picked.icon : TONE.icon,
       )}
     >
-      <Icon className="size-4" strokeWidth={1.75} />
+      <Icon className="size-5" strokeWidth={1.6} />
     </span>
   );
 }
@@ -277,8 +277,9 @@ function TileBody({ children }: { children: React.ReactNode }) {
   return (
     <span
       className={cn(
-        "flex min-w-0 flex-1 items-center gap-3 rounded-l-[7px] px-3 py-2.5",
+        "flex min-h-13 min-w-0 flex-1 items-center gap-3 rounded-l-[7px] border-l py-3 pr-3.5 pl-4",
         TONE.face,
+        TONE.edge,
       )}
     >
       {children}
@@ -456,7 +457,7 @@ function OptionRow({
     >
       <TileIcon icon={icon} on={picked} />
       <TileBody>
-        <span className="text-foreground flex-1 text-[14px] font-medium">
+        <span className="text-foreground flex-1 text-[15px] leading-snug">
           {label}
         </span>
         {picked ? (
@@ -522,7 +523,7 @@ function ScopeSurface({
             >
               <TileIcon icon={AREA_ICON[area]} on={on} />
               <TileBody>
-                <span className="text-foreground flex-1 text-[14px] leading-tight font-medium">
+                <span className="text-foreground flex-1 text-[15px] leading-snug">
                   {t(`scope.${area}`)}
                 </span>
                 <Tick on={on} />
@@ -780,17 +781,17 @@ function Tick({ on }: { on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid size-4 shrink-0 place-items-center rounded-[4px] border-[1.5px]",
+        "grid size-5 shrink-0 place-items-center rounded-[6px] border-[1.5px]",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
           ? "border-foreground bg-foreground text-background"
-          : "border-black/25 group-hover:border-black/40 dark:border-white/25 dark:group-hover:border-white/40",
+          : "border-black/20 group-hover:border-black/35 dark:border-white/20 dark:group-hover:border-white/35",
       )}
     >
       <Check
         strokeWidth={3}
         className={cn(
-          "size-3 transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
+          "size-3.5 transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
           on ? "scale-100 opacity-100" : "scale-50 opacity-0",
         )}
       />
