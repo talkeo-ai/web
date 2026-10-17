@@ -65,7 +65,7 @@ export function Transcript({
           ))}
 
           {live ? (
-            <Arriving key={live.turn_id}>
+            <Arriving key={live.turn_id} first={said.length === 0}>
               <Bubble from="talkeo">
                 <TurnText
                   lines={playback.lines}
