@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { InterviewCard } from "@/core/contracts";
 
-import { surfaceFor, wantsAttention } from "./surfaces";
+import { surfaceFor } from "./surfaces";
 
 const noCards: Record<string, InterviewCard> = {};
 
@@ -40,7 +40,6 @@ describe("the entrance", () => {
     const read = at(1, { name: card("name", "draft") });
     expect(read?.kind).toBe("name");
     expect(read?.state).toBe("proposed");
-    expect(wantsAttention(read)).toBe(true);
   });
 });
 
@@ -83,22 +82,5 @@ describe("what a surface offers", () => {
     expect(at(5)?.confirmable).toBe(false);
     expect(at(6)?.confirmable).toBe(false);
     expect(at(3)?.confirmable).toBe(true);
-  });
-});
-
-describe("what is worth interrupting somebody for", () => {
-  it("is a surface with something left to do", () => {
-    expect(wantsAttention(at(3))).toBe(true);
-  });
-
-  it("is never a card they already agreed to", () => {
-    const cards = {
-      first_goal: { card: "first_goal", state: "confirmed", body: {} },
-    };
-    expect(wantsAttention(at(3, cards))).toBe(false);
-  });
-
-  it("is never nothing", () => {
-    expect(wantsAttention(at(7))).toBe(false);
   });
 });

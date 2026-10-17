@@ -466,10 +466,7 @@
       "title": "Onboarding",
       "placeholder": "Type your answer",
       "placeholderNamed": "Tell me, {name}",
-      "latest": "Latest turn",
-      "showChat": "Chat",
-      "hideChat": "Focus",
-      "updated": "There is something new for you"
+      "latest": "Latest turn"
     },
     "voice": {
       "mute": "Mute Talkeo",

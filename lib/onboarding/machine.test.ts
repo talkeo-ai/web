@@ -102,22 +102,3 @@ describe("the surface's gate", () => {
     expect(state.surfaceReady).toBe(false);
   });
 });
-
-describe("what a surface does to the view", () => {
-  it("pulls somebody in the chat over to it", () => {
-    const inChat = through([
-      { kind: "view", event: { kind: "asked for", view: "chat" } },
-    ]);
-    const pulled = through([restored], inChat);
-
-    expect(pulled.view.view).toBe("focus");
-    expect(pulled.view.shows).toBe("the surface");
-  });
-
-  it("leaves somebody who is already in focus where they are", () => {
-    const state = through([restored]);
-
-    expect(state.view.view).toBe("focus");
-    expect(state.view.shows).toBe("the turn");
-  });
-});

@@ -10,24 +10,20 @@ import { Button } from "@/components/ui/button";
 import { useFollowingScroll } from "@/lib/onboarding/use-following-scroll";
 import { useInterview } from "@/lib/onboarding/use-interview";
 import { heardSoFar } from "@/lib/onboarding/conversation";
-import { VIEW_SWITCH_MS } from "@/lib/onboarding/motion";
 import { useRouter } from "@/lib/i18n/navigation";
-import { cn } from "@/lib/utils";
 
 import { Composer } from "./composer";
 import { ExitDialog } from "./exit-dialog";
-import { FocusView } from "./focus-view";
 import { MicNotice } from "./mic-notice";
 import { ProgressBar } from "./progress-bar";
 import { Surface } from "./surface";
 import { Transcript } from "./transcript";
-import { ViewToggle } from "./view-toggle";
 
 /**
- * The whole onboarding: one screen with two views of the same conversation.
+ * The whole onboarding: one conversation, with its surfaces in the thread.
  *
- * It draws and nothing more. What the conversation means, which view is up, when
- * a surface pulls somebody over and what is waiting to be sent are all decided
+ * It draws and nothing more. What the conversation means, which surface is up
+ * and what is waiting to be sent are all decided
  * in `lib/onboarding/`, by functions that never render anything — which is what
  * makes any of it testable and what stops this file becoming the one that does
  * five jobs.
@@ -58,18 +54,13 @@ function Screen({
   const fire = useFireMark();
   const scroll = useFollowingScroll();
   const run = useInterview(opened, { onMark: fire });
-  const { conversation, view, surface, surfaceReady, live, playback } = run;
+  const { conversation, surface, surfaceReady, live, playback } = run;
 
   const heard = heardSoFar(conversation.transcript);
   const showing = surface && surfaceReady ? surface : null;
-  const inChat = view.view === "chat";
 
   return (
-    <div
-      data-slot="onboarding"
-      data-view={view.view}
-      className="flex h-dvh flex-col"
-    >
+    <div data-slot="onboarding" className="flex h-dvh flex-col">
       {/* The bar, the way out and the mute are one piece and travel together,
           held to the same column as the conversation and the field below it.
           Full-bleed, the bar ran the width of the window while everything it
@@ -121,90 +112,57 @@ function Screen({
       </header>
 
       <main className="relative flex min-h-0 flex-1 flex-col">
-        {/* The two views cross-fade in place rather than sliding: one of them is
-            a column of text somebody is reading, and moving it under them is
-            the part that reads as the screen deciding for them. */}
-        <div
-          className="flex min-h-0 flex-1 flex-col transition-opacity ease-(--ease-standard)"
-          style={{ transitionDuration: `${VIEW_SWITCH_MS}ms` }}
-          key={view.view}
-        >
-          {inChat ? (
-            <Transcript
-              said={conversation.thread}
-              live={live}
-              playback={playback}
-              heard={heard}
-              viewport={scroll.viewport}
-              column={scroll.column}
-              scrolled={scroll.scrolled}
-            />
-          ) : (
-            <FocusView
-              playback={playback}
-              surface={
-                showing ? (
-                  <Surface
-                    surface={showing}
-                    refusal={run.micRefusal}
-                    onTouch={run.touchSurface}
-                    onAnswer={run.answerSurface}
-                  />
-                ) : null
-              }
-            />
-          )}
-        </div>
-
-        {/* Floating, and only as wide as its label: the version that spanned the
-            column cut the conversation in half with a band that was not part of
-            it. */}
-        <div
-          className={cn(
-            "pointer-events-none absolute inset-x-0 flex justify-center",
-            inChat ? "bottom-2" : "bottom-4",
-          )}
-        >
-          <div className="pointer-events-auto">
-            <ViewToggle
-              view={view.view}
-              unseen={view.unseen}
-              label={inChat ? t("chat.hideChat") : t("chat.showChat")}
-              updatedLabel={t("chat.updated")}
-              onSwitch={run.switchView}
-            />
-          </div>
-        </div>
+        <Transcript
+          said={conversation.thread}
+          live={live}
+          playback={playback}
+          heard={heard}
+          surface={
+            showing
+              ? {
+                  key: `${showing.kind}:${showing.card ?? ""}`,
+                  node: (
+                    <Surface
+                      surface={showing}
+                      refusal={run.micRefusal}
+                      onAnswer={run.answerSurface}
+                    />
+                  ),
+                }
+              : null
+          }
+          viewport={scroll.viewport}
+          column={scroll.column}
+          scrolled={scroll.scrolled}
+        />
       </main>
 
-      {/* The field is always there in the chat, whichever way they chose to
-          answer. What changes is only whether the call opens by itself. */}
-      {inChat ? (
-        <div className="w-full px-4 pt-8 pb-4">
-          <div className="mx-auto w-full max-w-3xl">
-            {run.micRefusal ? (
-              <MicNotice refusal={run.micRefusal} className="mb-2" />
-            ) : null}
-            <Composer
-              placeholder={
-                conversation.name
-                  ? t("chat.placeholderNamed", { name: conversation.name })
-                  : t("chat.placeholder")
-              }
-              inCall={run.inCall}
-              muted={run.micMuted}
-              canSend={!conversation.answering}
-              onSend={(text) => {
-                scroll.follow();
-                run.say(text);
-              }}
-              onCall={run.startCall}
-              onHangUp={run.hangUp}
-              onMute={run.toggleMic}
-            />
-          </div>
+      {/* The field is always there, whichever way they chose to answer. What
+          changes is only whether the call opens by itself. */}
+      <div className="w-full px-4 pt-8 pb-4">
+        <div className="mx-auto w-full max-w-3xl">
+          {run.micRefusal ? (
+            <MicNotice refusal={run.micRefusal} className="mb-2" />
+          ) : null}
+          <Composer
+            placeholder={
+              conversation.name
+                ? t("chat.placeholderNamed", { name: conversation.name })
+                : t("chat.placeholder")
+            }
+            inCall={run.inCall}
+            muted={run.micMuted}
+            canSend={!conversation.answering}
+            onSend={(text) => {
+              scroll.follow();
+              run.say(text);
+            }}
+            onCall={run.startCall}
+            onHangUp={run.hangUp}
+            onMute={run.toggleMic}
+          />
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }

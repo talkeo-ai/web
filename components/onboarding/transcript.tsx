@@ -1,6 +1,6 @@
 "use client";
 
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 
 import { TurnText } from "@/components/talkeo/turn-text";
 import type { Said } from "@/lib/onboarding/conversation";
@@ -21,6 +21,7 @@ export function Transcript({
   live,
   playback,
   heard,
+  surface,
   viewport,
   column,
   scrolled,
@@ -29,6 +30,12 @@ export function Transcript({
   /** The turn being said now, if there is one. Keyed by it, so each one mounts. */
   live: { turn_id: string } | null;
   playback: TurnPlayback;
+  /**
+   * The surface for where the conversation is, drawn under the message that
+   * asked for it. It is one of the ways to answer that message, so it sits
+   * where the answer goes. Keyed, so a new one arrives instead of swapping in.
+   */
+  surface: { key: string; node: ReactNode } | null;
   /** What they are saying out loud, as it is transcribed. */
   heard: string;
   viewport: RefObject<HTMLDivElement | null>;
@@ -66,6 +73,12 @@ export function Transcript({
                   className={TALKEO_BODY}
                 />
               </Bubble>
+            </Arriving>
+          ) : null}
+
+          {surface ? (
+            <Arriving key={surface.key}>
+              <div data-slot="chat-surface">{surface.node}</div>
             </Arriving>
           ) : null}
 

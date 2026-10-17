@@ -14,10 +14,8 @@ import { cn } from "@/lib/utils";
  *
  * ⚠ It never says the conversation carried on in writing. The copy used to
  * ("no pude usar el micrófono, así que seguimos escribiendo") and the code never
- * did it: the mode stayed on `speak`, which took the view to focus, which is the
- * view with no composer — so the sentence promising writing was rendered inside
- * the thing it was promising, and disappeared with it. Only they choose to
- * write, by pressing the other button.
+ * did it: the mode stayed on `speak`. Only they choose to write, by pressing the
+ * other button.
  */
 export function MicNotice({
   refusal,

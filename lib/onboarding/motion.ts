@@ -29,6 +29,3 @@ export const MESSAGE_IN_MS = 620;
  * speak them. What it waits for now is the voice — `use-interview.ts`.
  */
 export const SURFACE_AFTER_MS = 400;
-
-/** How long a view takes to cross to the other one. */
-export const VIEW_SWITCH_MS = 320;

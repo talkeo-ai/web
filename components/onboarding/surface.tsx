@@ -50,34 +50,28 @@ export type SurfaceAnswer = {
 export function Surface({
   surface,
   refusal,
-  onTouch,
   onAnswer,
 }: {
   surface: SurfaceSpec;
   /** Why the microphone did not open, for the surface that offers it. */
   refusal?: MicRefusal | "";
-  /** They typed in it, ticked something, moved something. */
-  onTouch: () => void;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding");
 
   if (surface.kind === "name") {
-    return <NameSurface onTouch={onTouch} onAnswer={onAnswer} />;
+    return <NameSurface onAnswer={onAnswer} />;
   }
   if (surface.kind === "mode") {
     return <ModeSurface refusal={refusal} onAnswer={onAnswer} />;
   }
   if (surface.kind === "scope") {
-    return (
-      <ScopeSurface surface={surface} onTouch={onTouch} onAnswer={onAnswer} />
-    );
+    return <ScopeSurface surface={surface} onAnswer={onAnswer} />;
   }
   return (
     <CardSurface
       surface={surface}
       title={t(`surfaces.${surface.kind}.title`)}
-      onTouch={onTouch}
       onAnswer={onAnswer}
     />
   );
@@ -131,10 +125,8 @@ function Frame({
 }
 
 function NameSurface({
-  onTouch,
   onAnswer,
 }: {
-  onTouch: () => void;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding");
@@ -160,7 +152,6 @@ function NameSurface({
             // did not would show `martin` next to a greeting that says
             // `Martin` — the same name spelled two ways on one screen.
             setValue(writtenName(event.target.value));
-            onTouch();
           }}
           placeholder={t("name.placeholder")}
           aria-label={t("name.question")}
@@ -217,11 +208,9 @@ function ModeSurface({
 
 function ScopeSurface({
   surface,
-  onTouch,
   onAnswer,
 }: {
   surface: SurfaceSpec;
-  onTouch: () => void;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding.surfaces");
@@ -236,7 +225,6 @@ function ScopeSurface({
   const picked = theirs ?? marked;
 
   const toggle = (area: string) => {
-    onTouch();
     const on = picked.includes(area);
     playSound(on ? "deselect" : "select");
     setTheirs(on ? picked.filter((a) => a !== area) : [...picked, area]);
@@ -300,12 +288,10 @@ function ScopeSurface({
 function CardSurface({
   surface,
   title,
-  onTouch,
   onAnswer,
 }: {
   surface: SurfaceSpec;
   title: string;
-  onTouch: () => void;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding.surfaces");
@@ -322,7 +308,6 @@ function CardSurface({
             empty={t("empty")}
             readOnly={surface.state === "settled"}
             onCommit={(value) => {
-              onTouch();
               onAnswer({ field, value, confirms: false });
             }}
           />

@@ -79,10 +79,7 @@
       "title": "Onboarding",
       "placeholder": "Escreva sua resposta",
       "placeholderNamed": "Me conta, {name}",
-      "latest": "Último turno",
-      "showChat": "Chat",
-      "hideChat": "Foco",
-      "updated": "Tem algo novo para você"
+      "latest": "Último turno"
     },
     "voice": {
       "mute": "Silenciar o Talkeo",

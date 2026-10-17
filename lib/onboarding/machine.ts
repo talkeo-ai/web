@@ -13,22 +13,16 @@ import {
   queueEdit,
   type Outbox,
 } from "./outbox";
-import { surfaceFor, wantsAttention, type Surface } from "./surfaces";
-import {
-  nextView,
-  startsInFocus,
-  type ViewEvent,
-  type ViewState,
-} from "./view-machine";
+import { surfaceFor, type Surface } from "./surfaces";
 
 /**
  * The whole screen, as one reduction.
  *
- * The conversation, the view and the outbox are separate machines with separate
- * rules, and they are folded together here because they are not independent: a
- * card changing is a fact about the conversation AND a reason for the view to
- * move. Kept apart, that link has to live in an effect that watches one and sets
- * the other — which is a render behind, and is where this kind of screen rots.
+ * The conversation and the outbox are separate machines with separate rules,
+ * and they are folded together here with the surface they imply: a card
+ * changing is a fact about the conversation AND a change to what is on screen.
+ * Kept apart, that link has to live in an effect that watches one and sets the
+ * other — which is a render behind, and is where this kind of screen rots.
  *
  * So the rule is: **a message goes in, and everything it implies comes out.**
  * Nothing above this works anything out for itself.
@@ -36,7 +30,6 @@ import {
 
 export type Onboarding = {
   conversation: Conversation;
-  view: ViewState;
   outbox: Outbox;
   /** The surface for where the conversation is. Derived, never stored twice. */
   surface: Surface | null;
@@ -52,7 +45,6 @@ export type Onboarding = {
 
 export const nothingYet: Onboarding = {
   conversation: noConversation,
-  view: startsInFocus,
   outbox: nothingPending,
   surface: null,
   surfaceReady: false,
@@ -60,7 +52,6 @@ export const nothingYet: Onboarding = {
 
 export type OnboardingAction =
   | ConversationAction
-  | { kind: "view"; event: ViewEvent }
   /** They changed a line on a card. It waits for their next turn. */
   | { kind: "edited"; edit: CardEdit }
   /** Their turn went out; whatever was queued went with it. */
@@ -72,9 +63,6 @@ export function step(
   state: Onboarding,
   action: OnboardingAction,
 ): Onboarding {
-  if (action.kind === "view") {
-    return { ...state, view: nextView(state.view, action.event) };
-  }
   if (action.kind === "edited") {
     return { ...state, outbox: queueEdit(state.outbox, action.edit) };
   }
@@ -88,21 +76,9 @@ export function step(
   const conversation = advance(state.conversation, action);
   const surface = surfaceOf(conversation);
 
-  let view = state.view;
-  // The mode settles where somebody starts, once.
-  if (conversation.mode !== state.conversation.mode) {
-    view = nextView(view, { kind: "answers by", mode: conversation.mode });
-  }
-  // A surface that changed and still has something left to do is Talkeo asking
-  // for them. A surface that merely stayed the same is not.
-  if (movedOn(state.surface, surface) && wantsAttention(surface)) {
-    view = nextView(view, { kind: "surface wants them" });
-  }
-
   return {
     ...state,
     conversation,
-    view,
     surface,
     // A new turn takes the surface off until the beat after that turn has been
     // said, and it does so whether or not there is one up: a card can land
@@ -123,13 +99,6 @@ function surfaceOf(conversation: Conversation): Surface | null {
     stage: conversation.stage,
     cards: cardsWithEntrance(conversation),
   });
-}
-
-/** Whether the surface is a different one, or the same one in a new state. */
-function movedOn(before: Surface | null, after: Surface | null): boolean {
-  if (!after) return false;
-  if (!before) return true;
-  return before.kind !== after.kind || before.state !== after.state;
 }
 
 function startedTalking(action: OnboardingAction): boolean {

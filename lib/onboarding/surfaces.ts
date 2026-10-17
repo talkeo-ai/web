@@ -116,14 +116,3 @@ function stateOf(card: InterviewCard | undefined): SurfaceState {
   // read the same way.
   return "proposed";
 }
-
-/**
- * Whether a surface change is worth pulling somebody out of the chat for.
- *
- * A settled card is a record: it is finished, nobody has to do anything with it,
- * and putting it in front of a person mid-conversation would be interrupting
- * them to show them something they already agreed to.
- */
-export function wantsAttention(surface: Surface | null): boolean {
-  return surface !== null && surface.state !== "settled";
-}

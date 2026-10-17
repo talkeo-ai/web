@@ -27,13 +27,12 @@ import {
   type RememberedTurn,
 } from "./persistence";
 import { readInterview } from "./shared-channel";
-import type { View } from "./view-machine";
 
 /**
  * The onboarding, wired.
  *
  * The only stateful piece of this screen, and deliberately the only one: what
- * the conversation means, which view is up and what is queued are all decided by
+ * the conversation means, which surface is up and what is queued are all decided by
  * pure functions in `machine.ts`. Everything here is a connection to something
  * outside React — a socket, a microphone, an audio graph, a timer — which is
  * what an effect is actually for.
@@ -57,9 +56,7 @@ function threadOf(opened: OpenedInterview): Said[] {
 /**
  * The last thing Talkeo said, in the shape playback reads.
  *
- * Focus shows one turn, so between turns it shows the one before — otherwise the
- * screen empties every time somebody answers, which reads as the conversation
- * having ended. It is also what a reload replays: §9 asks for the last turn to
+ * It is what a reload replays: §9 asks for the last turn to
  * come back "as if it had just been produced", and coming back as the turn being
  * said is exactly that.
  */
@@ -410,14 +407,6 @@ export function useInterview(
   /** They answered on the surface. What that means depends on which one it is. */
   const answerSurface = useCallback(
     (answer: { field: string; value: string; confirms: boolean }) => {
-      // ⚠ Answering is answering, whichever surface it was — and only answering:
-      // an edit that does not confirm is not one. The two below used to return
-      // before saying so, and the view never heard that the surface was done, so
-      // somebody pulled here out of the chat stayed in focus for the rest of the
-      // conversation on a `shows` that suppressed every turn.
-      if (answer.confirms) {
-        dispatch({ kind: "view", event: { kind: "confirmed the surface" } });
-      }
       if (surface?.kind === "name") {
         dispatch({ kind: "named", name: answer.value });
         dispatch({ kind: "confirmed", card: "name" });
@@ -441,10 +430,8 @@ export function useInterview(
         //
         // `chose_mode` used to go out on the press, before `getUserMedia` had
         // even been called — so the service was told "this person speaks" and
-        // then the microphone refused. The view followed the service into
-        // focus, which is the view with no composer, and the failure notice
-        // lived inside the composer's block. They ended up in a view with no
-        // input, no microphone and nothing on screen saying why.
+        // then the microphone refused, and they were left with no microphone
+        // and nothing on screen saying why.
         //
         // Only chat if they ASK for chat: a failure leaves the question open.
         void askForMicrophone().then((open) => {
@@ -471,16 +458,6 @@ export function useInterview(
       send({ edits: [...flush(outbox).edits, edit] });
     },
     [outbox, send, surface, conversation.name, askForMicrophone],
-  );
-
-  const touchSurface = useCallback(
-    () => dispatch({ kind: "view", event: { kind: "touched the surface" } }),
-    [],
-  );
-
-  const switchView = useCallback(
-    (to: View) => dispatch({ kind: "view", event: { kind: "asked for", view: to } }),
-    [],
   );
 
   /** Silences the synthesis, not only this end's speaker. */
@@ -514,8 +491,6 @@ export function useInterview(
     micRefusal,
     say,
     answerSurface,
-    touchSurface,
-    switchView,
     toggleVoice,
     toggleMic: () => setMicMuted((on) => !on),
     /** Asks for the microphone. Call it from a click handler. */
