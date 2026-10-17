@@ -816,7 +816,7 @@ function Tick({ on }: { on: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "grid size-[18px] shrink-0 place-items-center rounded-[5px] border-[1.5px]",
+        "grid size-5 shrink-0 place-items-center rounded-full border-[1.5px]",
         "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
         on
           ? TONE.picked.tick
