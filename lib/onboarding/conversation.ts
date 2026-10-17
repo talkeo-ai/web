@@ -169,11 +169,12 @@ export function cardsWithEntrance(
   // A card they confirmed reads as confirmed from the press, not from when the
   // service's answer comes back after Talkeo's next message has been written
   // (Joaquin, 17/oct: "tarda en confirmar cuando se le da click").
-  const cards: Record<string, InterviewCard> = {};
-  for (const [key, card] of Object.entries(state.cards)) {
-    cards[key] = state.confirmed.includes(key)
-      ? { ...card, state: "confirmed" }
-      : card;
+  // Also a card Talkeo never wrote: what is on it is theirs, and it is no less
+  // confirmed for that.
+  const cards: Record<string, InterviewCard> = { ...state.cards };
+  for (const key of state.confirmed) {
+    const card = state.cards[key] ?? { card: key, state: "draft", body: {} };
+    cards[key] = { ...card, state: "confirmed" };
   }
   return { ...cards, ...entrance };
 }

@@ -112,7 +112,11 @@ function settleConfirmed(state: Onboarding): Onboarding {
     changed = true;
     return {
       ...entry,
-      surface: { ...entry.surface, state: "settled" as const, body: card.body },
+      surface: {
+        ...entry.surface,
+        state: "settled" as const,
+        body: { ...entry.surface.body, ...card.body },
+      },
     };
   });
   return changed ? { ...state, anchored } : state;

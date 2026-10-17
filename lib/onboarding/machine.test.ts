@@ -181,6 +181,23 @@ describe("where a surface stays", () => {
     expect(state.anchored[0]!.surface.state).toBe("settled");
   });
 
+  it.each([
+    [2, "scope_options"],
+    [3, "first_goal"],
+    [4, "goals"],
+    [5, "starting_point"],
+    [6, "about_you"],
+  ])("reads stage %i's card as confirmed on the press, written or not", (stage, card) => {
+    const state = through([
+      { ...restored, stage, name: "Ana" },
+      { kind: "surface ready" },
+      { kind: "confirmed", card },
+    ]);
+
+    expect(state.anchored.map((entry) => entry.surface.card)).toEqual([card]);
+    expect(state.anchored[0]!.surface.state).toBe("settled");
+  });
+
   it("moves on to the mode when Talkeo takes the name in the chat", () => {
     const state = through([
       restored,
