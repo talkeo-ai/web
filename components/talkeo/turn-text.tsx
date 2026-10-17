@@ -32,8 +32,17 @@ import { cn } from "@/lib/utils";
  * and the repaint is a handful of lines that were being painted anyway.
  */
 const GROW_MS = 260;
-const RESOLVE_MS = 420;
-const BLUR_PX = 6;
+/**
+ * A word becomes legible fast and finishes focusing slowly. Opacity runs on a
+ * shorter clock than the blur, both on the entrance curve (quick out of the
+ * gate, long soft tail), so the word is readable almost at once and the last
+ * of the softness melts away behind the next one — which is what lets a run
+ * of words read as one continuous stroke instead of a row of separate fades.
+ * At 6px the blur smeared into the neighbouring words; 3px only softens.
+ */
+const APPEAR_MS = 280;
+const RESOLVE_MS = 600;
+const BLUR_PX = 3;
 
 function same(a: number[], b: number[]): boolean {
   return a.length === b.length && a.every((value, index) => value === b[index]);
@@ -184,7 +193,7 @@ export function TurnText({
               style={{
                 opacity: shown ? 1 : 0,
                 filter: shown ? "blur(0px)" : `blur(${BLUR_PX}px)`,
-                transition: `opacity ${RESOLVE_MS}ms var(--ease-standard), filter ${RESOLVE_MS}ms var(--ease-standard)`,
+                transition: `opacity ${APPEAR_MS}ms var(--ease-entrance), filter ${RESOLVE_MS}ms var(--ease-entrance)`,
               }}
             >
               {word}
