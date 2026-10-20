@@ -39,15 +39,8 @@ export function ProgressBar({
       aria-valuemax={total}
       aria-valuenow={stage}
       aria-label={label}
-      className="relative h-2 w-full"
+      className="bg-surface-tertiary relative h-2 w-full rounded-full"
     >
-      {/* The track thinner than the fill and centred on it, in the cards'
-          tones: at the fill's full height it read as a second, empty bar
-          (Joaquin, 20/oct). */}
-      <div
-        aria-hidden
-        className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-black/[0.06] dark:bg-white/[0.07]"
-      />
       <div
         data-slot="onboarding-progress-fill"
         className="bg-cta-face absolute inset-y-0 left-0 rounded-full transition-[width] duration-(--duration-press-out) ease-(--ease-standard)"

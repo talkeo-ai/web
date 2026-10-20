@@ -66,7 +66,7 @@ function Screen({
           held to the same column as the conversation and the field below it.
           Full-bleed, the bar ran the width of the window while everything it
           was about sat in the middle of it. */}
-      <header className="w-full px-4 pt-4 pb-2">
+      <header className="w-full px-4 pt-2 pb-0">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
         <ExitDialog
           title={t("exit.title")}
