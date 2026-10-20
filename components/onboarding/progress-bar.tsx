@@ -39,7 +39,9 @@ export function ProgressBar({
       aria-valuemax={total}
       aria-valuenow={stage}
       aria-label={label}
-      className="bg-surface-tertiary relative h-2 w-full rounded-full"
+      // The track in the cards' tones, a step above the page and below the
+      // cards themselves: the surface grey read as a second, empty bar.
+      className="relative h-2 w-full rounded-full bg-black/[0.06] dark:bg-white/[0.07]"
     >
       <div
         data-slot="onboarding-progress-fill"
