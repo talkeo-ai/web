@@ -24,11 +24,13 @@ import {
 
 /**
  * Their colour, and Talkeo's. Theirs is a cool silver, `oklch(0.8 0.02 250)`,
- * neutral like everything of theirs on the screen; Talkeo's is the blue
- * claude.ai gives the person (Joaquin, 22/oct, after trying the accent green).
+ * neutral like everything of theirs on the screen; Talkeo's is claude.ai's
+ * blue lifted to `oklch(0.73 0.12 243)`, brighter and a touch cleaner, so it
+ * stands apart from the silver on this near-black (Joaquin, 22/oct, after
+ * trying the accent green and then the blue as it was).
  */
 const THEM: Rgba = [180 / 255, 191 / 255, 202 / 255, 1];
-const TALKEO: Rgba = [106 / 255, 155 / 255, 204 / 255, 1];
+const TALKEO: Rgba = [94 / 255, 176 / 255, 237 / 255, 1];
 /**
  * How far below the composer's foot the glow's box sits, so its lower half is
  * behind the field and the field cuts it, as in claude.ai. Anchored at the
