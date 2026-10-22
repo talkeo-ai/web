@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Volume2, VolumeX } from "lucide-react";
 
@@ -15,6 +16,7 @@ import { useRouter } from "@/lib/i18n/navigation";
 
 import { Composer } from "./composer";
 import { ExitDialog } from "./exit-dialog";
+import { MicHint } from "./mic-hint";
 import { MicNotice } from "./mic-notice";
 import { ProgressBar } from "./progress-bar";
 import { Surface } from "./surface";
@@ -59,6 +61,19 @@ function Screen({
 
   const heard = heardSoFar(conversation.transcript);
   const currentKey = surface ? surfaceKey(surface) : null;
+
+  // The invitation to speak: once the first message has been written and said,
+  // and never again once it is closed, typed past, or answered.
+  const [hintGone, setHintGone] = useState(false);
+  const [first] = conversation.thread;
+  const hint =
+    !hintGone &&
+    !run.inCall &&
+    conversation.thread.length === 1 &&
+    first?.from === "talkeo" &&
+    !conversation.turn &&
+    !conversation.name &&
+    playback.done;
 
   return (
     <div data-slot="onboarding" className="flex h-dvh flex-col">
@@ -152,7 +167,18 @@ function Screen({
       {/* The field is always there, whichever way they chose to answer. What
           changes is only whether the call opens by itself. */}
       <div className="w-full px-4 pt-2 pb-4">
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="relative mx-auto w-full max-w-3xl">
+          {hint ? (
+            <MicHint
+              text={t("micHint.text")}
+              close={t("micHint.close")}
+              onCall={() => {
+                setHintGone(true);
+                run.startCall();
+              }}
+              onClose={() => setHintGone(true)}
+            />
+          ) : null}
           {run.micRefusal ? (
             <MicNotice refusal={run.micRefusal} className="mb-2" />
           ) : null}
@@ -165,7 +191,10 @@ function Screen({
             inCall={run.inCall}
             muted={run.micMuted}
             canSend={!conversation.answering}
-            canCall={Boolean(conversation.name)}
+            // From the first message, to see it with the invitation to speak
+            // (Joaquin, 22/oct). It used to wait for the name.
+            canCall
+            onType={() => setHintGone(true)}
             onSend={(text) => {
               scroll.follow();
               run.say(text);

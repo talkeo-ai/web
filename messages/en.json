@@ -473,6 +473,10 @@
       "unmute": "Unmute Talkeo",
       "notHeard": "I did not catch that. Try again."
     },
+    "micHint": {
+      "text": "Answer me out loud",
+      "close": "Close"
+    },
     "mic": {
       "denied": "You did not give me permission to use the microphone.",
       "blocked": "Your browser has the microphone blocked for this site. You can change it from the lock in the address bar.",

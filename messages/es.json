@@ -86,6 +86,10 @@
       "unmute": "Escuchar a Talkeo",
       "notHeard": "No te escuché. Probá de nuevo."
     },
+    "micHint": {
+      "text": "Contestame hablando",
+      "close": "Cerrar"
+    },
     "mic": {
       "denied": "No me diste permiso para usar el micrófono.",
       "blocked": "Tu navegador tiene el micrófono bloqueado para este sitio. Se cambia desde el candado de la barra de direcciones.",

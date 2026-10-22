@@ -42,6 +42,7 @@ export function Composer({
   canSend,
   canCall,
   onSend,
+  onType,
   onCall,
   onHangUp,
   onMute,
@@ -54,6 +55,8 @@ export function Composer({
   /** Whether speaking is on offer yet. Not before they have given a name. */
   canCall: boolean;
   onSend: (text: string) => void;
+  /** They started typing. */
+  onType?: () => void;
   onCall: () => void;
   onHangUp: () => void;
   onMute: (on: boolean) => void;
@@ -95,7 +98,10 @@ export function Composer({
       <textarea
         rows={1}
         value={text}
-        onChange={(event) => setText(event.target.value)}
+        onChange={(event) => {
+          setText(event.target.value);
+          if (event.target.value.trim()) onType?.();
+        }}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
         data-slot="composer-field"
