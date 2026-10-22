@@ -192,7 +192,7 @@ function Screen({
             <MicNotice refusal={run.micRefusal} className="mb-2" />
           ) : null}
           {/* Behind the field: it rises from under the composer's edge. */}
-          <VoiceGlow shown={run.inCall} {...run.glow} />
+          <VoiceGlow {...run.glow} />
           <div className="relative z-10">
             <Composer
               placeholder={

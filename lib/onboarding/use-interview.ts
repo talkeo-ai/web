@@ -518,6 +518,10 @@ export function useInterview(
     micMuted,
     /** What the voice glow follows: who is talking, and how to hear them. */
     glow: {
+      // Talkeo's whenever it talks with its voice on, call or no call: it
+      // speaks either way. Theirs only in a call with the microphone live
+      // (Joaquin, 22/oct).
+      shown: talking ? voiceOn : inCall && !micMuted,
       talking,
       talkingAloud,
       micMeter: micMuted ? null : micMeter,
