@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "radix-ui";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -32,8 +32,12 @@ export function ExitDialog({
   confirm: string;
   onLeave: () => void;
 }) {
+  // Held here so leaving can close it: Next keeps the page mounted and hidden
+  // after it navigates away, and coming back found the box still open
+  // (Joaquin, 22/oct).
+  const [open, setOpen] = useState(false);
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]" />
@@ -42,7 +46,14 @@ export function ExitDialog({
             row. At its old size it read as a separate product (Joaquin, 22/oct). */}
         <Dialog.Content
           data-slot="exit-dialog"
-          className="dialog-content bg-surface-secondary fixed top-1/2 left-1/2 z-50 flex w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-2xl border border-black/[0.06] p-5 shadow-raised dark:border-white/[0.06]"
+          // The box takes focus, not its first button: a ring on "Salir igual"
+          // the moment it opens read as already chosen. Tab still walks the
+          // buttons from here.
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            (event.currentTarget as HTMLElement | null)?.focus();
+          }}
+          className="dialog-content outline-none bg-surface-secondary fixed top-1/2 left-1/2 z-50 flex w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-2xl border border-black/[0.06] p-5 shadow-raised dark:border-white/[0.06]"
         >
           <div className="flex flex-col gap-1.5">
             <Dialog.Title className="font-heading text-foreground text-[17px] font-semibold">
@@ -55,7 +66,15 @@ export function ExitDialog({
           <div className="flex items-center justify-end gap-2">
             {/* Staying is the primary, and it is where the eye ends: the
                 recommendation is the button that stands out. */}
-            <Button size="sm" variant="ghost" className="rounded-lg" onClick={onLeave}>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="rounded-lg"
+              onClick={() => {
+                setOpen(false);
+                onLeave();
+              }}
+            >
               {confirm}
             </Button>
             <Dialog.Close asChild>
