@@ -628,21 +628,23 @@ body[data-scroll-locked] {
   }
 }
 
-/* A dialog comes up from a touch smaller and goes back the same way, quicker
-   on the way out: leaving it is done, so it does not linger. It used to cut in
-   and out with no motion at all (Joaquin, 22/oct). Radix holds it mounted
-   until the closing animation ends. */
+/* A dialog fades in from a touch smaller, and on the way out only fades, and
+   quicker: leaving it is done, so it does not linger. Scale is animated as
+   `scale` and never as `transform`: the centring is Tailwind's `translate`
+   property, and a keyframed `transform: translate(...)` stacked a second
+   offset on it, so the box slid in from below and to the right (Joaquin,
+   22/oct). Radix holds it mounted until the closing animation ends. */
 .dialog-overlay[data-state="open"] {
   animation: dialog-fade-in 180ms var(--ease-standard);
 }
 .dialog-overlay[data-state="closed"] {
-  animation: dialog-fade-out 120ms var(--ease-exit);
+  animation: dialog-fade-out 100ms var(--ease-standard);
 }
 .dialog-content[data-state="open"] {
-  animation: dialog-in 220ms var(--ease-entrance);
+  animation: dialog-in 180ms var(--ease-entrance);
 }
 .dialog-content[data-state="closed"] {
-  animation: dialog-out 120ms var(--ease-exit);
+  animation: dialog-out 100ms var(--ease-standard);
 }
 
 @keyframes dialog-fade-in {
@@ -658,13 +660,12 @@ body[data-scroll-locked] {
 @keyframes dialog-in {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.96);
+    scale: 0.97;
   }
 }
 @keyframes dialog-out {
   to {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.97);
   }
 }
 
