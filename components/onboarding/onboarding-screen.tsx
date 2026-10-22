@@ -7,7 +7,6 @@ import { Volume2, VolumeX } from "lucide-react";
 
 import type { OpenedInterview } from "@/app/[locale]/(app)/onboarding/actions";
 import { MarkTargets, useFireMark } from "@/components/talkeo/mark-target";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useFollowingScroll } from "@/lib/onboarding/use-following-scroll";
 import { surfaceKey } from "@/lib/onboarding/machine";
@@ -134,8 +133,6 @@ function Screen({
             <VolumeX className="size-5" />
           )}
         </Button>
-        {/* While the light theme is being looked at (Joaquin, 22/oct). */}
-        <ThemeToggle />
         </div>
       </header>
 
