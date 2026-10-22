@@ -681,14 +681,16 @@ body[data-scroll-locked] {
   }
 }
 
-/* The voice glow fades in with the call and out after it, over half a second
-   both ways, as in claude.ai. Opacity only: the box is placed with Tailwind's
-   `translate`, and an animated transform would move it. */
+/* The voice glow fades in over half a second, as in claude.ai. Going, it waits
+   a beat first: the lobes die down with the voice, and the fade takes what is
+   left, so it ends like a voice trailing off and not like a light switched
+   off. Opacity only: the box is placed with Tailwind's `translate`, and an
+   animated transform would move it. */
 .voice-glow[data-state="open"] {
   animation: voice-glow-in 500ms var(--ease-entrance);
 }
 .voice-glow[data-state="closed"] {
-  animation: voice-glow-out 500ms var(--ease-exit) forwards;
+  animation: voice-glow-out 700ms var(--ease-exit) 250ms forwards;
 }
 @keyframes voice-glow-in {
   from {

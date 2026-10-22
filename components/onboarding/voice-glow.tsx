@@ -71,6 +71,13 @@ export function VoiceGlow({
 }) {
   const [present, setPresent] = useState(shown);
   if (shown && !present) setPresent(true);
+  // Whose glow it was when it was last up. Going, it stays theirs and dies
+  // down like a voice ending; it used to turn to the other colour and vanish
+  // in the same half second, which read as a cut (Joaquin, 22/oct).
+  const [was, setWas] = useState({ talking, talkingAloud });
+  if (shown && (was.talking !== talking || was.talkingAloud !== talkingAloud)) {
+    setWas({ talking, talkingAloud });
+  }
 
   if (!present) return null;
   // The outer box is what the glow may occupy, and it clips: its foot is the
@@ -100,8 +107,9 @@ export function VoiceGlow({
         }}
       >
         <GlowCanvas
-          talking={talking}
-          talkingAloud={talkingAloud}
+          talking={shown ? talking : was.talking}
+          talkingAloud={shown ? talkingAloud : was.talkingAloud}
+          going={!shown}
           micMeter={micMeter}
           talkeoMeter={talkeoMeter}
         />
@@ -111,6 +119,8 @@ export function VoiceGlow({
 }
 
 function GlowCanvas(props: {
+  /** On its way out: whatever it was following has stopped. */
+  going: boolean;
   talking: boolean;
   talkingAloud: boolean;
   micMeter: AnalyserNode | null;
@@ -144,10 +154,14 @@ function GlowCanvas(props: {
     const tick = (now: number) => {
       start ||= now;
       const t = (now - start) / 1000;
-      const { talking, talkingAloud, micMeter, talkeoMeter } = live.current;
+      const { going, talking, talkingAloud, micMeter, talkeoMeter } = live.current;
 
       const meter = talking ? (talkingAloud ? talkeoMeter() : null) : micMeter;
-      if (meter) {
+      if (going) {
+        // Silence, through the same followers as any pause: the lobes come
+        // down over a few hundred milliseconds while the fade waits for them.
+        raw.fill(0);
+      } else if (meter) {
         if (bins?.length !== meter.frequencyBinCount) {
           bins = new Uint8Array(meter.frequencyBinCount);
         }
