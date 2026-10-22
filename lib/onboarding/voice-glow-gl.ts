@@ -144,7 +144,7 @@ export function createGlowRenderer(
     depth: false,
     stencil: false,
   });
-  if (!gl || inSoftware(gl)) return null;
+  if (!gl || gl.isContextLost() || inSoftware(gl)) return null;
 
   const lobe = program(gl, LOBE_VERTEX, LOBE_FRAGMENT);
   const pass = program(gl, PASS_VERTEX, PASS_FRAGMENT);
@@ -230,6 +230,7 @@ export function createGlowRenderer(
   };
 
   const draw = (t: number, color: Rgba, energy: readonly number[]) => {
+    if (gl.isContextLost()) return;
     if (!targets) {
       // No buffers to blur in: draw the lobes straight, which is the glow
       // without its softness, rather than nothing.
@@ -281,7 +282,13 @@ export function createGlowRenderer(
       gl.deleteBuffer(screenQuad);
       gl.deleteProgram(lobe);
       gl.deleteProgram(pass);
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      // ⚠ Only once the canvas has really gone. Development mounts every effect
+      // twice on the same element, and a context lost here is the one the
+      // second mount gets back: the browser drew it as a white box with a
+      // broken-canvas face (Joaquin, 22/oct).
+      setTimeout(() => {
+        if (!canvas.isConnected) gl.getExtension("WEBGL_lose_context")?.loseContext();
+      }, 0);
     },
   };
 }
