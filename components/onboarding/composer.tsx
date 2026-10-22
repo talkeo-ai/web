@@ -1,6 +1,6 @@
 "use client";
 
-import { Mic, MicOff, X } from "lucide-react";
+import { Mic, MicOff, PhoneOff } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 
 import { composerAction } from "@/lib/onboarding/outbox";
@@ -122,12 +122,18 @@ export function Composer({
           data-slot="composer-mute"
           data-muted={muted ? "true" : "false"}
           aria-label={muted ? "Activar el micrófono" : "Silenciar el micrófono"}
+          // Muted is a state you have to be able to see from across the room,
+          // so it fills red with the struck-through mic, as claude.ai does.
+          // Live is the plain mic, like every other control in the field
+          // (Joaquin, 22/oct).
           className={cn(
-            "text-text-secondary grid size-9 shrink-0 place-items-center rounded-full",
+            "grid size-9 shrink-0 place-items-center rounded-full",
             "cursor-pointer outline-none",
             "transition-[color,background-color] duration-(--duration-control) ease-(--ease-standard)",
-            "hover:text-foreground hover:bg-surface-tertiary",
             "focus-key:ring-ring focus-key:ring-2",
+            muted
+              ? "bg-destructive hover:bg-destructive/85 text-white"
+              : "text-foreground hover:bg-surface-tertiary",
           )}
         >
           {muted ? <MicOff className="size-5" /> : <Mic className="size-5" />}
@@ -155,7 +161,8 @@ export function Composer({
         {action === "send" ? (
           <SendArrow />
         ) : action === "hang up" ? (
-          <X className="size-5" />
+          // Leaving the call reads as hanging up, not as closing something.
+          <PhoneOff className="size-5" />
         ) : (
           <Waveform />
         )}
