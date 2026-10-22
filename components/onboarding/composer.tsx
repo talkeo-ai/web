@@ -35,6 +35,14 @@ import { cn } from "@/lib/utils";
 const LINE_HEIGHT_PX = 24;
 const MAX_ROWS = 6;
 
+/**
+ * The buttons' corners follow the field's: its 1.4rem radius less the 0.5rem
+ * it is padded by, so the two curves run parallel in the corner. Round buttons
+ * in a rounded rectangle did not match it, which showed once the muted one
+ * filled red (Joaquin, 22/oct).
+ */
+const BUTTON_RADIUS = "rounded-[0.9rem]";
+
 export function Composer({
   placeholder,
   inCall,
@@ -127,7 +135,8 @@ export function Composer({
           // Live is the plain mic, like every other control in the field
           // (Joaquin, 22/oct).
           className={cn(
-            "grid size-9 shrink-0 place-items-center rounded-full",
+            "grid size-9 shrink-0 place-items-center",
+            BUTTON_RADIUS,
             "cursor-pointer outline-none",
             "transition-[color,background-color] duration-(--duration-control) ease-(--ease-standard)",
             "focus-key:ring-ring focus-key:ring-2",
@@ -151,7 +160,8 @@ export function Composer({
         // filled circle were logic references — which control is offered when —
         // and not a look to copy.
         className={cn(
-          "text-foreground grid size-9 shrink-0 place-items-center rounded-full",
+          "text-foreground grid size-9 shrink-0 place-items-center",
+          BUTTON_RADIUS,
           "cursor-pointer outline-none",
           "transition-[opacity,background-color] duration-(--duration-control) ease-(--ease-standard)",
           "hover:bg-surface-tertiary focus-key:ring-ring focus-key:ring-2",
