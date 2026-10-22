@@ -655,13 +655,28 @@ body[data-scroll-locked] {
   animation: dialog-out 100ms var(--ease-standard);
 }
 
-/* Rises the few pixels between it and the button it points at, and fades. */
+/* Grows out of the button it points at and shrinks back into it: the origin
+   is the tail, over the speak button. */
 .mic-hint {
-  animation: mic-hint-in 260ms var(--ease-entrance);
+  transform-origin: calc(100% - 26px) 100%;
+}
+.mic-hint[data-state="open"] {
+  animation: mic-hint-in 320ms var(--ease-entrance);
+}
+.mic-hint[data-state="closed"] {
+  animation: mic-hint-out 160ms var(--ease-exit) forwards;
 }
 @keyframes mic-hint-in {
   from {
     opacity: 0;
+    scale: 0.6;
+    translate: 0 8px;
+  }
+}
+@keyframes mic-hint-out {
+  to {
+    opacity: 0;
+    scale: 0.8;
     translate: 0 4px;
   }
 }

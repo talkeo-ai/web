@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Volume2, VolumeX } from "lucide-react";
 
@@ -62,9 +62,18 @@ function Screen({
   const heard = heardSoFar(conversation.transcript);
   const currentKey = surface ? surfaceKey(surface) : null;
 
-  // The invitation to speak: once the first message has been written and said,
-  // and never again once it is closed, typed past, or answered.
+  // The invitation to speak, while the first message is the only one: once it
+  // has been written and said, or at once when they come back to it already
+  // said — a reload or a return (Joaquin, 22/oct). Closing it, typing or
+  // pressing it puts it away for this visit; the next visit offers it again.
   const [hintGone, setHintGone] = useState(false);
+  // Whether the greeting was said live on this visit, and so is worth waiting
+  // for. One restored from before is already said.
+  const [sawLive, setSawLive] = useState(false);
+  if (conversation.turn && !sawLive) setSawLive(true);
+  // Next keeps this page mounted and hidden when they navigate away, so
+  // leaving is the cleanup and coming back finds it offered again.
+  useEffect(() => () => setHintGone(false), []);
   const [first] = conversation.thread;
   const hint =
     !hintGone &&
@@ -73,7 +82,7 @@ function Screen({
     first?.from === "talkeo" &&
     !conversation.turn &&
     !conversation.name &&
-    playback.done;
+    (!sawLive || playback.done);
 
   return (
     <div data-slot="onboarding" className="flex h-dvh flex-col">
@@ -168,8 +177,8 @@ function Screen({
           changes is only whether the call opens by itself. */}
       <div className="w-full px-4 pt-2 pb-4">
         <div className="relative mx-auto w-full max-w-3xl">
-          {hint ? (
-            <MicHint
+          <MicHint
+              shown={hint}
               text={t("micHint.text")}
               close={t("micHint.close")}
               onCall={() => {
@@ -178,7 +187,6 @@ function Screen({
               }}
               onClose={() => setHintGone(true)}
             />
-          ) : null}
           {run.micRefusal ? (
             <MicNotice refusal={run.micRefusal} className="mb-2" />
           ) : null}

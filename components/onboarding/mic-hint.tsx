@@ -1,6 +1,7 @@
 "use client";
 
 import { Mic, X } from "lucide-react";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -13,22 +14,38 @@ import { cn } from "@/lib/utils";
  * the microphone lives (Joaquin, 22/oct, to see how it looks).
  *
  * Pressing it is pressing the speak button. Closing it, typing, or the
- * conversation moving on puts it away for good.
+ * conversation moving on puts it away.
+ *
+ * It grows out of the button it points at and shrinks back into it, so both
+ * its coming and its going are seen (Joaquin, 22/oct: it had neither). Kept
+ * mounted until the leaving animation has played.
  */
 export function MicHint({
+  shown,
   text,
   close,
   onCall,
   onClose,
 }: {
+  shown: boolean;
   text: string;
   close: string;
   onCall: () => void;
   onClose: () => void;
 }) {
+  const [present, setPresent] = useState(shown);
+  if (shown && !present) setPresent(true);
+  if (!present) return null;
+  const leaving = !shown;
+
   return (
     <div
       data-slot="mic-hint"
+      data-state={leaving ? "closed" : "open"}
+      inert={leaving}
+      onAnimationEnd={() => {
+        if (leaving) setPresent(false);
+      }}
       className="mic-hint absolute right-0 bottom-full mb-2.5 flex items-center"
     >
       <div
