@@ -66,8 +66,6 @@ export type TurnPlaybackOptions = {
 /** Where the voice has got to. Implemented by `lib/audio/playback.ts`. */
 export type Playhead = { currentTimeMs(): number | null };
 
-/** How much faster the text arrives than the voice saying it. */
-const TEXT_SPEED = 3.2;
 
 type Progress = {
   turnId: string | null;
@@ -181,11 +179,12 @@ export function useTurnPlayback(
       //
       // Marks and lines stay on the clock: they are what the voice points at,
       // and pointing early at something not yet said is worse than late.
-      const written = elapsed * TEXT_SPEED;
-      while (nextWord < words.length) {
-        if (timeline.startOf(nextWord) > written) break;
-        nextWord += 1;
-      }
+      //
+      // As fast as the words arrive (Joaquin, 22/oct: "prácticamente a tiempo
+      // real de tokens"). It was paced at 3.2x the voice, which held a fast
+      // model back to a dictation speed; each word's own fade is what makes the
+      // run read as writing, not a pace imposed on it.
+      nextWord = words.length;
 
       while (nextMark < marks.length) {
         const mark = marks[nextMark]!;

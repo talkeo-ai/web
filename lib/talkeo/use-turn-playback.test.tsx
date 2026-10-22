@@ -225,11 +225,25 @@ describe("a turn whose text is still arriving", () => {
     const reached = result.current.revealedWords;
     expect(reached).toBeGreaterThan(1);
 
-    // Back to the beginning rather than carrying on where the last one got to.
-    // The first word is at zero on any clock, so one is the floor, not none.
+    // Back to the beginning rather than carrying on where the last one got to:
+    // nothing of the new turn before its first frame. The words then come as
+    // fast as they arrived, so the first frame has them all.
     rerender({ id: "tt_2" });
+    expect(result.current.revealedWords).toBe(0);
     tick(0);
-    expect(result.current.revealedWords).toBeLessThan(reached);
+    expect(result.current.revealedWords).toBe(reached);
+  });
+
+  it("writes the words out as fast as they arrive, not at the voice's pace", () => {
+    const { result, rerender } = renderHook(
+      ({ text }: { text: string }) => useTurnPlayback(turnOf({ text })),
+      { initialProps: { text: "Hola," } },
+    );
+    tick();
+    rerender({ text: "Hola, qué bueno tenerte acá." });
+    tick(16);
+    expect(result.current.revealedWords).toBe(5);
+    expect(result.current.written).toBe(true);
   });
 });
 
