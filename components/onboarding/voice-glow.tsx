@@ -23,16 +23,12 @@ import {
  */
 
 /**
- * Their colour, and Talkeo's, in the screen's own terms: everything of theirs
- * is neutral and Talkeo's is the accent, so they glow a cool silver and Talkeo
- * glows its green (Joaquin, 22/oct; claude.ai's blue and clay before that).
- *
- * Talkeo's is the accent's hue at `oklch(0.75 0.19 135.9)`, between the 500
- * and the 600: the 400 the screen uses for text is too loud blown up this big.
- * Theirs is `oklch(0.8 0.02 250)`. Written out because the renderer takes rgb.
+ * Their colour, and Talkeo's. Theirs is a cool silver, `oklch(0.8 0.02 250)`,
+ * neutral like everything of theirs on the screen; Talkeo's is the blue
+ * claude.ai gives the person (Joaquin, 22/oct, after trying the accent green).
  */
 const THEM: Rgba = [180 / 255, 191 / 255, 202 / 255, 1];
-const TALKEO: Rgba = [114 / 255, 200 / 255, 62 / 255, 1];
+const TALKEO: Rgba = [106 / 255, 155 / 255, 204 / 255, 1];
 /**
  * How far below the composer's foot the glow's box sits, so its lower half is
  * behind the field and the field cuts it, as in claude.ai. Anchored at the
