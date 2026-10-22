@@ -367,36 +367,51 @@ export function useInterview(
 
   const told = useMemo(() => lastTold(conversation.thread), [conversation.thread]);
   const playback = useTurnPlayback(live ?? told, { onMark, playhead: player });
+  // The turn said live on this visit, and so still writing itself out after it
+  // has landed: the stream runs ahead of the reveal, and the finished turn used
+  // to be drawn whole the moment it landed, the rest of its words at once
+  // (Joaquin, 22/oct). One restored from before is drawn whole.
+  const [lastLive, setLastLive] = useState("");
+  if (conversation.turn && conversation.turn.id !== lastLive) {
+    setLastLive(conversation.turn.id);
+  }
+  const revealing =
+    !conversation.turn && told && told.turn_id === lastLive && !playback.written
+      ? told.turn_id
+      : null;
   // Whether the last turn has been said through: written out, and its voice
   // over if it had one. With no voice the playback still runs a clock as long
   // as the voice would have been, and the invitation to speak waited out that
   // silence after the words were on screen (Joaquin, 22/oct).
   const saidThrough =
-    playback.written && (voiced !== told?.turn_id || playback.done);
+    !conversation.turn && !revealing && (voiced !== told?.turn_id || playback.done);
 
   /**
    * The surface appears as soon as the turn it belongs to has been WRITTEN.
    *
-   * ⚠ The three conditions are three different things and it needs all of them.
    * `told` is that Talkeo has spoken at all — the surface is one of the ways to
    * answer its question, never a question of its own, so it cannot precede one.
-   * `conversation.turn` is that the stream is over. `playback.written` is that
-   * the last word is on screen: gated on the stream alone, the surface went up
-   * before the words had been written out.
+   * `conversation.turn` is that the stream is over. `revealing` is that its
+   * words are still being written out: the stream runs ahead of the reveal.
+   *
+   * ⚠ The landed turn used to be drawn whole while this waited on the reveal's
+   * clock, so the card came up a second or more after the message looked
+   * finished (Joaquin, 22/oct). The landed turn now keeps writing itself out,
+   * and the card follows its last word.
    *
    * Written, not spoken (Joaquin, 17/oct). It used to wait for the voice, and
    * the text runs ahead of the voice — so the card sat a few seconds behind a
    * message that was already there to read.
    */
   useEffect(() => {
-    if (!told || conversation.turn || !playback.written) return;
+    if (!told || conversation.turn || revealing) return;
     if (surfaceReady || !surface) return;
     const waiting = setTimeout(
       () => dispatch({ kind: "surface ready" }),
       SURFACE_AFTER_MS,
     );
     return () => clearTimeout(waiting);
-  }, [told, conversation.turn, playback.written, surfaceReady, surface]);
+  }, [told, conversation.turn, revealing, surfaceReady, surface]);
 
   // --- what the screens do -------------------------------------------------
 
@@ -510,6 +525,7 @@ export function useInterview(
     ...state,
     live,
     playback,
+    revealing,
     saidThrough,
     inCall,
     micMuted,

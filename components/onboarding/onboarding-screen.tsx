@@ -140,6 +140,7 @@ function Screen({
         <Transcript
           said={conversation.thread}
           live={live}
+          revealing={run.revealing}
           playback={playback}
           heard={heard}
           surfaces={anchored.map((entry) => {

@@ -112,9 +112,12 @@ export function Arriving({ children }: { children: ReactNode }) {
 export function TalkeoSaid({
   text,
   signed = true,
+  revealedWords,
 }: {
   text: string;
   signed?: boolean;
+  /** How far it has been written out, while it still is. Whole otherwise. */
+  revealedWords?: number;
 }) {
   // The same stripping as while it played, or a settled turn shows the delivery
   // marks that the live one hid. With the service speaking there is nothing left
@@ -123,7 +126,11 @@ export function TalkeoSaid({
   const words = lines.reduce((total, line) => total + line.words.length, 0);
   return (
     <Bubble from="talkeo" arriving={false} signed={signed}>
-      <TurnText lines={lines} revealedWords={words} className={TALKEO_BODY} />
+      <TurnText
+        lines={lines}
+        revealedWords={revealedWords ?? words}
+        className={TALKEO_BODY}
+      />
     </Bubble>
   );
 }

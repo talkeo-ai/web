@@ -19,6 +19,7 @@ import { Arriving, Bubble, TALKEO_BODY, TalkeoSaid, YouSaid } from "./bubble";
 export function Transcript({
   said,
   live,
+  revealing,
   playback,
   heard,
   surfaces,
@@ -29,6 +30,8 @@ export function Transcript({
   said: Said[];
   /** The turn being said now, if there is one. Keyed by it, so each one mounts. */
   live: { turn_id: string } | null;
+  /** The landed turn still writing itself out, by id. */
+  revealing: string | null;
   playback: TurnPlayback;
   /**
    * Every surface that has been up, each under the thread entry it came up
@@ -61,7 +64,12 @@ export function Transcript({
                 {entry.from === "you" ? (
                   <YouSaid text={entry.text} />
                 ) : (
-                  <TalkeoSaid text={entry.text} />
+                  <TalkeoSaid
+                    text={entry.text}
+                    revealedWords={
+                      entry.id === revealing ? playback.revealedWords : undefined
+                    }
+                  />
                 )}
               </div>
               {surfacesAfter(surfaces, entry.id)}
