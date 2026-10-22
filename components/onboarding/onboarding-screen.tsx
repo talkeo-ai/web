@@ -176,7 +176,10 @@ function Screen({
 
       {/* The field is always there, whichever way they chose to answer. What
           changes is only whether the call opens by itself. */}
-      <div className="w-full px-4 pt-2 pb-4">
+      {/* Clipped sideways: the voice glow is wider than the column, and on a
+          narrow window it would otherwise widen the page. Not upward, where
+          the glow rises over the conversation. */}
+      <div className="w-full overflow-x-clip px-4 pt-2 pb-4">
         <div className="relative mx-auto w-full max-w-3xl">
           <MicHint
               shown={hint}

@@ -73,6 +73,13 @@ export function VoiceGlow({
   if (shown && !present) setPresent(true);
 
   if (!present) return null;
+  // The outer box is what the glow may occupy, and it clips: its foot is the
+  // cut line, behind the field. The glow sits lower inside it and its canvas
+  // runs on further still, and none of that may count as size.
+  //
+  // ⚠ It was cut with a `clip-path` on the glow itself, which hides what is
+  // past the line but leaves it in the layout: the page grew by the overhang
+  // and a scrollbar came and went with the glow (Joaquin, 22/oct).
   return (
     <div
       aria-hidden
@@ -81,22 +88,24 @@ export function VoiceGlow({
       onAnimationEnd={() => {
         if (!shown) setPresent(false);
       }}
-      className="voice-glow pointer-events-none absolute left-1/2 z-0 w-[150%] -translate-x-1/2"
-      style={{
-        aspectRatio: "4 / 1",
-        contain: "layout",
-        bottom: -SINK_PX,
-        // Open on every side but the bottom, where the canvas runs on past the
-        // box: it is cut there, behind the field.
-        clipPath: `inset(-100% -100% ${SINK_PX + CUT_ABOVE_FOOT_PX}px -100%)`,
-      }}
+      className="voice-glow pointer-events-none absolute left-1/2 z-0 w-[150%] -translate-x-1/2 overflow-clip"
+      style={{ aspectRatio: "4 / 1", bottom: CUT_ABOVE_FOOT_PX }}
     >
-      <GlowCanvas
-        talking={talking}
-        talkingAloud={talkingAloud}
-        micMeter={micMeter}
-        talkeoMeter={talkeoMeter}
-      />
+      <div
+        className="absolute inset-x-0"
+        style={{
+          aspectRatio: "4 / 1",
+          contain: "layout",
+          bottom: -(SINK_PX + CUT_ABOVE_FOOT_PX),
+        }}
+      >
+        <GlowCanvas
+          talking={talking}
+          talkingAloud={talkingAloud}
+          micMeter={micMeter}
+          talkeoMeter={talkeoMeter}
+        />
+      </div>
     </div>
   );
 }
