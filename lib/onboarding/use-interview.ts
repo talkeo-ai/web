@@ -83,6 +83,8 @@ export function useInterview(
 ) {
   const [state, dispatch] = useReducer(step, nothingYet);
   const [inCall, setInCall] = useState(false);
+  // The turn whose voice is coming, by id. Only turns with one wait for it.
+  const [voiced, setVoiced] = useState("");
   const [micMuted, setMicMuted] = useState(false);
   const [voiceOn, setVoiceOn] = useState(true);
   /** Why the microphone did not open, or empty. Cleared by it opening. */
@@ -187,6 +189,7 @@ export function useInterview(
         // Audio never reaches the reducer: a turn's worth of it is hundreds of
         // kilobytes and it has nothing to do with what is on screen.
         if (message.kind === "audio_format") {
+          setVoiced(message.turn_id);
           frames.current = {
             turn: message.turn_id,
             rate: message.sample_rate,
@@ -364,6 +367,12 @@ export function useInterview(
 
   const told = useMemo(() => lastTold(conversation.thread), [conversation.thread]);
   const playback = useTurnPlayback(live ?? told, { onMark, playhead: player });
+  // Whether the last turn has been said through: written out, and its voice
+  // over if it had one. With no voice the playback still runs a clock as long
+  // as the voice would have been, and the invitation to speak waited out that
+  // silence after the words were on screen (Joaquin, 22/oct).
+  const saidThrough =
+    playback.written && (voiced !== told?.turn_id || playback.done);
 
   /**
    * The surface appears as soon as the turn it belongs to has been WRITTEN.
@@ -501,6 +510,7 @@ export function useInterview(
     ...state,
     live,
     playback,
+    saidThrough,
     inCall,
     micMuted,
     voiceOn,

@@ -82,7 +82,7 @@ function Screen({
     first?.from === "talkeo" &&
     !conversation.turn &&
     !conversation.name &&
-    (!sawLive || playback.done);
+    (!sawLive || run.saidThrough);
 
   return (
     <div data-slot="onboarding" className="flex h-dvh flex-col">
