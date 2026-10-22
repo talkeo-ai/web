@@ -115,6 +115,12 @@ export function useInterview(
 
   const { conversation, surface, surfaceReady, outbox } = state;
   const { sessionId } = opened;
+  // Whether Talkeo has said anything on this page. Read by the socket effect,
+  // which must not re-run when it changes, so it is a ref kept in step.
+  const spoken = useRef(false);
+  useEffect(() => {
+    spoken.current = conversation.thread.length > 0;
+  }, [conversation.thread.length]);
 
   // --- picking it back up --------------------------------------------------
 
@@ -211,7 +217,12 @@ export function useInterview(
     // per session, because asking twice walks the conversation forward twice.
     // The channel says whether this reader is the one that opened it, which is
     // the same fact a remount used to have to remember for itself.
-    if (mine && !opened.lastTurn) open.resume();
+    //
+    // ⚠ Nor on a page that has already been spoken to. Next keeps a page it
+    // navigated away from mounted and hidden, with its state, and runs its
+    // effects again when it is shown: this one opened a fresh channel, asked
+    // it to begin, and the greeting came in a second time (Joaquin, 22/oct).
+    if (mine && !opened.lastTurn && !spoken.current) open.resume();
 
     return () => {
       release();

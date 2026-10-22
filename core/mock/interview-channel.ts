@@ -103,26 +103,45 @@ function foldGoal(body: Record<string, unknown>, edit: CardEdit) {
   body.goals = goals;
 }
 
-export function openMockInterview(): InterviewChannel {
+/**
+ * Where each session's recording had got to, kept past the channel.
+ *
+ * The service remembers a session and a channel is only a way in; this used to
+ * forget it with the channel. Next keeps a page it navigated away from and
+ * opens a new channel when it is shown, and the recording started over from the
+ * greeting under a conversation that had already had it.
+ */
+type Progress = {
+  next: number;
+  mode: string;
+  named: string | null;
+  bodies: Record<string, Record<string, unknown>>;
+  goalsShown: boolean;
+  nameTaken: boolean;
+};
+const progress = new Map<string, Progress>();
+
+export function openMockInterview(sessionId = ""): InterviewChannel {
+  const was = progress.get(sessionId);
   const queue = new MessageQueue<InterviewMessage>();
-  let next = 0;
+  let next = was?.next ?? 0;
   let running = false;
   let listening = false;
   // Empty until they pick, exactly as the service reports it: the entrance is
   // what asks, so a channel that answered "text" before anybody had chosen would
   // have a screen setting itself up for a typist while the question was still on
   // it.
-  let mode = "";
-  let named: string | null = null;
+  let mode = was?.mode ?? "";
+  let named: string | null = was?.named ?? null;
   // Every edit since the last turn, not only the last one: a card with two
   // lines changed sends two, and keeping one dropped the other.
   let pendingEdits: CardEdit[] = [];
   // What each card says by now, their edits folded in, so a later card that is
   // built from an earlier one — the objectives list from the first objective —
   // carries what they wrote, the way the service's does (`cards.on_screen`).
-  const bodies: Record<string, Record<string, unknown>> = {};
-  let goalsShown = false;
-  let nameTaken = false;
+  const bodies: Record<string, Record<string, unknown>> = was?.bodies ?? {};
+  let goalsShown = was?.goalsShown ?? false;
+  let nameTaken = was?.nameTaken ?? false;
   let closed = false;
 
   const wait = (ms: number) =>
@@ -315,6 +334,7 @@ export function openMockInterview(): InterviewChannel {
       queue.push({ kind: "nothing_heard", reason: "" });
     },
     close: () => {
+      progress.set(sessionId, { next, mode, named, bodies, goalsShown, nameTaken });
       closed = true;
       queue.finish();
     },

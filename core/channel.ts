@@ -98,5 +98,5 @@ export function openInterview(sessionId: string): InterviewChannel {
   const baseUrl = process.env.NEXT_PUBLIC_CORE_WS_URL;
   return baseUrl
     ? openInterviewSocket(baseUrl, sessionId)
-    : openMockInterview();
+    : openMockInterview(sessionId);
 }

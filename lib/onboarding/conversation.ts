@@ -217,7 +217,21 @@ export function advance(
     return { ...state, confirmed: [...state.confirmed, action.card] };
   }
 
+  // A turn already in the thread is being told again, not said: a page Next
+  // kept hidden reopens its channel when it is shown, and the greeting came
+  // in a second time under the first, with the same id (Joaquin, 22/oct).
+  if (alreadySaid(state, action.message)) return state;
   return fold(state, action.message);
+}
+
+function alreadySaid(state: Conversation, message: InterviewMessage): boolean {
+  const id =
+    message.kind === "turn_done"
+      ? message.result.turn.turn_id
+      : "turn_id" in message
+        ? message.turn_id
+        : "";
+  return id !== "" && state.thread.some((entry) => entry.id === id);
 }
 
 function fold(state: Conversation, message: InterviewMessage): Conversation {
