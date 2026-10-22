@@ -121,20 +121,22 @@ describe("the recorded interview channel", () => {
     expect(cards).toHaveLength(1);
   });
 
-  it("ends the listening itself, the way the transcription does", async () => {
-    // `listen_stop` is the screen giving up on a turn, not how one normally
-    // ends: a screen that waits to be asked would wait for ever.
+  it("makes up nothing they said: an open microphone hears nothing", async () => {
+    // It used to answer with a scripted line, which read as the product
+    // inventing what they said (Joaquin, 22/oct).
     vi.useFakeTimers();
     const channel = openMockInterview();
-    const seen = await throughOneTurn(channel, () => channel.listenStart({
-      mime: "audio/pcm",
-      sampleRate: 16000,
-    }));
+    const seen: InterviewMessage[] = [];
+    const reading = (async () => {
+      for await (const message of channel.messages()) seen.push(message);
+    })();
+    channel.listenStart({ mime: "audio/pcm", sampleRate: 16000 });
+    await vi.advanceTimersByTimeAsync(10_000);
+    channel.close();
+    await reading;
     vi.useRealTimers();
 
-    const settled = seen.filter((m) => m.kind === "transcript" && m.is_final);
-    expect(settled).toHaveLength(1);
-    expect(seen.at(-1)?.kind).toBe("turn_done");
+    expect(seen).toEqual([]);
   });
 
   it("says it heard nothing when the screen gives up, so nobody waits on a turn", async () => {

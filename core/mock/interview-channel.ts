@@ -25,8 +25,6 @@ import { INTERVIEW_STAGES, TALKEO_INTERVIEW_TURNS } from "./fixtures";
  * - **Answering takes time.** The service is about a second to its first word,
  *   so this is too. A fixture that answers instantly is what makes a screen grow
  *   an artificial floor to stop the reply landing on top of the question.
- * - **The person's turn ends on its own.** Listening does not wait to be told to
- *   stop; the transcription decides, and `listen_stop` is the screen giving up.
  *
  * **It has no voice, and says so by never announcing an audio format.** The
  * voice is a provider, and silence pretending to be speech would only buy a
@@ -38,15 +36,7 @@ import { INTERVIEW_STAGES, TALKEO_INTERVIEW_TURNS } from "./fixtures";
 const FIRST_FRAGMENT_MS = 900;
 /** Fast enough to read as streaming, slow enough to see it stream. */
 const FRAGMENT_MS = 25;
-/** How long a spoken answer takes to come back as text. */
-const TRANSCRIPT_MS = 240;
 
-/**
- * What the person says out loud, per turn, when the microphone is the input.
- *
- * It is here rather than in `script.ts` because it is the other half of this
- * recording: these are the answers the recorded turns are answers to.
- */
 /**
  * A name the way the service stores it: every word's first letter raised, and
  * nothing lowered.
@@ -62,18 +52,6 @@ function writtenName(raw: string): string {
     .map((word) => word[0]!.toUpperCase() + word.slice(1))
     .join(" ");
 }
-
-const SAID_ALOUD = [
-  "Ana",
-  "hablando",
-  "quiero entender cuando hablan rápido en las reuniones",
-  "sí, está bien",
-  "seguir las reuniones con el cliente de punta a punta",
-  "no, con eso está",
-  "estudié en el colegio y después una app",
-  "diseño de producto, y sigo The Futur",
-  "dale",
-];
 
 /** The card fields the service keeps as lists, and takes back a line each. */
 const LIST_FIELDS = new Set(["work_on", "path", "does", "follows", "context"]);
@@ -287,20 +265,6 @@ export function openMockInterview(sessionId = ""): InterviewChannel {
     }
   };
 
-  /** Mock rule: what they said comes back a word at a time, then settles. */
-  const transcribe = async () => {
-    const said = SAID_ALOUD[Math.min(next, SAID_ALOUD.length - 1)]!;
-    for (const word of said.split(" ")) {
-      if (!listening || closed) return;
-      queue.push({ kind: "transcript", delta: `${word} `, is_final: false });
-      await wait(TRANSCRIPT_MS);
-    }
-    if (!listening || closed) return;
-    queue.push({ kind: "transcript", delta: said, is_final: true });
-    listening = false;
-    void runTurn();
-  };
-
   return {
     messages: () => queue.iterate(),
     resume: () => void runTurn(),
@@ -321,9 +285,12 @@ export function openMockInterview(sessionId = ""): InterviewChannel {
     setVoice: () => {
       // Nothing to silence: this channel never speaks.
     },
+    // No pretend speech: the recording cannot hear, so an open microphone
+    // hears nothing until the screen gives up (Joaquin, 22/oct). It used to
+    // answer with a scripted line, which read as the product making up what
+    // they said.
     listenStart: () => {
       listening = true;
-      void transcribe();
     },
     sendAudio: () => {
       // The recording is what the person said; the frames are not read.
