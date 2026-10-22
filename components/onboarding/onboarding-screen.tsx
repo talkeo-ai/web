@@ -21,6 +21,7 @@ import { MicNotice } from "./mic-notice";
 import { ProgressBar } from "./progress-bar";
 import { Surface } from "./surface";
 import { Transcript } from "./transcript";
+import { VoiceGlow } from "./voice-glow";
 
 /**
  * The whole onboarding: one conversation, with its surfaces in the thread.
@@ -190,27 +191,31 @@ function Screen({
           {run.micRefusal ? (
             <MicNotice refusal={run.micRefusal} className="mb-2" />
           ) : null}
-          <Composer
-            placeholder={
-              conversation.name
-                ? t("chat.placeholderNamed", { name: conversation.name })
-                : t("chat.placeholder")
-            }
-            inCall={run.inCall}
-            muted={run.micMuted}
-            canSend={!conversation.answering}
-            // From the first message, to see it with the invitation to speak
-            // (Joaquin, 22/oct). It used to wait for the name.
-            canCall
-            onType={() => setHintGone(true)}
-            onSend={(text) => {
-              scroll.follow();
-              run.say(text);
-            }}
-            onCall={run.startCall}
-            onHangUp={run.hangUp}
-            onMute={run.toggleMic}
-          />
+          {/* Behind the field: it rises from under the composer's edge. */}
+          <VoiceGlow shown={run.inCall} {...run.glow} />
+          <div className="relative z-10">
+            <Composer
+              placeholder={
+                conversation.name
+                  ? t("chat.placeholderNamed", { name: conversation.name })
+                  : t("chat.placeholder")
+              }
+              inCall={run.inCall}
+              muted={run.micMuted}
+              canSend={!conversation.answering}
+              // From the first message, to see it with the invitation to speak
+              // (Joaquin, 22/oct). It used to wait for the name.
+              canCall
+              onType={() => setHintGone(true)}
+              onSend={(text) => {
+                scroll.follow();
+                run.say(text);
+              }}
+              onCall={run.startCall}
+              onHangUp={run.hangUp}
+              onMute={run.toggleMic}
+            />
+          </div>
         </div>
       </div>
     </div>

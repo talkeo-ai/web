@@ -71,6 +71,8 @@ export type Microphone = {
   onFrame(handler: (frame: ArrayBuffer) => void): void;
   /** Uploads silence instead of the room. The turn stays open. */
   mute(on: boolean): void;
+  /** The room as it comes in, for the glow to follow. Not silenced by `mute`. */
+  meter: AnalyserNode;
   close(): void;
 };
 
@@ -146,6 +148,8 @@ export async function openMicrophone(): Promise<MicrophoneResult> {
     },
   });
   source.connect(worklet);
+  const meter = context.createAnalyser();
+  source.connect(meter);
 
   let onFrame: (frame: ArrayBuffer) => void = () => {};
   worklet.port.onmessage = (event: MessageEvent<unknown>) => {
@@ -161,6 +165,7 @@ export async function openMicrophone(): Promise<MicrophoneResult> {
         onFrame = handler;
       },
       mute: (on) => worklet.port.postMessage({ kind: "mute", on }),
+      meter,
       close: () => {
         worklet.port.onmessage = null;
         source.disconnect();

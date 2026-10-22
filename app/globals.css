@@ -681,6 +681,26 @@ body[data-scroll-locked] {
   }
 }
 
+/* The voice glow fades in with the call and out after it, over half a second
+   both ways, as in claude.ai. Opacity only: the box is placed with Tailwind's
+   `translate`, and an animated transform would move it. */
+.voice-glow[data-state="open"] {
+  animation: voice-glow-in 500ms var(--ease-entrance);
+}
+.voice-glow[data-state="closed"] {
+  animation: voice-glow-out 500ms var(--ease-exit) forwards;
+}
+@keyframes voice-glow-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes voice-glow-out {
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes dialog-fade-in {
   from {
     opacity: 0;

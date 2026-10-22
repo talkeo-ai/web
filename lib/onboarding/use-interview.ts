@@ -89,6 +89,8 @@ export function useInterview(
   const [voiceOn, setVoiceOn] = useState(true);
   /** Why the microphone did not open, or empty. Cleared by it opening. */
   const [micRefusal, setMicRefusal] = useState<MicRefusal | "">("");
+  /** The open microphone's meter, for the glow. State so the glow re-renders. */
+  const [micMeter, setMicMeter] = useState<AnalyserNode | null>(null);
 
   const player = useMemo(() => voice(), []);
   const channel = useRef<InterviewChannel | null>(null);
@@ -298,6 +300,7 @@ export function useInterview(
     microphone.current = opened.microphone;
     opened.microphone.onFrame((frame) => channel.current?.sendAudio(frame));
     opened.microphone.mute(micMuted);
+    setMicMeter(opened.microphone.meter);
     setInCall(true);
     return true;
   }, [micMuted]);
@@ -305,6 +308,7 @@ export function useInterview(
   const dropMicrophone = useCallback(() => {
     microphone.current?.close();
     microphone.current = null;
+    setMicMeter(null);
   }, []);
 
   useEffect(() => {
@@ -385,6 +389,12 @@ export function useInterview(
   // silence after the words were on screen (Joaquin, 22/oct).
   const saidThrough =
     !conversation.turn && !revealing && (voiced !== told?.turn_id || playback.done);
+  // Talkeo is talking from the first word of a turn until it has been said
+  // through, and the turn has a voice if its audio format was announced. The
+  // glow follows the voice when there is one and stands in for it when not.
+  const talking = Boolean(conversation.turn || told) && !saidThrough;
+  const talkingAloud =
+    voiced !== "" && voiced === (conversation.turn?.id ?? told?.turn_id);
 
   /**
    * The surface appears as soon as the turn it belongs to has been WRITTEN.
@@ -506,6 +516,13 @@ export function useInterview(
     saidThrough,
     inCall,
     micMuted,
+    /** What the voice glow follows: who is talking, and how to hear them. */
+    glow: {
+      talking,
+      talkingAloud,
+      micMeter: micMuted ? null : micMeter,
+      talkeoMeter: player.meter,
+    },
     voiceOn,
     micRefusal,
     say,

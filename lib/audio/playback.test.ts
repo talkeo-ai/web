@@ -92,6 +92,9 @@ class FakeContext {
   currentTime = 0;
   destination = {};
   audioWorklet = { addModule: async () => {} };
+  createAnalyser() {
+    return {};
+  }
   createGain() {
     // A gain that behaves the way the real one does about automation: once a
     // ramp is on the timeline, assigning `.value` does nothing. That is the

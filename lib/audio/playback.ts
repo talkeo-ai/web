@@ -51,6 +51,11 @@ export type Playback = Playhead & {
   stop(): void;
   /** Whether the last turn's audio has finished being heard. */
   drained(): boolean;
+  /**
+   * What is being heard, for the glow to follow. Null until the first gesture
+   * builds the context, and a new one if a rate change rebuilds it.
+   */
+  meter(): AnalyserNode | null;
   close(): void;
 };
 
@@ -71,6 +76,7 @@ export function createPlayback(): Playback {
   let context: AudioContext | null = null;
   let node: AudioWorkletNode | null = null;
   let gain: GainNode | null = null;
+  let analyser: AnalyserNode | null = null;
   let rate = 0;
   let turn = "";
   let ready: Promise<void> | null = null;
@@ -126,6 +132,9 @@ export function createPlayback(): Playback {
     });
     const volume = ctx.createGain();
     worklet.connect(volume).connect(ctx.destination);
+    // After the gain, so a turn faded out by `stop` goes quiet on screen too.
+    const meter = ctx.createAnalyser();
+    volume.connect(meter);
     worklet.port.onmessage = (event: MessageEvent<unknown>) => {
       const report = event.data as {
         kind: string;
@@ -150,6 +159,7 @@ export function createPlayback(): Playback {
     context = ctx;
     node = worklet;
     gain = volume;
+    analyser = meter;
     rate = sampleRate;
     feed();
   };
@@ -258,12 +268,15 @@ export function createPlayback(): Playback {
     // is asking whether the turn is over.
     drained: () => isDrained && pending.length === 0,
 
+    meter: () => analyser,
+
     close() {
       node?.port.postMessage({ kind: "stop" });
       void context?.close();
       context = null;
       node = null;
       gain = null;
+      analyser = null;
       pending = [];
       sentOfHead = 0;
       finishing = false;
