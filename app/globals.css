@@ -628,6 +628,46 @@ body[data-scroll-locked] {
   }
 }
 
+/* A dialog comes up from a touch smaller and goes back the same way, quicker
+   on the way out: leaving it is done, so it does not linger. It used to cut in
+   and out with no motion at all (Joaquin, 22/oct). Radix holds it mounted
+   until the closing animation ends. */
+.dialog-overlay[data-state="open"] {
+  animation: dialog-fade-in 180ms var(--ease-standard);
+}
+.dialog-overlay[data-state="closed"] {
+  animation: dialog-fade-out 120ms var(--ease-exit);
+}
+.dialog-content[data-state="open"] {
+  animation: dialog-in 220ms var(--ease-entrance);
+}
+.dialog-content[data-state="closed"] {
+  animation: dialog-out 120ms var(--ease-exit);
+}
+
+@keyframes dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dialog-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+}
+@keyframes dialog-out {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.97);
+  }
+}
+
 /* Every animation in this project is gated on this. */
 @media (prefers-reduced-motion: reduce) {
   *,

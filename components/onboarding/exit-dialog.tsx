@@ -35,30 +35,35 @@ export function ExitDialog({
     <AlertDialog.Root>
       <AlertDialog.Trigger asChild>{trigger}</AlertDialog.Trigger>
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px]" />
+        <AlertDialog.Overlay className="dialog-overlay fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]" />
+        {/* Drawn like the cards in the thread, which are what it interrupts:
+            the same face, edge and corners, the buttons at their size and in a
+            row. At its old size it read as a separate product (Joaquin, 22/oct). */}
         <AlertDialog.Content
           data-slot="exit-dialog"
-          className="bg-card fixed top-1/2 left-1/2 z-50 flex w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col gap-5 rounded-3xl p-6 shadow-raised"
+          className="dialog-content bg-surface-secondary fixed top-1/2 left-1/2 z-50 flex w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-2xl border border-black/[0.06] p-5 shadow-raised dark:border-white/[0.06]"
         >
-          <div className="flex flex-col gap-2">
-            <AlertDialog.Title className="font-heading text-foreground text-[22px] font-bold">
+          <div className="flex flex-col gap-1.5">
+            <AlertDialog.Title className="font-heading text-foreground text-[17px] font-semibold">
               {title}
             </AlertDialog.Title>
-            <AlertDialog.Description className="text-text-secondary text-[15px] leading-[1.6]">
+            <AlertDialog.Description className="text-text-secondary text-[14px] leading-normal">
               {body}
             </AlertDialog.Description>
           </div>
-          <div className="flex flex-col gap-2">
-            {/* Staying is the primary, and it is first. The order is the
-                recommendation. */}
-            <AlertDialog.Cancel asChild>
-              <Button size="lg">{stay}</Button>
-            </AlertDialog.Cancel>
+          <div className="flex items-center justify-end gap-2">
+            {/* Staying is the primary, and it is where the eye ends: the
+                recommendation is the button that stands out. */}
             <AlertDialog.Action asChild>
-              <Button size="lg" variant="ghost" onClick={onLeave}>
+              <Button size="sm" variant="ghost" className="rounded-lg" onClick={onLeave}>
                 {confirm}
               </Button>
             </AlertDialog.Action>
+            <AlertDialog.Cancel asChild>
+              <Button size="sm" variant="primary" className="rounded-lg">
+                {stay}
+              </Button>
+            </AlertDialog.Cancel>
           </div>
         </AlertDialog.Content>
       </AlertDialog.Portal>
