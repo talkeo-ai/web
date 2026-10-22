@@ -60,7 +60,7 @@ export function Composer({
   muted: boolean;
   /** Whether there is anything to send it to yet. */
   canSend: boolean;
-  /** Whether speaking is on offer yet. Not before they have given a name. */
+  /** Whether speaking is on offer yet. The onboarding offers it from the start. */
   canCall: boolean;
   onSend: (text: string) => void;
   /** They started typing. */

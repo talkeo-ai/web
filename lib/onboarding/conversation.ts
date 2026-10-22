@@ -67,8 +67,8 @@ export type Conversation = {
   /**
    * The entrance surfaces they have confirmed themselves, by card name.
    *
-   * The entrance has no cards of the service's — its two facts are the answers
-   * to two fixed lines — so this is what tells "Talkeo read it out of what they
+   * The entrance has no cards of the service's — its one fact, the name, is
+   * the answer to a fixed line — so this is what tells "Talkeo read it out of what they
    * said" from "they pressed the button". The first is a `proposed` card, which
    * comes up for them to check; the second is `settled`, which does not. Every
    * other stage gets the same distinction from the card's own state.
@@ -131,10 +131,10 @@ export function heardSoFar(transcript: Conversation["transcript"]): string {
 }
 
 /**
- * The conversation's cards, with the entrance's two among them.
+ * The conversation's cards, with the entrance's name card among them.
  *
- * The entrance has no cards of the service's: its facts are the answers to two
- * fixed lines, and the service keeps them on the flow. Projecting them here is
+ * The entrance has no cards of the service's: its one fact is the answer to a
+ * fixed line, and the service keeps it on the flow. Projecting them here is
  * the one place that difference exists — everything above reads cards, and the
  * entrance's surfaces are decided by exactly the rule that decides the rest.
  *

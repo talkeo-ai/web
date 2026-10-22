@@ -37,8 +37,8 @@ export type TurnPlayback = {
   /**
    * Whether the whole turn is on screen.
    *
-   * Not the same as `done`, and the difference is seconds: the text runs ahead
-   * of the voice, so it finishes being written long before the voice finishes
+   * Not the same as `done`, and the difference is seconds: the text is written
+   * as fast as it arrives, so it is on screen long before the voice finishes
    * saying it. This is what a composer should wait for — waiting for `done`
    * leaves the reply readable and the send button dead.
    */

@@ -167,6 +167,8 @@ export function openMockInterview(sessionId = ""): InterviewChannel {
       // card is settled before any generation (`stage_service`).
       edits.forEach((edit, index) => {
         const body = (bodies[edit.card] ??= {});
+        // The entrance card is the name, which the recording keeps apart.
+        if (edit.card === "entrance" && named) body.name = named;
         if (edit.card === "goals") foldGoal(body, edit);
         else if (edit.field) body[edit.field] = asField(edit.field, edit.value);
         queue.push({

@@ -16,7 +16,7 @@ import { useTurnPlayback } from "@/lib/talkeo/use-turn-playback";
 import type { OpenedInterview } from "@/app/[locale]/(app)/onboarding/actions";
 
 import type { Said } from "./conversation";
-import { flush } from "./outbox";
+import { answerName, flush } from "./outbox";
 import { nothingYet, step } from "./machine";
 import { SURFACE_AFTER_MS } from "./motion";
 import {
@@ -457,13 +457,7 @@ export function useInterview(
       if (surface?.kind === "name") {
         dispatch({ kind: "named", name: answer.value });
         dispatch({ kind: "confirmed", card: "name" });
-        // Only when it is new to the service. Confirming a name Talkeo already
-        // read out of what they said is them agreeing, not them answering
-        // again — sending it would be a second turn saying what the first one
-        // already said.
-        if (answer.value !== conversation.name) {
-          send({ text: answer.value, edits: [] });
-        }
+        send(answerName(answer.value, conversation.name));
         return;
       }
       if (!surface?.card) return;

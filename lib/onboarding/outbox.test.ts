@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  answerName,
   canSend,
   composerAction,
   flush,
@@ -71,5 +72,18 @@ describe("the one control at the end of the composer", () => {
 
   it("offers to leave the call when there is nothing written", () => {
     expect(composerAction({ text: "", inCall: true })).toBe("hang up");
+  });
+});
+
+describe("confirming the name card", () => {
+  it("sends a new name as what they said", () => {
+    expect(answerName("Ana", "")).toEqual({ text: "Ana", edits: [] });
+  });
+
+  it("confirms the card when the name is the one Talkeo wrote down", () => {
+    // It used to send nothing here, and the Core waited for a yes for ever.
+    expect(answerName("Ana", "Ana")).toEqual({
+      edits: [{ card: "entrance", field: "", value: "", confirms: true }],
+    });
   });
 });

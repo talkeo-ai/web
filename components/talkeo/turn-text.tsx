@@ -191,8 +191,8 @@ export function TurnText({
       <p ref={paragraph} className="relative text-pretty">
         {words.map((word, index) => {
           // Word by word, not a line at a time. The box still grows by lines;
-          // what is written into it resolves one word after another, at the
-          // pace the text runs ahead of the voice. A whole line coming out of
+          // what is written into it resolves one word after another, as the
+          // words arrive. A whole line coming out of
           // blur at once read as a block landing, not as writing.
           const shown = bornSettled || index < revealedWords;
 
