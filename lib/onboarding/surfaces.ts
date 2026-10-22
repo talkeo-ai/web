@@ -16,7 +16,6 @@ import type { InterviewCard } from "@/core/contracts";
 
 export type SurfaceKind =
   | "name"
-  | "mode"
   | "scope"
   | "goal"
   | "goals"
@@ -93,7 +92,6 @@ const OF_STAGE: Record<
 > = {
   1: [
     { kind: "name", card: "name", confirmable: true },
-    { kind: "mode", card: "mode", confirmable: true },
   ],
   2: [{ kind: "scope", card: "scope_options", confirmable: true }],
   3: [{ kind: "goal", card: "first_goal", confirmable: true }],

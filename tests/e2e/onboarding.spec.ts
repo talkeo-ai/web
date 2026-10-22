@@ -68,10 +68,10 @@ test("answering on the surface moves the conversation on", async ({ page }) => {
   await field.fill("Ana");
   await page.getByRole("button", { name: "Confirmar" }).click();
 
-  // The second entrance line, which is the one asking how they want to answer.
-  await expect(page.locator('[data-slot="surface-mode-speak"]')).toBeVisible(
-    TURN,
-  );
+  // The next card is the areas: there is no step for speaking or writing.
+  await expect(
+    page.locator('[data-slot="surface"][data-kind="scope"]'),
+  ).toBeVisible(TURN);
 });
 
 test("the field is always there, whichever way they answer", async ({ page }) => {

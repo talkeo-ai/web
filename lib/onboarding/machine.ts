@@ -181,11 +181,10 @@ function reduce(state: Onboarding, action: OnboardingAction): Onboarding {
     // With nothing to put up it stays open, so nothing is ever holding a beat
     // for a surface that is not coming.
     //
-    // A different surface taking over also shuts it. Answering the name on its
-    // card settles it there and then, which hands the stage to the mode card
-    // with the gate still open from the name — so the mode card came up at
-    // once, under the first message, before Talkeo had even asked the
-    // question it answers (Joaquin, 17/oct).
+    // A different surface taking over also shuts it. A card that settles
+    // can hand the stage to the next one with the gate still open from the
+    // last, and that one came up at once, under the message before, ahead
+    // of the question it answers (Joaquin, 17/oct).
     surfaceReady:
       startedTalking(action) || isNewSurface(state.surface, surface)
         ? false

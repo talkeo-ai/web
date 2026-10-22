@@ -8,14 +8,11 @@ import { cn } from "@/lib/utils";
 /**
  * Why the microphone did not open, and what to do about it.
  *
- * One piece for the two places a call can be entered — the mode surface and the
- * composer — because the same failure in two wordings is two failures to keep
- * true.
+ * Under the composer, which is where a call is entered.
  *
  * ⚠ It never says the conversation carried on in writing. The copy used to
  * ("no pude usar el micrófono, así que seguimos escribiendo") and the code never
- * did it: the mode stayed on `speak`. Only they choose to write, by pressing the
- * other button.
+ * did it. They write by writing.
  */
 export function MicNotice({
   refusal,

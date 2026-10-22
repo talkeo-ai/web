@@ -95,7 +95,6 @@ const interviewTurns = talkeoFile.talkeo_turn;
  */
 export const TALKEO_INTERVIEW_TURNS: TalkeoTurn[] = [
   interviewTurns.entrance_name,
-  interviewTurns.entrance_mode,
   interviewTurns.scope_open,
   interviewTurns.scope_confirmed,
   interviewTurns.goal_drafted,

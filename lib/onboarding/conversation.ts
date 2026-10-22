@@ -150,19 +150,12 @@ export function cardsWithEntrance(
   if (state.name) {
     // Confirmed by them on the card, or by Talkeo in the chat: the service
     // closes it with `confirm_card("entrance")`, and a name card that waited
-    // for the button alone never let the mode one up (Joaquin, 17/oct).
+    // for the button alone never let the conversation move on (Joaquin, 17/oct).
     const told = state.cards.entrance?.state === "confirmed";
     entrance.name = {
       card: "name",
       state: told || state.confirmed.includes("name") ? "confirmed" : "draft",
       body: { name: state.name },
-    };
-  }
-  if (state.mode) {
-    entrance.mode = {
-      card: "mode",
-      state: state.confirmed.includes("mode") ? "confirmed" : "draft",
-      body: { mode: state.mode },
     };
   }
   return { ...state.cards, ...entrance };

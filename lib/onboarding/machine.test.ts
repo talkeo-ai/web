@@ -129,7 +129,7 @@ describe("where a surface stays", () => {
   });
 
   it("the next card waits for the message that asks for it", () => {
-    // The name answered on its card: the stage moves to the mode card, which
+    // The name answered on its card: the next turn opens the areas, whose card
     // must not come up under the first message.
     const answered = through([
       restored,
@@ -137,14 +137,14 @@ describe("where a surface stays", () => {
       { kind: "named", name: "Ana" },
       { kind: "confirmed", card: "name" },
       { kind: "said", text: "Ana" },
+      { kind: "message", message: { ...started, stage: 2 } },
     ]);
-    expect(answered.surface?.kind).toBe("mode");
+    expect(answered.surface?.kind).toBe("scope");
     expect(answered.surfaceReady).toBe(false);
     expect(answered.anchored.map((entry) => entry.key)).toEqual(["name:name"]);
 
     const asked = through([{ kind: "surface ready" }], answered);
-    expect(asked.anchored.at(-1)!.key).toBe("mode:mode");
-    expect(asked.anchored.at(-1)!.after).not.toBe("tt_0");
+    expect(asked.anchored.at(-1)!.key).toBe("scope:scope_options");
   });
 
   it("settles the card before once the next one comes up, with what was understood", () => {
@@ -153,16 +153,17 @@ describe("where a surface stays", () => {
       { kind: "surface ready" },
       { kind: "said", text: "Ana" },
       // What the service's turn does with a name said in the chat: it takes it
-      // and the stage hands over to the mode in the same step, so the name's
-      // own anchored card never saw itself settle.
+      // and the next stage opens in the same turn, so the name's own anchored
+      // card never saw itself settle.
       { kind: "named", name: "Ana" },
       { kind: "confirmed", card: "name" },
+      { kind: "message", message: { ...started, stage: 2 } },
       { kind: "surface ready" },
     ]);
 
     expect(state.anchored.map((entry) => entry.key)).toEqual([
       "name:name",
-      "mode:mode",
+      "scope:scope_options",
     ]);
     expect(state.anchored[0]!.surface.state).toBe("settled");
     expect(state.anchored[0]!.surface.body).toEqual({ name: "Ana" });
@@ -224,7 +225,7 @@ describe("where a surface stays", () => {
     expect(at5.anchored[0]!.surface.state).toBe("settled");
   });
 
-  it("moves on to the mode when Talkeo takes the name in the chat", () => {
+  it("moves on when Talkeo takes the name in the chat", () => {
     const state = through([
       restored,
       { kind: "surface ready" },
@@ -243,12 +244,13 @@ describe("where a surface stays", () => {
           },
         },
       },
+      { kind: "message", message: { ...started, stage: 2 } },
       { kind: "surface ready" },
     ]);
 
     expect(state.anchored.map((entry) => entry.key)).toEqual([
       "name:name",
-      "mode:mode",
+      "scope:scope_options",
     ]);
     expect(state.anchored[0]!.surface.state).toBe("settled");
   });

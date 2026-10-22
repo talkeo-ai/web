@@ -204,10 +204,10 @@ export function openMockInterview(sessionId = ""): InterviewChannel {
       for (const event of turn.events) {
         queue.push({ kind: "event", turn_id: turn.turn_id, event });
       }
-      // The recording asks for the mode right after the name, so the name was
-      // taken. The service says so with `confirm_card("entrance")`; the
-      // recording has no event for it, and the name card waited forever.
-      if (stage === 1 && named && !nameTaken) {
+      // The recording moves on right after the name, so the name was taken.
+      // The service says so with `confirm_card("entrance")`; the recording has
+      // no event for it, and the name card waited forever.
+      if (named && !nameTaken) {
         nameTaken = true;
         queue.push({
           kind: "event",

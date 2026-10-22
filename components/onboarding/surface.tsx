@@ -6,9 +6,7 @@ import {
   BookOpen,
   Check,
   Headphones,
-  Keyboard,
   MessagesSquare,
-  Mic,
   PenLine,
   Plus,
   SpellCheck,
@@ -20,12 +18,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMarkTarget } from "@/components/talkeo/mark-target";
-import type { MicRefusal } from "@/lib/audio/microphone";
 import { staysOpen, type Surface as SurfaceSpec } from "@/lib/onboarding/surfaces";
 import { playSound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
-import { MicNotice } from "./mic-notice";
 
 /**
  * The other way to answer the question that was already asked.
@@ -116,13 +112,10 @@ export type SurfaceAnswer = {
 
 export function Surface({
   surface,
-  refusal,
   pending = false,
   onAnswer,
 }: {
   surface: SurfaceSpec;
-  /** Why the microphone did not open, for the surface that offers it. */
-  refusal?: MicRefusal | "";
   /** Whether they changed something on this card that has not gone out yet. */
   pending?: boolean;
   onAnswer: (answer: SurfaceAnswer) => void;
@@ -131,9 +124,6 @@ export function Surface({
 
   if (surface.kind === "name") {
     return <NameSurface surface={surface} onAnswer={onAnswer} />;
-  }
-  if (surface.kind === "mode") {
-    return <ModeSurface surface={surface} refusal={refusal} onAnswer={onAnswer} />;
   }
   if (surface.kind === "scope") {
     return <ScopeSurface surface={surface} onAnswer={onAnswer} />;
@@ -369,121 +359,6 @@ function NameSurface({
         )}
       </form>
     </Frame>
-  );
-}
-
-/**
- * Speak or write.
- *
- * ⚠ Pressing "speak" asks for the microphone and settles NOTHING until it
- * opens. Both options stay on screen through a failure, with the reason under
- * them: the only way into writing is pressing the other button. It used to
- * declare `speak` on the press and then discover the microphone had refused,
- * which left somebody in a view with no input and no explanation.
- */
-function ModeSurface({
-  surface,
-  refusal,
-  onAnswer,
-}: {
-  surface: SurfaceSpec;
-  refusal?: MicRefusal | "";
-  onAnswer: (answer: SurfaceAnswer) => void;
-}) {
-  const t = useTranslations("onboarding");
-  const settled = surface.state === "settled";
-  const chosen = surface.body.mode;
-  const options = [
-    { value: "speak", icon: Mic, label: t("mode.voice") },
-    { value: "text", icon: Keyboard, label: t("mode.text") },
-  ] as const;
-  // Settled, both stay where they were and the chosen one says so, the same
-  // way a confirm turns into `Confirmed`: the card does not rearrange itself.
-  const shown = options;
-
-  return (
-    <Frame
-      kind="mode"
-      title={t("mode.question")}
-      hint={t("mode.hint")}
-      target="control:mode"
-      settled={settled}
-    >
-      {/* Side by side, as the two answers to one question; stacked only where
-          two would not fit a label each. */}
-      <div
-        className={cn(
-          "grid grid-cols-1 gap-1.5",
-          shown.length > 1 && "sm:grid-cols-2",
-        )}
-      >
-        {shown.map((option) => (
-          <ModeChoice
-            key={option.value}
-            icon={option.icon}
-            label={option.label}
-            picked={settled && option.value === chosen}
-            slot={`surface-mode-${option.value}`}
-            onClick={() =>
-              onAnswer({ field: "", value: option.value, confirms: true })
-            }
-          />
-        ))}
-      </div>
-      {refusal ? <MicNotice refusal={refusal} className="text-left" /> : null}
-    </Frame>
-  );
-}
-
-/**
- * One of the two ways to answer, as a plain button with its icon.
- *
- * Not a list tile: this is a fork with two roads, pressed once, and the tile
- * — a picture well and a face — is for lists you go down and tick
- * (Joaquin, 17/oct). Same height and corner as the card's other buttons.
- */
-function ModeChoice({
-  icon: Icon,
-  label,
-  picked = false,
-  slot,
-  onClick,
-}: {
-  icon: LucideIcon;
-  label: string;
-  /** The one they chose, once it is settled: a tick after the label. */
-  picked?: boolean;
-  slot: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      data-slot={slot}
-      onClick={onClick}
-      className={cn(
-        "group flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 outline-none select-none",
-        "text-[14px] font-medium",
-        "transition-[border-color,background-color,color] duration-(--duration-control) ease-(--ease-standard)",
-        "focus-key:ring-ring focus-key:ring-2 focus-key:ring-offset-2 focus-key:ring-offset-(--surface-secondary)",
-        // Chosen, it takes the same green tint as `Confirmed`, with the tick
-        // in place of its icon; nothing else on the card changes.
-        picked
-          ? "border-transparent bg-accent-500/12 text-accent-800 dark:bg-accent-500/10 dark:text-accent-400"
-          : cn("text-foreground", TONE.face, TONE.edge, TONE.edgeHover),
-      )}
-    >
-      {picked ? (
-        <Check aria-hidden className="size-4" strokeWidth={2.5} />
-      ) : (
-        <Icon
-          aria-hidden
-          strokeWidth={1.75}
-          className={cn("size-4", TONE.icon)}
-        />
-      )}
-      {label}
-    </button>
   );
 }
 

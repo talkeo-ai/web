@@ -18,16 +18,14 @@ function card(name: string, state: string): InterviewCard {
 }
 
 describe("the entrance", () => {
-  it("asks the name first, and how they want to answer after it", () => {
+  it("asks only the name: how they answer is how they answer", () => {
+    // There is no step for speaking or writing any more; Talkeo knows which
+    // from how each message reaches it (Joaquin, 22/oct).
     expect(at(1)?.kind).toBe("name");
-    expect(at(1, { name: card("name", "confirmed") })?.kind).toBe("mode");
-    // Both settled: the last one stays up as the record it is, the same as any
-    // other stage whose card is agreed to.
-    const done = at(1, {
-      name: card("name", "confirmed"),
-      mode: card("mode", "confirmed"),
-    });
-    expect(done?.kind).toBe("mode");
+    // Settled, it stays up as the record it is, the same as any other stage
+    // whose card is agreed to.
+    const done = at(1, { name: card("name", "confirmed") });
+    expect(done?.kind).toBe("name");
     expect(done?.state).toBe("settled");
   });
 

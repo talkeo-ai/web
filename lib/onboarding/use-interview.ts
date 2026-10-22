@@ -417,13 +417,12 @@ export function useInterview(
 
   /** Their turn goes out, with anything they changed on a card in front of it. */
   const send = useCallback(
-    (what: { text?: string; mode?: "speak" | "text"; edits: CardEdit[] }) => {
+    (what: { text?: string; edits: CardEdit[] }) => {
       const open = channel.current;
       if (!open) return;
       // The edits first and always: the model has to see what they changed
       // before it reads what they said about it.
       for (const edit of what.edits) open.cardEdited(edit);
-      if (what.mode) open.choseMode(what.mode);
       // Cutting the voice off when they answer, rather than talking over them.
       player.stop();
       if (what.text) {
@@ -457,28 +456,6 @@ export function useInterview(
         }
         return;
       }
-      if (surface?.kind === "mode") {
-        const mode = answer.value === "speak" ? "speak" : "text";
-        if (mode === "text") {
-          dispatch({ kind: "confirmed", card: "mode" });
-          send({ mode, edits: [] });
-          return;
-        }
-        // ⚠ Nothing is settled until the microphone is actually open.
-        //
-        // `chose_mode` used to go out on the press, before `getUserMedia` had
-        // even been called — so the service was told "this person speaks" and
-        // then the microphone refused, and they were left with no microphone
-        // and nothing on screen saying why.
-        //
-        // Only chat if they ASK for chat: a failure leaves the question open.
-        void askForMicrophone().then((open) => {
-          if (!open) return;
-          dispatch({ kind: "confirmed", card: "mode" });
-          send({ mode: "speak", edits: [] });
-        });
-        return;
-      }
       if (!surface?.card) return;
 
       const edit: CardEdit = {
@@ -497,7 +474,7 @@ export function useInterview(
       // ahead of the turn it answers with (`stage_service`).
       send({ edits: [...flush(outbox).edits, edit] });
     },
-    [outbox, send, surface, conversation.name, askForMicrophone],
+    [outbox, send, surface, conversation.name],
   );
 
   /** Silences the synthesis, not only this end's speaker. */

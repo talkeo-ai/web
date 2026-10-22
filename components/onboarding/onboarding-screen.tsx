@@ -155,7 +155,6 @@ function Screen({
                 <div inert={!current}>
                   <Surface
                     surface={entry.surface}
-                    refusal={current ? run.micRefusal : ""}
                     pending={
                       current &&
                       run.outbox.pending.some(
