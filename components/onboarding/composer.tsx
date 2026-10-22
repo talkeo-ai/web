@@ -121,7 +121,7 @@ export function Composer({
             "cursor-pointer outline-none",
             "transition-[color,background-color] duration-(--duration-control) ease-(--ease-standard)",
             "hover:text-foreground hover:bg-surface-tertiary",
-            "focus-visible:ring-ring focus-visible:ring-2",
+            "focus-key:ring-ring focus-key:ring-2",
           )}
         >
           {muted ? <MicOff className="size-5" /> : <Mic className="size-5" />}
@@ -142,7 +142,7 @@ export function Composer({
           "text-foreground grid size-9 shrink-0 place-items-center rounded-full",
           "cursor-pointer outline-none",
           "transition-[opacity,background-color] duration-(--duration-control) ease-(--ease-standard)",
-          "hover:bg-surface-tertiary focus-visible:ring-ring focus-visible:ring-2",
+          "hover:bg-surface-tertiary focus-key:ring-ring focus-key:ring-2",
           "disabled:pointer-events-none disabled:opacity-40",
         )}
       >

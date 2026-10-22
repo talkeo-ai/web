@@ -190,9 +190,10 @@ function Frame({
       data-pointed={mark ? "true" : "false"}
       className={cn(
         TONE.card,
+        // No ring when the voice points at it: the card already sits under
+        // the message that asks for it, and the ring read as a stray focus
+        // (Joaquin, 22/oct). `data-pointed` still says so.
         "mr-auto flex w-full max-w-[56ch] flex-col gap-2 rounded-2xl p-2",
-        "transition-[box-shadow] duration-(--duration-highlight-out) ease-(--ease-standard)",
-        mark && "ring-foreground/30 ring-2",
       )}
     >
       {title || hint ? (
@@ -226,7 +227,7 @@ function tile(on: boolean) {
   return cn(
     "group relative flex cursor-pointer items-stretch rounded-xl text-left outline-none select-none",
     "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
-    "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
+    "focus-key:ring-ring focus-key:ring-2 focus-key:ring-offset-2 focus-key:ring-offset-(--surface-secondary)",
     on
       ? TONE.picked.well
       : cn(TONE.well, "hover:bg-black/[0.08] dark:hover:bg-black/40"),
@@ -464,7 +465,7 @@ function ModeChoice({
         "group flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 outline-none select-none",
         "text-[14px] font-medium",
         "transition-[border-color,background-color,color] duration-(--duration-control) ease-(--ease-standard)",
-        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--surface-secondary)",
+        "focus-key:ring-ring focus-key:ring-2 focus-key:ring-offset-2 focus-key:ring-offset-(--surface-secondary)",
         // Chosen, it takes the same green tint as `Confirmed`, with the tick
         // in place of its icon; nothing else on the card changes.
         picked

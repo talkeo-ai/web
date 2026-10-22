@@ -33,7 +33,7 @@ const buttonVariants = cva(
     "duration-(--duration-press-out) ease-(--ease-standard)",
     "hover:duration-(--duration-highlight-in)",
     "active:duration-(--duration-press-in)",
-    "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2",
+    "focus-key:ring-ring focus-key:ring-offset-background focus-key:ring-2 focus-key:ring-offset-2",
     "disabled:pointer-events-none disabled:opacity-60",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
     // The press is movement, so it is the one thing that goes when motion is

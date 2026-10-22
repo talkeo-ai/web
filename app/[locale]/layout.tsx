@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Geist_Mono, Inter, Outfit } from "next/font/google";
 import { locale as localeParam } from "next/root-params";
 
+import { FocusModality } from "@/components/focus-modality";
 import { routing } from "@/lib/i18n/routing";
 import { themeBootstrapScript } from "@/lib/theme";
 
@@ -88,6 +89,7 @@ export default async function RootLayout({
             that are LOADED. Nothing that changes the theme may be a client
             navigation — see `locale-selector.tsx`, which is the one that was. */}
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+        <FocusModality />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>

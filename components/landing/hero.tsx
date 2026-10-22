@@ -136,7 +136,7 @@ export async function Hero() {
                     Labelled explicitly because its contents are a canvas. */}
                 <EnterOnboarding
                   label={t("cta")}
-                  className="bg-surface-secondary border-border focus-visible:ring-ring focus-visible:ring-offset-background shadow-raised relative block h-full w-full overflow-hidden rounded-full border focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:outline-none"
+                  className="bg-surface-secondary border-border focus-key:ring-ring focus-key:ring-offset-background shadow-raised relative block h-full w-full overflow-hidden rounded-full border focus-key:ring-2 focus-key:ring-offset-4 focus-visible:outline-none"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img

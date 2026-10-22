@@ -6,6 +6,14 @@
    never outweigh anything else. Matches the element itself and its subtree, so
    a dark island inside a light page works. */
 @custom-variant dark (&:where(.dark, .dark *));
+/* A focus ring for somebody on the keyboard, and for nobody else.
+   `:focus-visible` alone is the browser's guess, and it guesses yes whenever
+   focus is moved by script — a dialog opening or giving focus back — so rings
+   came up after plain clicks, on whatever had just been handed focus (Joaquin,
+   22/oct). `FocusModality` says which it is on <html>; this is React Aria's
+   rule. Fields keep plain `focus-visible`: one clicked into should look
+   active. */
+@custom-variant focus-key (&:is([data-modality="keyboard"] *):focus-visible);
 
 /* ─────────────────────────────────────────────────────────────────────────
    1 · Primitives
