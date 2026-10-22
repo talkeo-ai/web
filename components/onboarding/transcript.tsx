@@ -86,6 +86,7 @@ export function Transcript({
             <div key={live.turn_id} className={said.length === 0 ? undefined : "pt-8"}>
               <Bubble from="talkeo" arriving={false}>
                 <TurnText
+                  arriving
                   lines={playback.lines}
                   revealedWords={playback.revealedWords}
                   className={TALKEO_BODY}

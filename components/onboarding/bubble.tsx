@@ -127,6 +127,7 @@ export function TalkeoSaid({
   return (
     <Bubble from="talkeo" arriving={false} signed={signed}>
       <TurnText
+        arriving={revealedWords !== undefined}
         lines={lines}
         revealedWords={revealedWords ?? words}
         className={TALKEO_BODY}

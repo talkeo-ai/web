@@ -50,11 +50,20 @@ function same(a: number[], b: number[]): boolean {
 export function TurnText({
   lines,
   revealedWords,
+  arriving,
   className,
 }: {
   lines: TurnLine[];
   /** How many words the voice has reached. */
   revealedWords: number;
+  /**
+   * Whether this is a turn being written out rather than history. Said by the
+   * caller when it knows: a turn that streams has all of its words revealed at
+   * the moment it mounts — its first word is its only word — and read as
+   * history it showed every word solid the instant it arrived, ahead of the
+   * reveal, until the reveal took over and dropped back (Joaquin, 22/oct).
+   */
+  arriving?: boolean;
   className?: string;
 }) {
   const words = lines.flatMap((line) => line.words);
@@ -63,7 +72,9 @@ export function TurnText({
   // is history being re-rendered, not something arriving. It keeps its natural
   // height and never clips, so it cannot animate from an unmeasured zero up to
   // its real size — which is a finished message replaying its own entrance.
-  const [bornSettled] = useState(() => revealedWords >= words.length);
+  const [bornSettled] = useState(
+    () => arriving === undefined ? revealedWords >= words.length : !arriving,
+  );
 
   const paragraph = useRef<HTMLParagraphElement>(null);
   // The word index each visual line starts at, first entry always 0.
