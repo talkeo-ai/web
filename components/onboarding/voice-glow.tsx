@@ -25,6 +25,12 @@ import {
 /** Their colour, and Talkeo's. claude.ai's two, as asked. */
 const THEM: Rgba = [106 / 255, 155 / 255, 204 / 255, 1];
 const TALKEO: Rgba = [217 / 255, 119 / 255, 87 / 255, 1];
+/**
+ * How far below the composer's foot the glow's box sits, so its lower half is
+ * behind the field and the field cuts it, as in claude.ai. Anchored at the
+ * foot, it floated clear of the field with a gap under it (Joaquin, 22/oct).
+ */
+const SINK_PX = 64;
 /** How far the colour moves toward the other one per frame. */
 const COLOR_EASE = 0.03;
 /**
@@ -63,8 +69,8 @@ export function VoiceGlow({
       onAnimationEnd={() => {
         if (!shown) setPresent(false);
       }}
-      className="voice-glow pointer-events-none absolute bottom-0 left-1/2 z-0 w-[150%] -translate-x-1/2"
-      style={{ aspectRatio: "4 / 1", contain: "layout" }}
+      className="voice-glow pointer-events-none absolute left-1/2 z-0 w-[150%] -translate-x-1/2"
+      style={{ aspectRatio: "4 / 1", contain: "layout", bottom: -SINK_PX }}
     >
       <GlowCanvas
         talking={talking}
