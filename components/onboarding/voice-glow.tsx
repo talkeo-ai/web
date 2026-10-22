@@ -30,7 +30,13 @@ const TALKEO: Rgba = [217 / 255, 119 / 255, 87 / 255, 1];
  * behind the field and the field cuts it, as in claude.ai. Anchored at the
  * foot, it floated clear of the field with a gap under it (Joaquin, 22/oct).
  */
-const SINK_PX = 64;
+const SINK_PX = 32;
+/**
+ * Nothing of it shows below this line, measured up from the composer's foot.
+ * Clear of the rounded corners, so the glow is cut behind the field and never
+ * seen under it, which it was (Joaquin, 22/oct).
+ */
+const CUT_ABOVE_FOOT_PX = 24;
 /** How far the colour moves toward the other one per frame. */
 const COLOR_EASE = 0.03;
 /**
@@ -70,7 +76,14 @@ export function VoiceGlow({
         if (!shown) setPresent(false);
       }}
       className="voice-glow pointer-events-none absolute left-1/2 z-0 w-[150%] -translate-x-1/2"
-      style={{ aspectRatio: "4 / 1", contain: "layout", bottom: -SINK_PX }}
+      style={{
+        aspectRatio: "4 / 1",
+        contain: "layout",
+        bottom: -SINK_PX,
+        // Open on every side but the bottom, where the canvas runs on past the
+        // box: it is cut there, behind the field.
+        clipPath: `inset(-100% -100% ${SINK_PX + CUT_ABOVE_FOOT_PX}px -100%)`,
+      }}
     >
       <GlowCanvas
         talking={talking}
