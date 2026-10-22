@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Geist_Mono, Inter, Outfit } from "next/font/google";
 import { locale as localeParam } from "next/root-params";
 
+import { FocusModality } from "@/components/focus-modality";
 import { routing } from "@/lib/i18n/routing";
 import { themeBootstrapScript } from "@/lib/theme";
 
@@ -82,8 +83,13 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         {/* Plain inline script, first thing in the body: the parser runs it
             where it stands. `next/script` only promises before hydration,
-            which is already after the first paint. */}
+            which is already after the first paint.
+
+            ⚠ It runs when the PARSER reaches it, so it only exists for pages
+            that are LOADED. Nothing that changes the theme may be a client
+            navigation — see `locale-selector.tsx`, which is the one that was. */}
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+        <FocusModality />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>

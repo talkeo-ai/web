@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { InterviewCard } from "@/core/contracts";
 
-import { surfaceFor, wantsAttention } from "./surfaces";
+import { surfaceFor } from "./surfaces";
 
 const noCards: Record<string, InterviewCard> = {};
 
@@ -10,19 +10,34 @@ function at(
   stage: number,
   cards: Record<string, InterviewCard> = noCards,
 ) {
-  return surfaceFor({ stage, cards, named: true, mode: "text" });
+  return surfaceFor({ stage, cards });
+}
+
+function card(name: string, state: string): InterviewCard {
+  return { card: name, state, body: {} };
 }
 
 describe("the entrance", () => {
-  it("asks the name first, and how they want to answer after it", () => {
-    const cards = noCards;
-    expect(
-      surfaceFor({ stage: 1, cards, named: false, mode: "" })?.kind,
-    ).toBe("name");
-    expect(surfaceFor({ stage: 1, cards, named: true, mode: "" })?.kind).toBe(
-      "mode",
-    );
-    expect(surfaceFor({ stage: 1, cards, named: true, mode: "text" })).toBeNull();
+  it("asks only the name: how they answer is how they answer", () => {
+    // There is no step for speaking or writing any more; Talkeo knows which
+    // from how each message reaches it (Joaquin, 22/oct).
+    expect(at(1)?.kind).toBe("name");
+    // Settled, it stays up as the record it is, the same as any other stage
+    // whose card is agreed to.
+    const done = at(1, { name: card("name", "confirmed") });
+    expect(done?.kind).toBe("name");
+    expect(done?.state).toBe("settled");
+  });
+
+  it("is decided by the same rule as every other stage", () => {
+    // ⚠ A name that arrived from the CHAT used to make its surface disappear:
+    // the entrance was written as "if there is no name, ask for it", so having
+    // one meant there was nothing to show. It comes up proposed instead, with
+    // what Talkeo understood in it, for them to confirm — which is §3.4, and
+    // which is what stages 2 to 6 have always done.
+    const read = at(1, { name: card("name", "draft") });
+    expect(read?.kind).toBe("name");
+    expect(read?.state).toBe("proposed");
   });
 });
 
@@ -54,33 +69,26 @@ describe("what a surface offers", () => {
 
   it("is a record once it is confirmed", () => {
     const cards = {
-      first_goal: { card: "first_goal", state: "confirmed", body: {} },
+      starting_point: { card: "starting_point", state: "confirmed", body: {} },
     };
-    expect(at(3, cards)?.state).toBe("settled");
+    expect(at(5, cards)?.state).toBe("settled");
   });
 
-  it("has no confirm on the two stages that autosave", () => {
-    // Nothing there for the person to validate, so asking for a yes would be
-    // asking for one nobody needs.
-    expect(at(5)?.confirmable).toBe(false);
-    expect(at(6)?.confirmable).toBe(false);
-    expect(at(3)?.confirmable).toBe(true);
-  });
-});
-
-describe("what is worth interrupting somebody for", () => {
-  it("is a surface with something left to do", () => {
-    expect(wantsAttention(at(3))).toBe(true);
-  });
-
-  it("is never a card they already agreed to", () => {
+  it("is only taken while a later stage can still change it", () => {
+    // The first objective goes on in the list of them, and the objectives
+    // stage rewrites the areas: neither is confirmed until that stage closes.
     const cards = {
       first_goal: { card: "first_goal", state: "confirmed", body: {} },
     };
-    expect(wantsAttention(at(3, cards))).toBe(false);
+    expect(at(3, cards)?.state).toBe("taken");
   });
 
-  it("is never nothing", () => {
-    expect(wantsAttention(at(7))).toBe(false);
+  it("has a confirm on every card", () => {
+    // Every card is edited by hand or by Talkeo and confirmed by hand or by
+    // Talkeo (Joaquin, 17/oct). The two that used to autosave had no confirm,
+    // and were the only cards that did not look like the rest.
+    for (const stage of [3, 4, 5, 6]) {
+      expect(at(stage)?.confirmable).toBe(true);
+    }
   });
 });

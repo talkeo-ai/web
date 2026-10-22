@@ -1,14 +1,27 @@
 "use client";
 
+import {
+  AudioLines,
+  BookA,
+  BookOpen,
+  Check,
+  Headphones,
+  MessagesSquare,
+  PenLine,
+  Plus,
+  SpellCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMarkTarget } from "@/components/talkeo/mark-target";
-import type { Surface as SurfaceSpec } from "@/lib/onboarding/surfaces";
+import { staysOpen, type Surface as SurfaceSpec } from "@/lib/onboarding/surfaces";
 import { playSound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
+
 
 /**
  * The other way to answer the question that was already asked.
@@ -22,8 +35,8 @@ import { cn } from "@/lib/utils";
  * `asking` is empty and the action reads as answering; `proposed` is what Talkeo
  * understood, editable, and the action is agreeing; `settled` is a record.
  *
- * Two stages have no confirm at all — there is nothing on them for the person to
- * validate, so asking for a yes would be asking for one nobody needs.
+ * Every card is edited by hand or by Talkeo and confirmed by hand or by Talkeo
+ * (Joaquin, 17/oct), so every card has its confirm.
  */
 
 /** The areas, in the order they are shown. Their labels are copy. */
@@ -37,6 +50,59 @@ const AREAS = [
   "writing",
 ] as const;
 
+const AREA_ICON: Record<(typeof AREAS)[number], LucideIcon> = {
+  conversation: MessagesSquare,
+  listening: Headphones,
+  vocabulary: BookA,
+  pronunciation: AudioLines,
+  grammar: SpellCheck,
+  reading: BookOpen,
+  writing: PenLine,
+};
+
+/**
+ * Every colour a surface uses, in one place, so the card is one palette and
+ * not a fill per component.
+ *
+ * **Black and white only, in steps of light** (Joaquin, 17/oct: no colour on
+ * the options, neither saturated nor muted). Page, card, then whatever you can
+ * touch one step closer to you than the card — white on the light card,
+ * lighter grey on the dark one. A tile's icon sits in a well one step the
+ * other way, darker than its face, so the tile has two parts without any hue.
+ *
+ * **Picked is the one green thing**: the icon turns green and the tick fills
+ * with it. The grey stays grey.
+ *
+ * Edges are hairlines of the text colour at low opacity rather than the
+ * `border` token, which in dark mode is a grey heavy enough to draw a grid.
+ */
+const TONE = {
+  card: "bg-surface-secondary border border-black/[0.04] dark:border-white/[0.05]",
+  edge: "border-black/[0.08] dark:border-white/[0.08]",
+  edgeHover: "hover:border-black/[0.18] dark:hover:border-white/[0.18]",
+  hairline: "border-black/[0.06] divide-black/[0.06] dark:border-white/[0.06] dark:divide-white/[0.06]",
+  /** What you can touch: one step up from the card. */
+  face: "bg-background dark:bg-surface-tertiary",
+  /** Behind a tile's icon: one step down from its face. */
+  well: "bg-black/[0.045] dark:bg-black/25",
+  icon: "text-foreground/60 group-hover:text-foreground",
+  picked: {
+    edge: "border-foreground/85",
+    // The brand's green, and only here: everything else on the card is
+    // neutral, so the one green thing is the one that is yours. A tint on the
+    // well, not a fill — a white well shouted, a lighter grey did not read as
+    // picked at all (Joaquin, 17/oct).
+    // The well stays grey: any green behind the icon, tinted or solid, showed
+    // as a green frame round the whole row, because the well shows on three
+    // sides of the face (Joaquin, 17/oct). The icon and the tick say it.
+    well: "bg-black/[0.045] dark:bg-black/25",
+    icon: "text-accent-700 dark:text-accent-400",
+    ring: "border-accent-500",
+    dot: "bg-accent-500",
+  },
+  focus: "focus-visible:border-foreground/40",
+} as const;
+
 export type SurfaceAnswer = {
   /** The card and line this changed, empty when it is not a card edit. */
   field: string;
@@ -46,99 +112,212 @@ export type SurfaceAnswer = {
 
 export function Surface({
   surface,
-  onTouch,
+  pending = false,
   onAnswer,
 }: {
   surface: SurfaceSpec;
-  /** They typed in it, ticked something, moved something. */
-  onTouch: () => void;
+  /** Whether they changed something on this card that has not gone out yet. */
+  pending?: boolean;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding");
 
   if (surface.kind === "name") {
-    return <NameSurface onTouch={onTouch} onAnswer={onAnswer} />;
-  }
-  if (surface.kind === "mode") {
-    return <ModeSurface onAnswer={onAnswer} />;
+    return <NameSurface surface={surface} onAnswer={onAnswer} />;
   }
   if (surface.kind === "scope") {
-    return (
-      <ScopeSurface surface={surface} onTouch={onTouch} onAnswer={onAnswer} />
-    );
+    return <ScopeSurface surface={surface} onAnswer={onAnswer} />;
   }
   return (
     <CardSurface
       surface={surface}
       title={t(`surfaces.${surface.kind}.title`)}
-      onTouch={onTouch}
+      pending={pending}
       onAnswer={onAnswer}
     />
   );
 }
 
 /**
- * The shell every surface sits in.
+ * The shell every surface sits in: a block in the thread, under the message
+ * that asked for it.
  *
- * ⚠ `title` is a LABEL and not a question, and the surfaces that answer a
- * question Talkeo just asked do not pass one. The turn above says "¿cómo te
- * llamás?"; a heading underneath repeating it is the same question twice on one
- * screen, which is the repetition this whole pattern exists to avoid. A card has
- * a title because a card is a record and needs saying what it is.
+ * Filled like Talkeo's own bubble, so it reads as Talkeo handing something
+ * over rather than as a form dropped into the chat. What is inside it is made
+ * of the product's own pieces in black and white (see `TONE`), and the action
+ * is the primary button. Same type sizes as the chat.
+ *
+ * It sits in the conversation's own column, held to the left and as wide as
+ * Talkeo's bubbles.
  */
 function Frame({
+  kind,
   title,
   hint,
   target,
+  settled = false,
   children,
 }: {
+  kind: string;
   title?: string;
   hint?: string;
   /** What a mark in the turn points at, so the voice can light this up. */
   target?: string;
+  /**
+   * Answered and agreed. Only marked here: the card looks the same as before
+   * and its action says it is done (`Confirmed`). Changing the layout on
+   * confirm — the hint gone, the field gone — read as a different card.
+   */
+  settled?: boolean;
   children: React.ReactNode;
 }) {
   const mark = useMarkTarget(target ?? "");
   return (
     <section
       data-slot="surface"
+      data-kind={kind}
+      data-settled={settled ? "true" : "false"}
       data-pointed={mark ? "true" : "false"}
       className={cn(
-        "mx-auto flex w-full max-w-md flex-col gap-5 rounded-3xl p-6",
-        "transition-[box-shadow] duration-(--duration-highlight-out) ease-(--ease-standard)",
-        mark && "ring-accent-500 ring-2",
+        TONE.card,
+        // No ring when the voice points at it: the card already sits under
+        // the message that asks for it, and the ring read as a stray focus
+        // (Joaquin, 22/oct). `data-pointed` still says so.
+        "mr-auto flex w-full max-w-[56ch] flex-col gap-2 rounded-2xl p-2",
       )}
     >
       {title || hint ? (
-        <div className="flex flex-col gap-1.5 text-center">
+        <header className="flex flex-col gap-0.5 px-2 pt-1.5 pb-0.5">
           {title ? (
-            <h2 className="font-heading text-foreground text-[22px] leading-tight font-bold">
+            <h2 className="font-heading text-foreground text-[15px] leading-snug font-semibold">
               {title}
             </h2>
           ) : null}
-          {hint ? <p className="text-text-secondary text-sm">{hint}</p> : null}
-        </div>
+          {hint ? (
+            <p className="text-text-secondary text-[13px] leading-snug">{hint}</p>
+          ) : null}
+        </header>
       ) : null}
       {children}
     </section>
   );
 }
 
+/**
+ * A choice, as in the reference: a grey shape with the icon at its left, and
+ * the label on a face set inside it with a margin of grey round its other
+ * three sides. No borders on either: the two tones are the whole drawing, and
+ * a line on top of them was what made it look busy.
+ *
+ * Picked, the shape turns to the ink colour. Hovered, it firms up a step.
+ * Nothing moves: a tile rising under the pointer read as the list wobbling
+ * (Joaquin, 17/oct).
+ */
+function tile(on: boolean) {
+  return cn(
+    "group relative flex cursor-pointer items-stretch rounded-xl text-left outline-none select-none",
+    "transition-[background-color] duration-(--duration-control) ease-(--ease-standard)",
+    "focus-key:ring-ring focus-key:ring-2 focus-key:ring-offset-2 focus-key:ring-offset-(--surface-secondary)",
+    on
+      ? TONE.picked.well
+      : cn(TONE.well, "hover:bg-black/[0.08] dark:hover:bg-black/40"),
+  );
+}
+
+/**
+ * The tile's icon, in a well down its left side rather than a circle: the
+ * tile reads as one piece with a place for its picture, and the label starts
+ * at the same line on every tile.
+ */
+function TileIcon({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "grid w-11 shrink-0 place-items-center",
+        "transition-[color] duration-(--duration-control) ease-(--ease-standard)",
+        on ? TONE.picked.icon : TONE.icon,
+      )}
+    >
+      <Icon className="size-[18px]" strokeWidth={1.75} />
+    </span>
+  );
+}
+
+/** What a tile says, on its own face inset in the tile. */
+function TileBody({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      className={cn(
+        // 3px of the shape left showing above, right and below: 3px off a
+        // 12px corner leaves 9px, so the two curves stay parallel. 44px in
+        // all, a step over the 40px field and buttons on the same card.
+        "my-[3px] mr-[3px] flex min-h-[38px] min-w-0 flex-1 items-center gap-3 rounded-[9px] py-2 pr-3 pl-3.5",
+        TONE.face,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+/**
+ * A confirm that has been pressed: the same box in the same place, saying so.
+ *
+ * Green, the one colour that means "yours", at a tint rather than a fill, so
+ * the card's action goes quiet instead of louder once there is nothing left to
+ * do. Not a button: there is nothing to press.
+ */
+function Confirmed() {
+  const t = useTranslations("onboarding.surfaces");
+  return (
+    <span
+      data-slot="surface-confirmed"
+      className={cn(
+        "font-heading inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-[14px] font-semibold",
+        "bg-accent-500/12 text-accent-800 dark:bg-accent-500/10 dark:text-accent-400",
+      )}
+    >
+      <Check aria-hidden className="size-4" strokeWidth={2.5} />
+      {t("confirmed")}
+    </span>
+  );
+}
+
+/** Where a card's action goes: under what it acts on, to the right. */
+function Footer({ children }: { children: React.ReactNode }) {
+  return <div className="flex items-center justify-end gap-2 pt-1">{children}</div>;
+}
+
 function NameSurface({
-  onTouch,
+  surface,
   onAnswer,
 }: {
-  onTouch: () => void;
+  surface: SurfaceSpec;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding");
-  const [value, setValue] = useState("");
+  // What Talkeo heard, until they touch it: the field can arrive empty or
+  // already filled from what they said in the chat, and the one action reads
+  // as confirming in both cases. Derived and not copied, like the areas.
+  const heard = typeof surface.body.name === "string" ? surface.body.name : "";
+  const [theirs, setTheirs] = useState<string | null>(null);
+  const value = theirs ?? heard;
   const written = value.trim();
+  const settled = surface.state === "settled";
 
   return (
-    <Frame hint={t("name.hint")} target="control:name">
+    <Frame
+      kind="name"
+      title={t("name.question")}
+      hint={t("name.hint")}
+      target="control:name"
+      settled={settled}
+    >
+      {/* The action beside the field, as one line: under it, a single button
+          took a row of its own. */}
       <form
-        className="flex flex-col gap-3"
+        className="flex items-center gap-2"
         onSubmit={(event) => {
           event.preventDefault();
           if (!written) return;
@@ -146,64 +325,48 @@ function NameSurface({
         }}
       >
         <Input
-          autoFocus
+          // No autofocus: the card comes up while they may be typing in the
+          // chat field, and taking the caret from there throws their
+          // sentence into the wrong box (Joaquin, 17/oct).
+          className={cn(
+            TONE.face,
+            TONE.edge,
+            TONE.edgeHover,
+            // The button's height and corner, so the two read as one line.
+            "h-10 min-w-0 flex-1 rounded-lg px-3 text-[15px]",
+            TONE.focus,
+          )}
           value={value}
           onChange={(event) => {
             // Written as it is stored, while they type. The service raises the
             // first letter of every word and lowers nothing, so a field that
             // did not would show `martin` next to a greeting that says
             // `Martin` — the same name spelled two ways on one screen.
-            setValue(writtenName(event.target.value));
-            onTouch();
+            setTheirs(writtenName(event.target.value));
           }}
           placeholder={t("name.placeholder")}
           aria-label={t("name.question")}
           data-slot="surface-name"
+          readOnly={settled}
         />
-        <Button type="submit" size="lg" disabled={!written}>
-          {t("name.cta")}
-        </Button>
+        {settled ? (
+          <Confirmed />
+        ) : (
+          <Button type="submit" variant="primary" size="sm" className="rounded-lg" disabled={!written}>
+            <Check className="size-4" strokeWidth={2.5} />
+            {t("name.cta")}
+          </Button>
+        )}
       </form>
-    </Frame>
-  );
-}
-
-function ModeSurface({
-  onAnswer,
-}: {
-  onAnswer: (answer: SurfaceAnswer) => void;
-}) {
-  const t = useTranslations("onboarding");
-  return (
-    <Frame target="control:mode">
-      <div className="flex flex-col gap-3">
-        <Button
-          size="lg"
-          data-slot="surface-mode-speak"
-          onClick={() => onAnswer({ field: "", value: "speak", confirms: true })}
-        >
-          {t("mode.voice")}
-        </Button>
-        <Button
-          size="lg"
-          variant="secondary"
-          data-slot="surface-mode-text"
-          onClick={() => onAnswer({ field: "", value: "text", confirms: true })}
-        >
-          {t("mode.text")}
-        </Button>
-      </div>
     </Frame>
   );
 }
 
 function ScopeSurface({
   surface,
-  onTouch,
   onAnswer,
 }: {
   surface: SurfaceSpec;
-  onTouch: () => void;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding.surfaces");
@@ -218,15 +381,22 @@ function ScopeSurface({
   const picked = theirs ?? marked;
 
   const toggle = (area: string) => {
-    onTouch();
     const on = picked.includes(area);
     playSound(on ? "deselect" : "select");
     setTheirs(on ? picked.filter((a) => a !== area) : [...picked, area]);
   };
 
   return (
-    <Frame hint={t("scope.hint")} target="control:scope">
-      <div className="flex flex-col gap-2">
+    <Frame
+      kind="scope"
+      title={t("scope.title")}
+      hint={t("scope.hint")}
+      target="control:scope"
+      settled={surface.state === "settled"}
+    >
+      {/* One per row, each a picture and a box to tick, as a checklist reads.
+          Two across stops the moment a label wraps. */}
+      <div className="flex flex-col gap-1.5">
         {AREAS.map((area) => {
           const on = picked.includes(area);
           return (
@@ -238,32 +408,36 @@ function ScopeSurface({
               data-slot="surface-area"
               data-area={area}
               onClick={() => toggle(area)}
-              className={cn(
-                "flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left",
-                "border transition-[border-color,background-color] duration-(--duration-control) ease-(--ease-standard)",
-                on
-                  ? "border-accent-500 bg-surface-secondary"
-                  : "border-border hover:border-border-strong",
-              )}
+              className={tile(on)}
             >
-              <span className="text-foreground text-[17px]">{t(`scope.${area}`)}</span>
-              <Tick on={on} />
+              <TileIcon icon={AREA_ICON[area]} on={on} />
+              <TileBody>
+                <span className="text-foreground flex-1 text-[14px] leading-snug">
+                  {t(`scope.${area}`)}
+                </span>
+                <Tick on={on} />
+              </TileBody>
             </button>
           );
         })}
       </div>
-      {surface.state !== "settled" ? (
-        <Button
-          size="lg"
-          disabled={picked.length === 0}
-          data-slot="surface-confirm"
-          onClick={() =>
-            onAnswer({ field: "areas", value: picked.join("\n"), confirms: true })
-          }
-        >
-          {t("next")}
-        </Button>
-      ) : null}
+      <Footer>
+        {surface.state === "settled" ? (
+          <Confirmed />
+        ) : (
+          <Button
+            variant="primary"
+            size="sm" className="rounded-lg"
+            disabled={picked.length === 0 || surface.state === "taken"}
+            data-slot="surface-confirm"
+            onClick={() =>
+              onAnswer({ field: "areas", value: picked.join("\n"), confirms: true })
+            }
+          >
+            {t("next")}
+          </Button>
+        )}
+      </Footer>
     </Frame>
   );
 }
@@ -271,111 +445,402 @@ function ScopeSurface({
 /**
  * A card that fills up as they watch, and that they can rewrite.
  *
- * A line nobody has filled yet is a dash and not an empty box: the card is a
- * record of what was understood so far, and a blank reads as something that was
- * asked and left unanswered.
+ * A line nobody has filled yet shows an example answer, in the faint colour of
+ * a placeholder: a blank read as asked and left unanswered, and a dash read as
+ * broken (Joaquin, 17/oct).
  */
 function CardSurface({
   surface,
   title,
-  onTouch,
+  pending,
   onAnswer,
 }: {
   surface: SurfaceSpec;
   title: string;
-  onTouch: () => void;
+  pending: boolean;
   onAnswer: (answer: SurfaceAnswer) => void;
 }) {
   const t = useTranslations("onboarding.surfaces");
   const fields = FIELDS[surface.kind] ?? [];
 
   return (
-    <Frame title={title} target={`card:${surface.card ?? ""}`}>
-      <dl className="flex flex-col gap-4">
-        {fields.map((field) => (
-          <Line
-            key={field}
-            label={t(`${surface.kind}.${field}`)}
-            value={asText(surface.body[field])}
-            empty={t("empty")}
-            readOnly={surface.state === "settled"}
-            onCommit={(value) => {
-              onTouch();
-              onAnswer({ field, value, confirms: false });
-            }}
-          />
-        ))}
-      </dl>
-      {surface.confirmable && surface.state === "proposed" ? (
-        <Button
-          size="lg"
-          data-slot="surface-confirm"
-          onClick={() => onAnswer({ field: "", value: "", confirms: true })}
-        >
-          {t("confirm")}
-        </Button>
+    <Frame
+      kind={surface.kind}
+      title={title}
+      target={`card:${surface.card ?? ""}`}
+      settled={surface.state === "settled"}
+    >
+      {surface.kind === "goals" ? (
+        <GoalList surface={surface} onAnswer={onAnswer} />
+      ) : (
+        <dl className={PANEL}>
+          {fields.map((field) => (
+            <CardLine
+              key={field}
+              field={field}
+              label={t(`${surface.kind}.${field}`)}
+              value={surface.body[field]}
+              example={t(`example.${field}`)}
+              readOnly={surface.state === "settled" || surface.state === "taken"}
+              onCommit={(value) => {
+                onAnswer({ field, value, confirms: false });
+              }}
+            />
+          ))}
+        </dl>
+      )}
+      {/* Always there on a card that has one: off while there is nothing
+          to agree to yet, on once Talkeo has written it, `Confirmed` after.
+          Appearing only once it could be pressed, it seemed to come from
+          nowhere (Joaquin, 17/oct). */}
+      {surface.confirmable ? (
+        <Footer>
+          {surface.state === "settled" ? (
+            <Confirmed />
+          ) : (
+            <Button
+              variant="primary"
+              size="sm" className="rounded-lg"
+              // On once there is something to agree to: what Talkeo wrote,
+              // or what they wrote themselves, which goes out with the yes.
+              // Off again once agreed and still open to a later stage.
+              disabled={
+                surface.state === "taken" ||
+                (surface.state !== "proposed" && !pending)
+              }
+              data-slot="surface-confirm"
+              onClick={() => onAnswer({ field: "", value: "", confirms: true })}
+            >
+              {/* A card a later stage still changes moves on rather than
+                  closes, so it does not say it confirms (Joaquin, 17/oct). */}
+              {staysOpen(surface.card) ? (
+                t("next")
+              ) : (
+                <>
+                  <Check className="size-4" strokeWidth={2.5} />
+                  {t("confirm")}
+                </>
+              )}
+            </Button>
+          )}
+        </Footer>
       ) : null}
     </Frame>
   );
 }
 
+/** Where a card's lines sit: one under the other, a field each. */
+const PANEL = "flex flex-col gap-3 pt-1";
+
 /** Which lines each card shows, in the order it shows them. */
 const FIELDS: Record<string, string[]> = {
-  goal: ["goal", "work_on"],
-  goals: ["goal", "work_on"],
+  goal: ["goal", "work_on", "context"],
   starting_point: ["path", "comfortable", "wants_to_work", "sees_self"],
   about_you: ["does", "follows"],
 };
 
+/**
+ * The objectives: the one card that is a list of things rather than a set of
+ * fields. The service sends `{ goals: [{ goal, work_on }, …] }`.
+ *
+ * ⚠ It used to be read as the single-goal card, `body.goal` and `body.work_on`,
+ * which this body does not have — so it showed two empty lines labelled with raw
+ * keys, because `goals` has no labels of its own. Each objective reads with the
+ * first goal's labels.
+ *
+ * Every objective is editable, each edit naming its objective (`goalField`).
+ */
+function GoalList({
+  surface,
+  onAnswer,
+}: {
+  surface: SurfaceSpec;
+  onAnswer: (answer: SurfaceAnswer) => void;
+}) {
+  const t = useTranslations("onboarding.surfaces");
+  const goals = Array.isArray(surface.body.goals)
+    ? (surface.body.goals as Record<string, unknown>[])
+    : [];
+  const listed = goals.length > 0 ? goals : [{}];
+
+  return (
+    // One group of fields per objective, further apart than the fields in one.
+    <ol className="flex flex-col gap-5">
+      {listed.map((goal, index) => (
+        <li key={index} data-slot="surface-goal">
+          <dl className={PANEL}>
+            {FIELDS.goal.map((field) => (
+              <CardLine
+                key={field}
+                field={field}
+                label={t(`goal.${field}`)}
+                value={goal[field]}
+                example={t(`example.${field}`)}
+                readOnly={surface.state === "settled" || surface.state === "taken"}
+                onCommit={(value) => {
+                  onAnswer({ field: goalField(index, field), value, confirms: false });
+                }}
+              />
+            ))}
+          </dl>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/**
+ * The field an edit of one objective names.
+ *
+ * The first is the plain field, which is what the Core takes today and applies
+ * to the first objective. The others are `goals.<index>.<field>`, because every
+ * objective is editable by hand (Joaquin, 17/oct) and an edit names a field,
+ * not an objective. ⚠ The Core does not read that form yet and drops it; it is
+ * the shape it is to follow.
+ */
+function goalField(index: number, field: string): string {
+  return index === 0 ? field : `goals.${index}.${field}`;
+}
+
+/**
+ * One line of a card: what it is, and what Talkeo understood, in a field.
+ *
+ * Built like the name card's field — label above, the value in the same box —
+ * so every card in the onboarding is made of the same two pieces. A line
+ * nobody has filled yet shows an example of an answer rather than a dash: a
+ * dash read as something broken, an example says what goes there.
+ */
 function Line({
   label,
   value,
-  empty,
+  example,
   readOnly,
   onCommit,
 }: {
   label: string;
   value: string;
-  empty: string;
+  example: string;
   readOnly: boolean;
   onCommit: (value: string) => void;
 }) {
-  const [draft, setDraft] = useState<string | null>(null);
+  // What they wrote, kept for as long as the card still says what it said
+  // when they wrote it. ⚠ Dropping it on leaving the field erased it: an edit
+  // waits for their next turn, so the card's own value is still the old one
+  // until then (Joaquin, 17/oct). Once Talkeo writes the line anew, that wins.
+  const [mine, setMine] = useState<{ over: string; text: string } | null>(null);
+  const draft = mine && mine.over === value ? mine.text : null;
   const showing = draft ?? value;
+  const setDraft = (text: string) => setMine({ over: value, text });
+  const box = cn(
+    "block w-full rounded-lg border px-3 py-2 text-[14px] leading-[1.5]",
+    TONE.face,
+    TONE.edge,
+  );
 
   return (
-    <div className="flex flex-col gap-1">
-      <dt className="text-text-tertiary text-xs font-medium tracking-wide uppercase">
+    <div className="flex flex-col gap-1.5">
+      <dt className="text-text-secondary px-2 text-[13px] leading-snug font-medium">
         {label}
       </dt>
-      <dd>
+      <dd className="min-w-0">
         {readOnly ? (
-          <p className="text-foreground text-[17px] leading-[1.5]">
-            {value || empty}
+          <p
+            className={cn(
+              box,
+              "whitespace-pre-line",
+              showing ? "text-foreground" : "text-text-tertiary",
+            )}
+          >
+            {showing || example}
           </p>
         ) : (
           <textarea
             rows={1}
             value={showing}
-            placeholder={empty}
+            placeholder={example}
             data-slot="surface-line"
             className={cn(
-              "text-foreground placeholder:text-text-tertiary field-sizing-content",
-              "w-full resize-none rounded-xl bg-transparent px-3 py-2 text-[17px] leading-[1.5]",
-              "border-border border outline-none",
+              box,
+              "text-foreground placeholder:text-text-tertiary field-sizing-content resize-none outline-none",
               "transition-[border-color] duration-(--duration-control) ease-(--ease-standard)",
-              "hover:border-border-strong focus:border-border-strong",
+              TONE.edgeHover,
+              TONE.focus,
             )}
-            onChange={(event) => setDraft(event.target.value)}
-            onBlur={() => {
-              // Committed on leaving the line rather than on every keystroke: an
-              // edit travels with their next turn, and one per character would
-              // be a queue of a hundred versions of the same sentence.
-              if (draft !== null && draft !== value) onCommit(draft);
-              setDraft(null);
+            onChange={(event) => {
+              // Queued as they type, not on leaving the line: the queue keeps
+              // one edit per line (`queueEdit`), so this is not a hundred
+              // versions, and the card's confirm can light up the moment there
+              // is something of theirs to agree to. Nothing goes out until
+              // their next turn or their confirm.
+              setDraft(event.target.value);
+              onCommit(event.target.value);
             }}
           />
         )}
+      </dd>
+    </div>
+  );
+}
+
+/** One line of a card, drawn as points or as a sentence by what the Core keeps. */
+function CardLine({
+  field,
+  value,
+  ...line
+}: {
+  field: string;
+  label: string;
+  value: unknown;
+  example: string;
+  readOnly: boolean;
+  onCommit: (value: string) => void;
+}) {
+  return LIST_FIELDS.has(field) ? (
+    <Points {...line} value={asPoints(value)} />
+  ) : (
+    <Line {...line} value={asText(value)} />
+  );
+}
+
+/**
+ * The lines the service keeps as a list, one point each.
+ *
+ * `work_on`, `path`, `does`, `follows` and a goal's `context` are arrays in the
+ * Core ("one line each", `stage_tools.py`), and its edits take them back as
+ * one string with a line per point (`cards.apply_edit`). Drawn as one block of
+ * text they read as a paragraph; drawn as points they read as what they are.
+ */
+const LIST_FIELDS: ReadonlySet<string> = new Set([
+  "work_on",
+  "path",
+  "does",
+  "follows",
+  "context",
+]);
+
+function asPoints(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  return typeof value === "string" ? value.split("\n").filter(Boolean) : [];
+}
+
+/**
+ * A list line: the label, and its points in one field, each on its own row
+ * behind a dot. Editable, each point is its own input, Enter starts the next
+ * one and `Add` opens one at the end; the whole list is queued as one edit, a
+ * line per point, as they type.
+ */
+function Points({
+  label,
+  value,
+  example,
+  readOnly,
+  onCommit,
+}: {
+  label: string;
+  value: string[];
+  example: string;
+  readOnly: boolean;
+  onCommit: (value: string) => void;
+}) {
+  const t = useTranslations("onboarding.surfaces");
+  // Kept past leaving the field, for the same reason as a single line's.
+  const over = value.join("\n");
+  const [mine, setMine] = useState<{ over: string; points: string[] } | null>(null);
+  const draft = mine && mine.over === over ? mine.points : null;
+  const setDraft = (points: string[]) => setMine({ over, points });
+  const [opened, setOpened] = useState(-1);
+  const points = draft ?? value;
+  const shown = !readOnly && points.length === 0 ? [""] : points;
+
+  const change = (index: number, text: string) => {
+    const next = [...shown];
+    next[index] = text;
+    setDraft(next);
+    // As they type, like a single line, and for the same reason.
+    onCommit(
+      next
+        .map((point) => point.trim())
+        .filter(Boolean)
+        .join("\n"),
+    );
+  };
+  const open = (at: number) => {
+    const next = [...shown];
+    next.splice(at, 0, "");
+    setDraft(next);
+    setOpened(at);
+  };
+  // Leaving the field only tidies it: the empty points go. What they wrote is
+  // already queued, as they typed it.
+  const commit = () => {
+    if (draft === null) return;
+    setDraft(draft.map((point) => point.trim()).filter(Boolean));
+    setOpened(-1);
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <dt className="text-text-secondary px-2 text-[13px] leading-snug font-medium">
+        {label}
+      </dt>
+      <dd
+        className={cn(
+          "flex min-w-0 flex-col rounded-lg border px-3 py-1.5",
+          TONE.face,
+          TONE.edge,
+          !readOnly && cn(TONE.edgeHover, "focus-within:border-foreground/40"),
+          "transition-[border-color] duration-(--duration-control) ease-(--ease-standard)",
+        )}
+        onBlur={(event) => {
+          // Only when the caret leaves the whole field, not on moving between
+          // its points.
+          if (!event.currentTarget.contains(event.relatedTarget as Node)) commit();
+        }}
+      >
+        {readOnly && points.length === 0 ? (
+          <p className="text-text-tertiary py-0.5 text-[14px] leading-[1.5]">{example}</p>
+        ) : (
+          <ul className="flex flex-col">
+            {shown.map((point, index) => (
+              <li key={index} className="flex items-start gap-2.5 py-0.5">
+                <span
+                  aria-hidden
+                  className="bg-text-tertiary mt-[9px] size-1 shrink-0 rounded-full"
+                />
+                {readOnly ? (
+                  <p className="text-foreground text-[14px] leading-[1.5]">{point}</p>
+                ) : (
+                  <input
+                    value={point}
+                    // Only the one they just opened: never on the card coming up.
+                    autoFocus={index === opened}
+                    placeholder={index === 0 ? example : ""}
+                    data-slot="surface-point"
+                    aria-label={label}
+                    className="text-foreground placeholder:text-text-tertiary min-w-0 flex-1 bg-transparent text-[14px] leading-[1.5] outline-none"
+                    onChange={(event) => change(index, event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter") return;
+                      event.preventDefault();
+                      if (point.trim()) open(index + 1);
+                    }}
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {!readOnly && shown.some((point) => point.trim()) ? (
+          <button
+            type="button"
+            onClick={() => open(shown.length)}
+            data-slot="surface-point-add"
+            className="text-text-secondary hover:text-foreground -ml-0.5 flex w-fit cursor-pointer items-center gap-1.5 py-1 text-[13px] font-medium outline-none"
+          >
+            <Plus aria-hidden className="size-3.5" strokeWidth={2.25} />
+            {t("add")}
+          </button>
+        ) : null}
       </dd>
     </div>
   );
@@ -399,29 +864,29 @@ function asText(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+/** A checkbox the size of the text beside it, in the ink of the text. */
 function Tick({ on }: { on: boolean }) {
   return (
     <span
       aria-hidden
       className={cn(
-        "grid size-6 shrink-0 place-items-center rounded-full border",
-        "transition-[background-color,border-color] duration-(--duration-control) ease-(--ease-standard)",
-        on ? "border-accent-500 bg-accent-500" : "border-border",
+        // Two circles, no check (Joaquin, 17/oct): a ring, and picked, a dot
+        // inside it with a gap all round, so the ring still reads.
+        "grid size-5 shrink-0 place-items-center rounded-full border-[1.5px]",
+        "transition-[border-color] duration-(--duration-control) ease-(--ease-standard)",
+        on
+          ? TONE.picked.ring
+          : "border-black/25 group-hover:border-black/40 dark:border-white/25 dark:group-hover:border-white/40",
       )}
     >
-      {on ? (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="var(--cta-face-text)"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="size-3.5"
-        >
-          <path d="m5 13 4 4L19 7" />
-        </svg>
-      ) : null}
+      <span
+        className={cn(
+          "size-2.5 rounded-full",
+          TONE.picked.dot,
+          "transition-[opacity,scale] duration-(--duration-control) ease-(--ease-standard)",
+          on ? "scale-100 opacity-100" : "scale-50 opacity-0",
+        )}
+      />
     </span>
   );
 }

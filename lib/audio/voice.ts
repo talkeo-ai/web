@@ -43,6 +43,33 @@ export function voiceUnlocked(): boolean {
   return claimed;
 }
 
+/**
+ * Claim it on the first gesture anywhere, and stop listening once it is claimed.
+ *
+ * ⚠ The press on the landing is not the only way in. Somebody who reloads the
+ * onboarding, or opens its URL directly, arrives with no gesture behind them —
+ * and a context built there starts suspended and stays suspended, so the whole
+ * conversation is silent with nothing on screen to say why. That is what
+ * happened the first time this was run for real.
+ *
+ * `pointerdown` and `keydown` both count, and the listener removes itself, so
+ * this costs one event.
+ */
+export function claimVoiceOnFirstGesture(): () => void {
+  if (typeof window === "undefined") return () => {};
+  const claim = () => {
+    void unlockVoice();
+    stop();
+  };
+  const stop = () => {
+    window.removeEventListener("pointerdown", claim);
+    window.removeEventListener("keydown", claim);
+  };
+  window.addEventListener("pointerdown", claim, { once: true });
+  window.addEventListener("keydown", claim, { once: true });
+  return stop;
+}
+
 /** Tests only. */
 export function resetVoice(): void {
   player?.close();

@@ -53,6 +53,25 @@ export function flush(outbox: Outbox): { edits: CardEdit[]; rest: Outbox } {
  * which is their turn already — sending typed text into it would be answering
  * twice.
  */
+/**
+ * What goes out when they press confirm on the name card.
+ *
+ * A name new to the service is what they said, as a turn. The one Talkeo
+ * already wrote down from the chat is them agreeing to it, which the Core waits
+ * for as the card's confirm ("¿Lo escribo así?").
+ *
+ * ⚠ The second case used to send nothing: the card read as confirmed and the
+ * Core waited for a yes that never came. The step after the name used to send a
+ * turn of its own and hid it until that step was removed (review, 22/oct).
+ */
+export function answerName(
+  value: string,
+  written: string,
+): { text?: string; edits: CardEdit[] } {
+  if (value !== written) return { text: value, edits: [] };
+  return { edits: [{ card: "entrance", field: "", value: "", confirms: true }] };
+}
+
 export function canSend({
   text,
   answering,
@@ -72,14 +91,21 @@ export type ComposerAction = "send" | "call" | "hang up";
  * With text in the field there is something to send and speaking would throw it
  * away; with the field empty there is nothing to send. In a call and empty, the
  * thing offered is leaving the call — not sending nothing.
+ *
+ * Calling waits for `canCall`. The onboarding offers it from the first message
+ * (Joaquin, 22/oct); it used to wait for the name, when choosing to speak was
+ * a step of its own after it.
  */
 export function composerAction({
   text,
   inCall,
+  canCall = true,
 }: {
   text: string;
   inCall: boolean;
+  canCall?: boolean;
 }): ComposerAction {
   if (text.trim().length > 0) return "send";
-  return inCall ? "hang up" : "call";
+  if (inCall) return "hang up";
+  return canCall ? "call" : "send";
 }

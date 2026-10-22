@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
  * both come in — the clip stops at the last line whose first word has been
  * spoken.
  *
- * A line resolves out of blur rather than fading in flat. A plain opacity ramp
+ * Each word resolves out of blur rather than fading in flat. A plain opacity ramp
  * is a light switch: at every moment the text is fully formed and merely dim,
  * which reads as a rendering delay. Coming out of focus reads as something
  * being written, because that is what resolving looks like.
@@ -32,8 +32,16 @@ import { cn } from "@/lib/utils";
  * and the repaint is a handful of lines that were being painted anyway.
  */
 const GROW_MS = 260;
-const RESOLVE_MS = 420;
-const BLUR_PX = 6;
+/**
+ * A word fades in on an even curve while its blur melts on the entrance curve
+ * (quick out of the gate, long soft tail), so it comes up gradually and the
+ * last of the softness goes behind the next one — which is what lets a run of
+ * words read as one continuous stroke instead of a row of separate fades.
+ * At 6px the blur smeared into the neighbouring words; 3px only softens.
+ */
+const APPEAR_MS = 520;
+const RESOLVE_MS = 600;
+const BLUR_PX = 3;
 
 function same(a: number[], b: number[]): boolean {
   return a.length === b.length && a.every((value, index) => value === b[index]);
@@ -42,11 +50,20 @@ function same(a: number[], b: number[]): boolean {
 export function TurnText({
   lines,
   revealedWords,
+  arriving,
   className,
 }: {
   lines: TurnLine[];
   /** How many words the voice has reached. */
   revealedWords: number;
+  /**
+   * Whether this is a turn being written out rather than history. Said by the
+   * caller when it knows: a turn that streams has all of its words revealed at
+   * the moment it mounts — its first word is its only word — and read as
+   * history it showed every word solid the instant it arrived, ahead of the
+   * reveal, until the reveal took over and dropped back (Joaquin, 22/oct).
+   */
+  arriving?: boolean;
   className?: string;
 }) {
   const words = lines.flatMap((line) => line.words);
@@ -55,7 +72,9 @@ export function TurnText({
   // is history being re-rendered, not something arriving. It keeps its natural
   // height and never clips, so it cannot animate from an unmeasured zero up to
   // its real size — which is a finished message replaying its own entrance.
-  const [bornSettled] = useState(() => revealedWords >= words.length);
+  const [bornSettled] = useState(
+    () => arriving === undefined ? revealedWords >= words.length : !arriving,
+  );
 
   const paragraph = useRef<HTMLParagraphElement>(null);
   // The word index each visual line starts at, first entry always 0.
@@ -171,14 +190,11 @@ export function TurnText({
           bubble's own position in the column. */}
       <p ref={paragraph} className="relative text-pretty">
         {words.map((word, index) => {
-          // Its line, found by walking the starts. Before the first
-          // measurement everything is line zero, which is what makes the very
-          // first line resolve rather than pop.
-          let line = 0;
-          while (line + 1 < lineStarts.length && lineStarts[line + 1]! <= index) {
-            line += 1;
-          }
-          const shown = bornSettled || line < visibleLines;
+          // Word by word, not a line at a time. The box still grows by lines;
+          // what is written into it resolves one word after another, as the
+          // words arrive. A whole line coming out of
+          // blur at once read as a block landing, not as writing.
+          const shown = bornSettled || index < revealedWords;
 
           return (
             <span
@@ -187,7 +203,7 @@ export function TurnText({
               style={{
                 opacity: shown ? 1 : 0,
                 filter: shown ? "blur(0px)" : `blur(${BLUR_PX}px)`,
-                transition: `opacity ${RESOLVE_MS}ms var(--ease-standard), filter ${RESOLVE_MS}ms var(--ease-standard)`,
+                transition: `opacity ${APPEAR_MS}ms var(--ease-standard), filter ${RESOLVE_MS}ms var(--ease-entrance)`,
               }}
             >
               {word}

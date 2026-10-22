@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LocaleFlag } from "@/components/locale-flag";
 import { LOCALE_LABELS } from "@/lib/i18n/locales";
-import { Link, usePathname } from "@/lib/i18n/navigation";
+import { usePathname } from "@/lib/i18n/navigation";
 import { routing } from "@/lib/i18n/routing";
 
 /**
@@ -68,12 +68,23 @@ export function LocaleSelector() {
               checked={code === locale}
               asChild
             >
-              <Link href={pathname} locale={code}>
+              {/* ⚠ A plain anchor, so the document is LOADED and not patched.
+                  next-intl's `Link` navigates on the client, and the class that
+                  carries the theme is written by a script that only runs when
+                  the parser reaches it — so the language changed and the theme
+                  went back to light until you reloaded. React said so out loud
+                  and put its error overlay over the whole page while it did:
+                  "scripts inside React components are never executed when
+                  rendering on the client".
+
+                  A language change is every word on the page plus the `lang` of
+                  the document. Loading it is what that is. */}
+              <a href={`/${code}${pathname === "/" ? "" : pathname}`}>
                 <span className="flex items-center gap-3">
                   <LocaleFlag locale={code} className="size-5 shrink-0" />
                   <span className="text-[15px]">{entry.native}</span>
                 </span>
-              </Link>
+              </a>
             </DropdownMenuCheckboxItem>
           );
         })}

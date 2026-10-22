@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 import { TurnText } from "@/components/talkeo/turn-text";
-import { MESSAGE_IN_MS } from "@/lib/onboarding/motion";
+import { MESSAGE_IN_MS, SURFACE_IN_MS } from "@/lib/onboarding/motion";
 import { splitLines } from "@/lib/talkeo/lines";
 import { stripVoiceTags } from "@/lib/talkeo/voice-tags";
 import { cn } from "@/lib/utils";
@@ -43,7 +43,12 @@ export function Bubble({
         // reading, but at this size that is nearly the whole track and the
         // bubble stops reading as a bubble at all. This is short of it on
         // purpose.
-        "w-fit max-w-[56ch] rounded-2xl px-4 py-2.5",
+        "max-w-[56ch] rounded-2xl px-4 py-2.5",
+        // Talkeo's take the whole measure from the first word. Its text streams
+        // in, and a bubble fitted to what had arrived so far widened with every
+        // word until the line wrapped — the bubble changing size under the
+        // letters. Yours is said at once, so it can fit.
+        from === "you" ? "w-fit" : "w-full",
         // One step apart on the same surface ramp, not two unrelated fills.
         // Talkeo carries the reading so it sits closest to the page; your own
         // line is short and reads as an interruption, so it comes forward.
@@ -90,13 +95,15 @@ export function Arriving({ children }: { children: ReactNode }) {
         // `minmax(0, …)` at both ends: a bare `0fr` stops at the content's own
         // minimum and the row never actually closes.
         gridTemplateRows: grown ? "minmax(0, 1fr)" : "minmax(0, 0fr)",
-        transition: `grid-template-rows ${MESSAGE_IN_MS}ms var(--ease-entrance)`,
+        transition: `grid-template-rows ${SURFACE_IN_MS}ms var(--ease-entrance)`,
       }}
     >
       <div className="overflow-hidden">
         {/* The spacing lives inside the clipped row, so it grows with the
-            bubble instead of being there before it. */}
-        <div className="pt-8">{children}</div>
+            bubble instead of being there before it. Close under the message:
+            the card belongs to the message that asked for it, and at the
+            distance between two messages it read as a third one. */}
+        <div className="pt-2.5">{children}</div>
       </div>
     </div>
   );
@@ -105,9 +112,12 @@ export function Arriving({ children }: { children: ReactNode }) {
 export function TalkeoSaid({
   text,
   signed = true,
+  revealedWords,
 }: {
   text: string;
   signed?: boolean;
+  /** How far it has been written out, while it still is. Whole otherwise. */
+  revealedWords?: number;
 }) {
   // The same stripping as while it played, or a settled turn shows the delivery
   // marks that the live one hid. With the service speaking there is nothing left
@@ -116,7 +126,12 @@ export function TalkeoSaid({
   const words = lines.reduce((total, line) => total + line.words.length, 0);
   return (
     <Bubble from="talkeo" arriving={false} signed={signed}>
-      <TurnText lines={lines} revealedWords={words} className={TALKEO_BODY} />
+      <TurnText
+        arriving={revealedWords !== undefined}
+        lines={lines}
+        revealedWords={revealedWords ?? words}
+        className={TALKEO_BODY}
+      />
     </Bubble>
   );
 }

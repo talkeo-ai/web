@@ -2,6 +2,7 @@ import type { CardEdit } from "@/core/contracts";
 
 import {
   advance,
+  cardsWithEntrance,
   noConversation,
   type Conversation,
   type ConversationAction,
@@ -12,22 +13,16 @@ import {
   queueEdit,
   type Outbox,
 } from "./outbox";
-import { surfaceFor, wantsAttention, type Surface } from "./surfaces";
-import {
-  nextView,
-  startsInFocus,
-  type ViewEvent,
-  type ViewState,
-} from "./view-machine";
+import { agreed, surfaceFor, type Surface } from "./surfaces";
 
 /**
  * The whole screen, as one reduction.
  *
- * The conversation, the view and the outbox are separate machines with separate
- * rules, and they are folded together here because they are not independent: a
- * card changing is a fact about the conversation AND a reason for the view to
- * move. Kept apart, that link has to live in an effect that watches one and sets
- * the other — which is a render behind, and is where this kind of screen rots.
+ * The conversation and the outbox are separate machines with separate rules,
+ * and they are folded together here with the surface they imply: a card
+ * changing is a fact about the conversation AND a change to what is on screen.
+ * Kept apart, that link has to live in an effect that watches one and sets the
+ * other — which is a render behind, and is where this kind of screen rots.
  *
  * So the rule is: **a message goes in, and everything it implies comes out.**
  * Nothing above this works anything out for itself.
@@ -35,7 +30,6 @@ import {
 
 export type Onboarding = {
   conversation: Conversation;
-  view: ViewState;
   outbox: Outbox;
   /** The surface for where the conversation is. Derived, never stored twice. */
   surface: Surface | null;
@@ -47,19 +41,47 @@ export type Onboarding = {
    * then the thing it was about.
    */
   surfaceReady: boolean;
+  /**
+   * Every surface that has been up, where it first came up in the thread.
+   *
+   * A card is part of the conversation, not a panel over its foot: once shown
+   * it stays under the message that asked for it, the way a message does,
+   * whatever is said after. The one for where the conversation is keeps
+   * following its card; the rest keep the last state they were in.
+   */
+  anchored: AnchoredSurface[];
+  /**
+   * The surface that was up when Talkeo's last message landed: the one that
+   * message asks for. Only that one is owed a place if they answer in the
+   * chat before it came up — a surface that took over since belongs to the
+   * next message, not this one.
+   */
+  askedWith: string;
+};
+
+export type AnchoredSurface = {
+  /** One per surface: its kind and its card. */
+  key: string;
+  /** The thread entry it sits under. Empty when it came up before any. */
+  after: string;
+  surface: Surface;
 };
 
 export const nothingYet: Onboarding = {
   conversation: noConversation,
-  view: startsInFocus,
   outbox: nothingPending,
   surface: null,
   surfaceReady: false,
+  anchored: [],
+  askedWith: "",
 };
+
+export function surfaceKey(surface: Surface): string {
+  return `${surface.kind}:${surface.card ?? ""}`;
+}
 
 export type OnboardingAction =
   | ConversationAction
-  | { kind: "view"; event: ViewEvent }
   /** They changed a line on a card. It waits for their next turn. */
   | { kind: "edited"; edit: CardEdit }
   /** Their turn went out; whatever was queued went with it. */
@@ -71,9 +93,54 @@ export function step(
   state: Onboarding,
   action: OnboardingAction,
 ): Onboarding {
-  if (action.kind === "view") {
-    return { ...state, view: nextView(state.view, action.event) };
+  return review(reduce(state, action));
+}
+
+/**
+ * The cards the conversation has moved past, as records.
+ *
+ * Moving on is the answer: once the next card is up, the one before it was
+ * accepted, whether they pressed its confirm or answered in the chat. What it
+ * reads as follows the Core, not the press: settled, or still taken while a
+ * later stage can change it (`agreed`). And each shows what is now understood
+ * for its card, the first objective as the head of the list it went on in.
+ * Gone over on every step, since a card left behind still changes.
+ */
+function review(state: Onboarding): Onboarding {
+  const current = state.surface ? surfaceKey(state.surface) : "";
+  const cards = cardsWithEntrance(state.conversation);
+  let changed = false;
+  const anchored = state.anchored.map((entry) => {
+    if (entry.key === current) return entry;
+    const was = entry.surface;
+    const state_ = agreed(was.card, state.conversation.stage);
+    const body = latestBody(was, cards);
+    if (was.state === state_ && sameBody(was.body, body)) return entry;
+    changed = true;
+    return { ...entry, surface: { ...was, state: state_, body } };
+  });
+  return changed ? { ...state, anchored } : state;
+}
+
+function sameBody(a: Record<string, unknown>, b: Record<string, unknown>) {
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every((k) => a[k] === b[k]);
+}
+
+function latestBody(
+  surface: Surface,
+  cards: Record<string, { body: Record<string, unknown> }>,
+): Record<string, unknown> {
+  if (surface.card === "first_goal") {
+    const list = cards.goals?.body.goals;
+    const head = Array.isArray(list) ? list[0] : undefined;
+    if (head && typeof head === "object") return head as Record<string, unknown>;
   }
+  const card = surface.card ? cards[surface.card] : undefined;
+  return card?.body ?? surface.body;
+}
+
+function reduce(state: Onboarding, action: OnboardingAction): Onboarding {
   if (action.kind === "edited") {
     return { ...state, outbox: queueEdit(state.outbox, action.edit) };
   }
@@ -81,34 +148,79 @@ export function step(
     return { ...state, outbox: flush(state.outbox).rest };
   }
   if (action.kind === "surface ready") {
-    return { ...state, surfaceReady: true };
+    return anchor({ ...state, surfaceReady: true });
   }
 
-  const conversation = advance(state.conversation, action);
+  // Answering in the chat before the surface came up does not lose it: it
+  // takes its place now, under the message that asked for it and before their
+  // answer lands (Joaquin, 17/oct: "si o si").
+  const owed =
+    action.kind === "said" &&
+    state.surface !== null &&
+    surfaceKey(state.surface) === state.askedWith;
+  const before = owed
+    ? { ...state, anchored: anchor({ ...state, surfaceReady: true }).anchored }
+    : state;
+
+  const conversation = advance(before.conversation, action);
   const surface = surfaceOf(conversation);
+  const landed =
+    action.kind === "restored" ||
+    (action.kind === "message" && action.message.kind === "turn_done");
 
-  let view = state.view;
-  // The mode settles where somebody starts, once.
-  if (conversation.mode !== state.conversation.mode) {
-    view = nextView(view, { kind: "answers by", mode: conversation.mode });
-  }
-  // A surface that changed and still has something left to do is Talkeo asking
-  // for them. A surface that merely stayed the same is not.
-  if (movedOn(state.surface, surface) && wantsAttention(surface)) {
-    view = nextView(view, { kind: "surface wants them" });
+  return anchor({
+    ...before,
+    conversation,
+    surface,
+    askedWith: landed && surface ? surfaceKey(surface) : before.askedWith,
+    // A new turn takes the surface off until the beat after that turn has been
+    // said, and it does so whether or not there is one up: a card can land
+    // mid-turn and bring a surface with it, and that one waits like any other
+    // rather than inheriting an open gate from before the turn.
+    //
+    // With nothing to put up it stays open, so nothing is ever holding a beat
+    // for a surface that is not coming.
+    //
+    // A different surface taking over also shuts it. A card that settles
+    // can hand the stage to the next one with the gate still open from the
+    // last, and that one came up at once, under the message before, ahead
+    // of the question it answers (Joaquin, 17/oct).
+    surfaceReady:
+      startedTalking(action) || isNewSurface(state.surface, surface)
+        ? false
+        : state.surfaceReady || surface === null,
+  });
+}
+
+/**
+ * Keeps the surface for where the conversation is in the thread.
+ *
+ * It takes its place the first time it is allowed up — the beat after the
+ * turn that asked for it — under whatever was said last. From then on it only
+ * follows its card: a new turn starting does not take it away, and neither
+ * does the conversation moving on to the next one.
+ */
+function anchor(state: Onboarding): Onboarding {
+  const { surface } = state;
+  if (!surface) return state;
+  const key = surfaceKey(surface);
+  const at = state.anchored.findIndex((entry) => entry.key === key);
+
+  if (at >= 0) {
+    if (state.anchored[at]!.surface === surface) return state;
+    const anchored = [...state.anchored];
+    anchored[at] = { ...anchored[at]!, surface };
+    return { ...state, anchored };
   }
 
+  if (!state.surfaceReady) return state;
+  const after = state.conversation.thread.at(-1)?.id ?? "";
   return {
     ...state,
-    conversation,
-    view,
-    surface,
-    // A new turn takes the surface off until the beat after it. Reaching a turn
-    // with nothing to put up leaves it ready, so nothing waits on a beat for a
-    // surface that is not coming.
-    surfaceReady: startedTalking(action)
-      ? false
-      : state.surfaceReady || surface === null,
+    anchored: [
+      ...state.anchored,
+      { key, after, surface },
+    ],
   };
 }
 
@@ -116,17 +228,12 @@ export function step(
 function surfaceOf(conversation: Conversation): Surface | null {
   return surfaceFor({
     stage: conversation.stage,
-    cards: conversation.cards,
-    named: Boolean(conversation.name),
-    mode: conversation.mode,
+    cards: cardsWithEntrance(conversation),
   });
 }
 
-/** Whether the surface is a different one, or the same one in a new state. */
-function movedOn(before: Surface | null, after: Surface | null): boolean {
-  if (!after) return false;
-  if (!before) return true;
-  return before.kind !== after.kind || before.state !== after.state;
+function isNewSurface(was: Surface | null, now: Surface | null): boolean {
+  return now !== null && was !== null && surfaceKey(was) !== surfaceKey(now);
 }
 
 function startedTalking(action: OnboardingAction): boolean {

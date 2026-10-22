@@ -16,15 +16,13 @@
 /** A message fading into the thread. */
 export const MESSAGE_IN_MS = 620;
 
-/**
- * How long after a turn is over the surface appears.
- *
- * Not zero: Talkeo says what the surface is for, and putting it up on the same
- * frame as the last word makes the two arrive as one event rather than as a
- * sentence and then the thing it was about. Long enough to read as a beat,
- * short enough not to read as a wait.
- */
-export const SURFACE_AFTER_MS = 400;
+/** A card opening its room in the thread. Quicker than a message fading. */
+export const SURFACE_IN_MS = 380;
 
-/** How long a view takes to cross to the other one. */
-export const VIEW_SWITCH_MS = 320;
+/**
+ * How long after a turn has been WRITTEN the surface comes up under it.
+ *
+ * Not zero, but barely: on the same frame as the last word the two arrive as
+ * one event. Any longer reads as a wait (Joaquin, 17/oct: "al toque").
+ */
+export const SURFACE_AFTER_MS = 40;

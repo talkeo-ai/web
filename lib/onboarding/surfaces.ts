@@ -16,7 +16,6 @@ import type { InterviewCard } from "@/core/contracts";
 
 export type SurfaceKind =
   | "name"
-  | "mode"
   | "scope"
   | "goal"
   | "goals"
@@ -29,6 +28,13 @@ export type SurfaceState =
   | "asking"
   /** Talkeo filled it from what they said. Editable, and confirming settles it. */
   | "proposed"
+  /**
+   * Agreed to, and still open to change in a later stage: the first objective
+   * goes on in the list of them, and the areas are rewritten whenever an
+   * objective brings in a new one. It is not called confirmed until that stage
+   * has closed (Joaquin, 17/oct: "al final, cuando realmente se confirma").
+   */
+  | "taken"
   /** Settled. A record, re-openable, with nothing to press. */
   | "settled";
 
@@ -41,64 +47,92 @@ export type Surface = {
   /**
    * Whether it has a confirm at all.
    *
-   * Two of the stages autosave — there is nothing for the person to validate, so
-   * offering a yes would be asking for one nobody needs. They are edited and
-   * that is all.
+   * Every card does now: each is edited by hand or by Talkeo, and confirmed by
+   * hand or by Talkeo (Joaquin, 17/oct). ⚠ The Core still autosaves the
+   * starting point and the interests and takes no confirm for them from the
+   * screen; it is to follow. Kept as a flag for the surfaces with no card.
    */
   confirmable: boolean;
 };
 
-/** Which card each stage is filling, and whether its yes is asked for. */
+/**
+ * The cards a later stage can still change, and the last stage that can.
+ * The Core's: `write_scope` runs in the objectives stage, and the first
+ * objective is the head of that stage's list (`cards.on_screen`).
+ */
+const OPEN_UNTIL: Record<string, number> = {
+  scope_options: 4,
+  first_goal: 4,
+};
+
+/** Whether this card's yes moves on rather than closes it. */
+export function staysOpen(card: string | undefined): boolean {
+  return card !== undefined && card in OPEN_UNTIL;
+}
+
+/** What an agreed card is by this stage: still open to change, or settled. */
+export function agreed(card: string | undefined, stage: number): SurfaceState {
+  const until = card ? OPEN_UNTIL[card] : undefined;
+  return until !== undefined && stage <= until ? "taken" : "settled";
+}
+
+/**
+ * What each stage puts on screen, in order, and whether its yes is asked for.
+ *
+ * ⚠ A LIST per stage, not one each, and that is the whole of what makes the
+ * entrance ordinary. It used to be written out as a branch — "if there is no
+ * name show the name one, else if there is no mode show that one" — which is a
+ * different rule from the one every other stage follows, and it behaved
+ * differently: a name that arrived from the CHAT made its surface disappear
+ * instead of come up filled for them to confirm. There is one rule now, below.
+ */
 const OF_STAGE: Record<
   number,
-  { kind: SurfaceKind; card: string; confirmable: boolean } | undefined
+  readonly { kind: SurfaceKind; card: string; confirmable: boolean }[] | undefined
 > = {
-  2: { kind: "scope", card: "scope_options", confirmable: true },
-  3: { kind: "goal", card: "first_goal", confirmable: true },
-  4: { kind: "goals", card: "goals", confirmable: true },
-  5: { kind: "starting_point", card: "starting_point", confirmable: false },
-  6: { kind: "about_you", card: "about_you", confirmable: false },
+  1: [
+    { kind: "name", card: "name", confirmable: true },
+  ],
+  2: [{ kind: "scope", card: "scope_options", confirmable: true }],
+  3: [{ kind: "goal", card: "first_goal", confirmable: true }],
+  4: [{ kind: "goals", card: "goals", confirmable: true }],
+  5: [{ kind: "starting_point", card: "starting_point", confirmable: true }],
+  6: [{ kind: "about_you", card: "about_you", confirmable: true }],
 };
 
 /**
- * The surface for where the conversation is.
+ * The surface for where the conversation is: **the first one this stage owns
+ * that is not settled yet.**
  *
- * The entrance is the exception and it is two surfaces rather than one: it asks
- * their name and then how they want to answer, and both are answered before the
- * model is ever called. `named` is what tells them apart, because the name is
- * what the first one produces.
+ * One rule, and it is a rule about state. Filling something from the chat does
+ * not skip its surface — it brings it up `proposed`, with what Talkeo
+ * understood in it, for them to confirm. That is the pattern of §3.4 for every
+ * stage, and it is now the pattern for the entrance too.
  */
 export function surfaceFor({
   stage,
   cards,
-  named,
-  mode,
 }: {
   stage: number;
   cards: Record<string, InterviewCard>;
-  named: boolean;
-  mode: string;
 }): Surface | null {
-  if (stage <= 1) {
-    if (!named) {
-      return { kind: "name", state: "asking", body: {}, confirmable: true };
-    }
-    if (!mode) {
-      return { kind: "mode", state: "asking", body: {}, confirmable: true };
-    }
-    return null;
+  const owned = OF_STAGE[stage] ?? [];
+  let last: Surface | null = null;
+  for (const spec of owned) {
+    const card = cards[spec.card];
+    const state = card?.state === "confirmed" ? agreed(spec.card, stage) : stateOf(card);
+    last = {
+      kind: spec.kind,
+      card: spec.card,
+      state,
+      body: card?.body ?? {},
+      confirmable: spec.confirmable,
+    };
+    if (state !== "settled" && state !== "taken") return last;
   }
-
-  const of = OF_STAGE[stage];
-  if (!of) return null;
-  const card = cards[of.card];
-  return {
-    kind: of.kind,
-    card: of.card,
-    state: stateOf(card),
-    body: card?.body ?? {},
-    confirmable: of.confirmable,
-  };
+  // All of them settled. The last one stays up as the record it now is, rather
+  // than the screen emptying the moment somebody agrees to something.
+  return last;
 }
 
 function stateOf(card: InterviewCard | undefined): SurfaceState {
@@ -108,15 +142,4 @@ function stateOf(card: InterviewCard | undefined): SurfaceState {
   // their own correction of it. Both are something on screen to check, so both
   // read the same way.
   return "proposed";
-}
-
-/**
- * Whether a surface change is worth pulling somebody out of the chat for.
- *
- * A settled card is a record: it is finished, nobody has to do anything with it,
- * and putting it in front of a person mid-conversation would be interrupting
- * them to show them something they already agreed to.
- */
-export function wantsAttention(surface: Surface | null): boolean {
-  return surface !== null && surface.state !== "settled";
 }

@@ -139,7 +139,7 @@ function Arrow({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="text-text-tertiary hover:text-foreground focus-visible:ring-ring shrink-0 cursor-pointer rounded-lg p-1 transition-colors duration-(--duration-control) ease-(--ease-standard) focus-visible:ring-2 focus-visible:outline-none"
+      className="text-text-tertiary hover:text-foreground focus-key:ring-ring shrink-0 cursor-pointer rounded-lg p-1 transition-colors duration-(--duration-control) ease-(--ease-standard) focus-key:ring-2 focus-visible:outline-none"
     >
       <Icon className="size-5" />
     </button>

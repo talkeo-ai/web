@@ -67,29 +67,33 @@
       "question": "Como você se chama?",
       "hint": "Para o Talkeo saber como te chamar.",
       "placeholder": "Seu nome",
-      "cta": "Continuar"
-    },
-    "mode": {
-      "question": "Como você quer responder?",
-      "questionNamed": "{name}, como você quer responder?",
-      "hint": "O Talkeo precisa do microfone para te ouvir.",
-      "voice": "Ativar microfone",
-      "text": "Prefiro escrever"
+      "cta": "Confirmar"
     },
     "chat": {
       "title": "Onboarding",
       "placeholder": "Escreva sua resposta",
       "placeholderNamed": "Me conta, {name}",
-      "latest": "Último turno",
-      "showChat": "Chat",
-      "hideChat": "Foco",
-      "updated": "Tem algo novo para você"
+      "latest": "Último turno"
     },
     "voice": {
       "mute": "Silenciar o Talkeo",
       "unmute": "Ouvir o Talkeo",
-      "notHeard": "Não te ouvi. Tente de novo.",
-      "noMic": "Não consegui usar o microfone, então seguimos escrevendo."
+      "notHeard": "Não te ouvi. Tente de novo."
+    },
+    "micHint": {
+      "text": "Me responda falando",
+      "close": "Fechar"
+    },
+    "mic": {
+      "denied": "Você não me deu permissão para usar o microfone.",
+      "blocked": "Seu navegador tem o microfone bloqueado para este site. Dá para mudar pelo cadeado na barra de endereços.",
+      "missing": "Não encontrei nenhum microfone.",
+      "busy": "Tem outro aplicativo usando o microfone.",
+      "insecure": "Aqui não consigo pedir o microfone.",
+      "broken": "Algo quebrou do meu lado ao abrir o microfone.",
+      "unknown": "Não consegui abrir o microfone.",
+      "again": "Toque de novo para pedir, ou escolha escrever.",
+      "orWrite": "Você pode seguir escrevendo."
     },
     "exit": {
       "leave": "Sair",
@@ -100,9 +104,22 @@
     },
     "surfaces": {
       "confirm": "Confirmar",
+      "confirmed": "Confirmado",
       "next": "Próximo",
       "edit": "Editar",
       "empty": "—",
+      "add": "Adicionar",
+      "example": {
+        "context": "Ex.: uma semana de reuniões em março",
+        "goal": "Ex.: acompanhar as reuniões do trabalho sem me perder",
+        "work_on": "Ex.: entender sotaques e responder rápido",
+        "path": "Ex.: na escola e depois com um app",
+        "comfortable": "Ex.: ler textos técnicos",
+        "wants_to_work": "Ex.: falar sem travar",
+        "sees_self": "Ex.: entendo bastante, mas falar é difícil",
+        "does": "Ex.: design de produto",
+        "follows": "Ex.: podcasts de tecnologia e séries"
+      },
       "scope": {
         "title": "No que você quer melhorar?",
         "hint": "Marque o que quiser. O Talkeo também pode marcar por você.",
@@ -117,7 +134,8 @@
       "goal": {
         "title": "Seu primeiro objetivo",
         "goal": "O que você quer alcançar",
-        "work_on": "O que vamos trabalhar"
+        "work_on": "O que vamos trabalhar",
+        "context": "Contexto"
       },
       "goals": { "title": "Seus objetivos" },
       "starting_point": {

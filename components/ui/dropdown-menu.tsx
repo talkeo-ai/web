@@ -31,7 +31,7 @@ function DropdownMenuTrigger({
         "flex items-center gap-2 outline-none",
         "text-text-secondary hover:text-foreground",
         "transition-colors duration-(--duration-control) ease-(--ease-standard)",
-        "focus-visible:ring-ring rounded-md focus-visible:ring-2",
+        "focus-key:ring-ring rounded-md focus-key:ring-2",
         className,
       )}
       {...props}

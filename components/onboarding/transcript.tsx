@@ -1,6 +1,6 @@
 "use client";
 
-import type { RefObject } from "react";
+import { Fragment, type ReactNode, type RefObject } from "react";
 
 import { TurnText } from "@/components/talkeo/turn-text";
 import type { Said } from "@/lib/onboarding/conversation";
@@ -19,8 +19,10 @@ import { Arriving, Bubble, TALKEO_BODY, TalkeoSaid, YouSaid } from "./bubble";
 export function Transcript({
   said,
   live,
+  revealing,
   playback,
   heard,
+  surfaces,
   viewport,
   column,
   scrolled,
@@ -28,7 +30,15 @@ export function Transcript({
   said: Said[];
   /** The turn being said now, if there is one. Keyed by it, so each one mounts. */
   live: { turn_id: string } | null;
+  /** The landed turn still writing itself out, by id. */
+  revealing: string | null;
   playback: TurnPlayback;
+  /**
+   * Every surface that has been up, each under the thread entry it came up
+   * after. A card is one of the ways to answer the message above it, so it
+   * stays there like the message does. Keyed, so each one arrives once.
+   */
+  surfaces: { key: string; after: string; node: ReactNode }[];
   /** What they are saying out loud, as it is transcribed. */
   heard: string;
   viewport: RefObject<HTMLDivElement | null>;
@@ -47,26 +57,42 @@ export function Transcript({
           ref={column}
           className="mx-auto flex w-full max-w-3xl flex-col pt-4 pr-4 pb-10 pl-6"
         >
+          {surfacesAfter(surfaces, "")}
           {said.map((entry) => (
-            <div key={entry.id} className="pt-8 first:pt-0">
-              {entry.from === "you" ? (
-                <YouSaid text={entry.text} />
-              ) : (
-                <TalkeoSaid text={entry.text} />
-              )}
-            </div>
+            <Fragment key={entry.id}>
+              <div className="pt-8 first:pt-0">
+                {entry.from === "you" ? (
+                  <YouSaid text={entry.text} />
+                ) : (
+                  <TalkeoSaid
+                    text={entry.text}
+                    revealedWords={
+                      entry.id === revealing ? playback.revealedWords : undefined
+                    }
+                  />
+                )}
+              </div>
+              {surfacesAfter(surfaces, entry.id)}
+            </Fragment>
           ))}
 
-          {live ? (
-            <Arriving key={live.turn_id}>
-              <Bubble from="talkeo">
+          {/* Not before its first word: the turn opens about a second before
+              there is anything to say, and the bubble sat empty through it.
+              And it is simply there, with no fade and no growing: both ran on
+              the empty bubble before, where nobody saw them, and on the text
+              the fade dims the words and the growing clips them. The words
+              writing themselves in are the arrival. */}
+          {live && playback.revealedWords > 0 ? (
+            <div key={live.turn_id} className={said.length === 0 ? undefined : "pt-8"}>
+              <Bubble from="talkeo" arriving={false}>
                 <TurnText
+                  arriving
                   lines={playback.lines}
                   revealedWords={playback.revealedWords}
                   className={TALKEO_BODY}
                 />
               </Bubble>
-            </Arriving>
+            </div>
           ) : null}
 
           {/* What they are saying, in their own bubble rather than in the field.
@@ -91,4 +117,18 @@ export function Transcript({
       />
     </div>
   );
+}
+
+/** The surfaces that sit under one thread entry, in the order they came up. */
+function surfacesAfter(
+  surfaces: { key: string; after: string; node: ReactNode }[],
+  after: string,
+) {
+  return surfaces
+    .filter((surface) => surface.after === after)
+    .map((surface) => (
+      <Arriving key={surface.key}>
+        <div data-slot="chat-surface">{surface.node}</div>
+      </Arriving>
+    ));
 }

@@ -57,6 +57,21 @@ function through(messages: InterviewMessage[]): Conversation {
 }
 
 describe("a turn", () => {
+  it("told again is not said twice", () => {
+    // A page Next kept hidden reopens its channel when shown, and the service
+    // (or the mock) tells the same turn again, with the same id.
+    const once = [
+      started,
+      { kind: "text", turn_id: "tt_1", delta: "Hola" } as const,
+      done("Hola"),
+    ];
+    const state = through([...once, ...once]);
+
+    expect(state.thread.map((entry) => entry.id)).toEqual(["tt_1"]);
+    expect(state.turn).toBeNull();
+    expect(state.answering).toBe(false);
+  });
+
   it("is settled by its result and not by the fragments", () => {
     const state = through([
       started,

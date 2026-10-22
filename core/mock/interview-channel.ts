@@ -16,15 +16,15 @@ import { INTERVIEW_STAGES, TALKEO_INTERVIEW_TURNS } from "./fixtures";
  * it stands in for. Three things it reproduces on purpose, because each one is a
  * way a screen written against a friendlier fixture breaks against the service:
  *
- * - **The entrance streams no text.** Stage 1 is fixed copy that never reaches a
- *   model, so it arrives as `turn_started` then `turn_done` with nothing in
- *   between. A screen that appends deltas and never renders the result shows two
- *   blank screens at the start of every single interview.
+ * - **Every turn streams its text, the entrance included.** Stage 1 is fixed
+ *   copy that never reaches a model, and it used to arrive as `turn_started`
+ *   then `turn_done` with nothing in between — so the screen was blank for the
+ *   whole greeting and the words landed once it had finished being said. The
+ *   service hands that copy over the same way it hands over a model's, and a
+ *   copy turn and a model turn are now one shape rather than two.
  * - **Answering takes time.** The service is about a second to its first word,
  *   so this is too. A fixture that answers instantly is what makes a screen grow
  *   an artificial floor to stop the reply landing on top of the question.
- * - **The person's turn ends on its own.** Listening does not wait to be told to
- *   stop; the transcription decides, and `listen_stop` is the screen giving up.
  *
  * **It has no voice, and says so by never announcing an audio format.** The
  * voice is a provider, and silence pretending to be speech would only buy a
@@ -36,15 +36,7 @@ import { INTERVIEW_STAGES, TALKEO_INTERVIEW_TURNS } from "./fixtures";
 const FIRST_FRAGMENT_MS = 900;
 /** Fast enough to read as streaming, slow enough to see it stream. */
 const FRAGMENT_MS = 25;
-/** How long a spoken answer takes to come back as text. */
-const TRANSCRIPT_MS = 240;
 
-/**
- * What the person says out loud, per turn, when the microphone is the input.
- *
- * It is here rather than in `script.ts` because it is the other half of this
- * recording: these are the answers the recorded turns are answers to.
- */
 /**
  * A name the way the service stores it: every word's first letter raised, and
  * nothing lowered.
@@ -61,30 +53,73 @@ function writtenName(raw: string): string {
     .join(" ");
 }
 
-const SAID_ALOUD = [
-  "Ana",
-  "hablando",
-  "quiero entender cuando hablan rápido en las reuniones",
-  "sí, está bien",
-  "seguir las reuniones con el cliente de punta a punta",
-  "no, con eso está",
-  "estudié en el colegio y después una app",
-  "diseño de producto, y sigo The Futur",
-  "dale",
-];
+/** The card fields the service keeps as lists, and takes back a line each. */
+const LIST_FIELDS = new Set(["work_on", "path", "does", "follows", "context"]);
 
-export function openMockInterview(): InterviewChannel {
+/** An edit's value the way the service stores it (`cards._lines`). */
+function asField(field: string, value: string): unknown {
+  if (!LIST_FIELDS.has(field)) return value;
+  return value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+/**
+ * An edit of the objectives list, into the list. A plain field is the first
+ * objective, `goals.<index>.<field>` any other — the form the screen sends.
+ */
+function foldGoal(body: Record<string, unknown>, edit: CardEdit) {
+  const goals = Array.isArray(body.goals)
+    ? (body.goals as Record<string, unknown>[])
+    : [];
+  const named = /^goals\.(\d+)\.(\w+)$/.exec(edit.field);
+  const index = named ? Number(named[1]) : 0;
+  const field = named ? named[2]! : edit.field;
+  if (!field) return;
+  goals[index] = { ...goals[index], [field]: asField(field, edit.value) };
+  body.goals = goals;
+}
+
+/**
+ * Where each session's recording had got to, kept past the channel.
+ *
+ * The service remembers a session and a channel is only a way in; this used to
+ * forget it with the channel. Next keeps a page it navigated away from and
+ * opens a new channel when it is shown, and the recording started over from the
+ * greeting under a conversation that had already had it.
+ */
+type Progress = {
+  next: number;
+  mode: string;
+  named: string | null;
+  bodies: Record<string, Record<string, unknown>>;
+  goalsShown: boolean;
+  nameTaken: boolean;
+};
+const progress = new Map<string, Progress>();
+
+export function openMockInterview(sessionId = ""): InterviewChannel {
+  const was = progress.get(sessionId);
   const queue = new MessageQueue<InterviewMessage>();
-  let next = 0;
+  let next = was?.next ?? 0;
   let running = false;
   let listening = false;
   // Empty until they pick, exactly as the service reports it: the entrance is
   // what asks, so a channel that answered "text" before anybody had chosen would
   // have a screen setting itself up for a typist while the question was still on
   // it.
-  let mode = "";
-  let named: string | null = null;
-  let pendingEdit: CardEdit | null = null;
+  let mode = was?.mode ?? "";
+  let named: string | null = was?.named ?? null;
+  // Every edit since the last turn, not only the last one: a card with two
+  // lines changed sends two, and keeping one dropped the other.
+  let pendingEdits: CardEdit[] = [];
+  // What each card says by now, their edits folded in, so a later card that is
+  // built from an earlier one — the objectives list from the first objective —
+  // carries what they wrote, the way the service's does (`cards.on_screen`).
+  const bodies: Record<string, Record<string, unknown>> = was?.bodies ?? {};
+  let goalsShown = was?.goalsShown ?? false;
+  let nameTaken = was?.nameTaken ?? false;
   let closed = false;
 
   const wait = (ms: number) =>
@@ -99,16 +134,13 @@ export function openMockInterview(): InterviewChannel {
     return 1;
   };
 
-  /** Mock rule: stage 1 is the entrance, and the entrance is fixed copy. */
-  const isFixedCopy = (turn: TalkeoTurn) => stageOf(turn) === 1;
-
   const runTurn = async () => {
     if (running || closed) return;
     running = true;
     // Taken now rather than at the call site: it belongs to the turn that is
     // about to run, and it must not be carried into the one after it.
-    const edit = pendingEdit;
-    pendingEdit = null;
+    const edits = pendingEdits;
+    pendingEdits = [];
     try {
       const at = Math.min(next, TALKEO_INTERVIEW_TURNS.length - 1);
       const recorded = TALKEO_INTERVIEW_TURNS[at]!;
@@ -129,46 +161,93 @@ export function openMockInterview(): InterviewChannel {
         stages_total: INTERVIEW_STAGES,
       });
 
-      await wait(FIRST_FRAGMENT_MS);
-      if (closed) return;
-
-      if (!isFixedCopy(turn)) {
-        for (const word of visible.split(/(?<=\s)/)) {
-          if (closed) return;
-          queue.push({ kind: "text", turn_id: turn.turn_id, delta: word });
-          await wait(FRAGMENT_MS);
-        }
-        if (turn.word_timings.length) {
-          queue.push({
-            kind: "word_timings",
-            turn_id: turn.turn_id,
-            timings: turn.word_timings,
-          });
-        }
-      }
-
       // Their edit comes back as the card it produced, the way the service
-      // answers one: applied, not merely acknowledged. Ahead of the turn's own
-      // events, because it happened before the turn did.
-      if (edit) {
+      // answers one: applied, not merely acknowledged. Right as the turn
+      // starts and before a word of it, as the service sends it: a yes on the
+      // card is settled before any generation (`stage_service`).
+      edits.forEach((edit, index) => {
+        const body = (bodies[edit.card] ??= {});
+        // The entrance card is the name, which the recording keeps apart.
+        if (edit.card === "entrance" && named) body.name = named;
+        if (edit.card === "goals") foldGoal(body, edit);
+        else if (edit.field) body[edit.field] = asField(edit.field, edit.value);
         queue.push({
           kind: "event",
           turn_id: turn.turn_id,
           event: {
-            event_id: `ev_${turn.turn_id}_ed`,
+            event_id: `ev_${turn.turn_id}_ed${index}`,
             kind: "card_updated",
             origin: "inferred",
             payload: {
               card: edit.card,
               state: edit.confirms ? "confirmed" : "edited_by_person",
-              body: edit.field ? { [edit.field]: edit.value } : {},
+              body: { ...body },
               by: "person",
             },
           },
         });
+      });
+      await wait(FIRST_FRAGMENT_MS);
+      if (closed) return;
+
+      for (const word of visible.split(/(?<=\s)/)) {
+        if (closed) return;
+        queue.push({ kind: "text", turn_id: turn.turn_id, delta: word });
+        await wait(FRAGMENT_MS);
       }
+      if (turn.word_timings.length) {
+        queue.push({
+          kind: "word_timings",
+          turn_id: turn.turn_id,
+          timings: turn.word_timings,
+        });
+      }
+
       for (const event of turn.events) {
         queue.push({ kind: "event", turn_id: turn.turn_id, event });
+      }
+      // The recording moves on right after the name, so the name was taken.
+      // The service says so with `confirm_card("entrance")`; the recording has
+      // no event for it, and the name card waited forever.
+      if (named && !nameTaken) {
+        nameTaken = true;
+        queue.push({
+          kind: "event",
+          turn_id: turn.turn_id,
+          event: {
+            event_id: `ev_${turn.turn_id}_entrance`,
+            kind: "card_updated",
+            origin: "inferred",
+            payload: {
+              card: "entrance",
+              state: "confirmed",
+              body: { name: named },
+              by: "talkeo",
+            },
+          },
+        });
+      }
+      // The objectives list opens with the first objective in it, as the
+      // service's does. The recording has no card for it, so it showed empty.
+      if (stage >= 4 && !goalsShown) {
+        goalsShown = true;
+        const first = bodies.first_goal;
+        bodies.goals = { goals: first ? [{ ...first }] : [] };
+        queue.push({
+          kind: "event",
+          turn_id: turn.turn_id,
+          event: {
+            event_id: `ev_${turn.turn_id}_goals`,
+            kind: "card_updated",
+            origin: "inferred",
+            payload: {
+              card: "goals",
+              state: "draft",
+              body: { goals: first ? [{ ...first }] : [] },
+              by: "talkeo",
+            },
+          },
+        });
       }
       queue.push({
         kind: "turn_done",
@@ -188,20 +267,6 @@ export function openMockInterview(): InterviewChannel {
     }
   };
 
-  /** Mock rule: what they said comes back a word at a time, then settles. */
-  const transcribe = async () => {
-    const said = SAID_ALOUD[Math.min(next, SAID_ALOUD.length - 1)]!;
-    for (const word of said.split(" ")) {
-      if (!listening || closed) return;
-      queue.push({ kind: "transcript", delta: `${word} `, is_final: false });
-      await wait(TRANSCRIPT_MS);
-    }
-    if (!listening || closed) return;
-    queue.push({ kind: "transcript", delta: said, is_final: true });
-    listening = false;
-    void runTurn();
-  };
-
   return {
     messages: () => queue.iterate(),
     resume: () => void runTurn(),
@@ -214,7 +279,7 @@ export function openMockInterview(): InterviewChannel {
       void runTurn();
     },
     cardEdited: (edit) => {
-      pendingEdit = edit;
+      pendingEdits.push(edit);
     },
     choseMode: (chosen) => {
       mode = chosen;
@@ -222,9 +287,12 @@ export function openMockInterview(): InterviewChannel {
     setVoice: () => {
       // Nothing to silence: this channel never speaks.
     },
+    // No pretend speech: the recording cannot hear, so an open microphone
+    // hears nothing until the screen gives up (Joaquin, 22/oct). It used to
+    // answer with a scripted line, which read as the product making up what
+    // they said.
     listenStart: () => {
       listening = true;
-      void transcribe();
     },
     sendAudio: () => {
       // The recording is what the person said; the frames are not read.
@@ -235,6 +303,7 @@ export function openMockInterview(): InterviewChannel {
       queue.push({ kind: "nothing_heard", reason: "" });
     },
     close: () => {
+      progress.set(sessionId, { next, mode, named, bodies, goalsShown, nameTaken });
       closed = true;
       queue.finish();
     },

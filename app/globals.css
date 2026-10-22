@@ -6,6 +6,14 @@
    never outweigh anything else. Matches the element itself and its subtree, so
    a dark island inside a light page works. */
 @custom-variant dark (&:where(.dark, .dark *));
+/* A focus ring for somebody on the keyboard, and for nobody else.
+   `:focus-visible` alone is the browser's guess, and it guesses yes whenever
+   focus is moved by script — a dialog opening or giving focus back — so rings
+   came up after plain clicks, on whatever had just been handed focus (Joaquin,
+   22/oct). `FocusModality` says which it is on <html>; this is React Aria's
+   rule. Fields keep plain `focus-visible`: one clicked into should look
+   active. */
+@custom-variant focus-key (&:is([data-modality="keyboard"] *):focus-visible);
 
 /* ─────────────────────────────────────────────────────────────────────────
    1 · Primitives
@@ -624,6 +632,95 @@ body[data-scroll-locked] {
   }
   50%,
   100% {
+    opacity: 0;
+  }
+}
+
+/* A dialog fades in from a touch smaller, and on the way out only fades, and
+   quicker: leaving it is done, so it does not linger. Scale is animated as
+   `scale` and never as `transform`: the centring is Tailwind's `translate`
+   property, and a keyframed `transform: translate(...)` stacked a second
+   offset on it, so the box slid in from below and to the right (Joaquin,
+   22/oct). Radix holds it mounted until the closing animation ends. */
+.dialog-overlay[data-state="open"] {
+  animation: dialog-fade-in 180ms var(--ease-standard);
+}
+.dialog-overlay[data-state="closed"] {
+  animation: dialog-fade-out 100ms var(--ease-standard);
+}
+.dialog-content[data-state="open"] {
+  animation: dialog-in 180ms var(--ease-entrance);
+}
+.dialog-content[data-state="closed"] {
+  animation: dialog-out 100ms var(--ease-standard);
+}
+
+/* Grows out of the button it points at and shrinks back into it: the origin
+   is the tail, over the speak button. */
+.mic-hint {
+  transform-origin: calc(100% - 26px) 100%;
+}
+.mic-hint[data-state="open"] {
+  animation: mic-hint-in 320ms var(--ease-entrance);
+}
+.mic-hint[data-state="closed"] {
+  animation: mic-hint-out 160ms var(--ease-exit) forwards;
+}
+@keyframes mic-hint-in {
+  from {
+    opacity: 0;
+    scale: 0.6;
+    translate: 0 8px;
+  }
+}
+@keyframes mic-hint-out {
+  to {
+    opacity: 0;
+    scale: 0.8;
+    translate: 0 4px;
+  }
+}
+
+/* The voice glow fades in over half a second, as in claude.ai. Going, it waits
+   a beat first: the lobes die down with the voice, and the fade takes what is
+   left, so it ends like a voice trailing off and not like a light switched
+   off. Opacity only: the box is placed with Tailwind's `translate`, and an
+   animated transform would move it. */
+.voice-glow[data-state="open"] {
+  animation: voice-glow-in 500ms var(--ease-entrance);
+}
+.voice-glow[data-state="closed"] {
+  animation: voice-glow-out 700ms var(--ease-exit) 250ms forwards;
+}
+@keyframes voice-glow-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes voice-glow-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dialog-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+@keyframes dialog-out {
+  to {
     opacity: 0;
   }
 }

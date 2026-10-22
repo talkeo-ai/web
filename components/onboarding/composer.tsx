@@ -1,6 +1,6 @@
 "use client";
 
-import { Mic, MicOff, X } from "lucide-react";
+import { Mic, MicOff, PhoneOff } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 
 import { composerAction } from "@/lib/onboarding/outbox";
@@ -35,12 +35,22 @@ import { cn } from "@/lib/utils";
 const LINE_HEIGHT_PX = 24;
 const MAX_ROWS = 6;
 
+/**
+ * The buttons' corners follow the field's: its 1.4rem radius less the 0.5rem
+ * it is padded by, so the two curves run parallel in the corner. Round buttons
+ * in a rounded rectangle did not match it, which showed once the muted one
+ * filled red (Joaquin, 22/oct).
+ */
+const BUTTON_RADIUS = "rounded-[0.9rem]";
+
 export function Composer({
   placeholder,
   inCall,
   muted,
   canSend,
+  canCall,
   onSend,
+  onType,
   onCall,
   onHangUp,
   onMute,
@@ -50,14 +60,20 @@ export function Composer({
   muted: boolean;
   /** Whether there is anything to send it to yet. */
   canSend: boolean;
+  /** Whether speaking is on offer yet. The onboarding offers it from the start. */
+  canCall: boolean;
   onSend: (text: string) => void;
+  /** They started typing. */
+  onType?: () => void;
   onCall: () => void;
   onHangUp: () => void;
   onMute: (on: boolean) => void;
 }) {
   const [text, setText] = useState("");
-  const action = composerAction({ text, inCall });
-  const ready = action === "send" && canSend;
+  const action = composerAction({ text, inCall, canCall });
+  // With calling not on offer, an empty field shows send too: one with nothing
+  // to send, which stays off.
+  const ready = action === "send" && canSend && text.trim().length > 0;
 
   const act = () => {
     if (action === "call") return onCall();
@@ -90,7 +106,10 @@ export function Composer({
       <textarea
         rows={1}
         value={text}
-        onChange={(event) => setText(event.target.value)}
+        onChange={(event) => {
+          setText(event.target.value);
+          if (event.target.value.trim()) onType?.();
+        }}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
         data-slot="composer-field"
@@ -111,12 +130,19 @@ export function Composer({
           data-slot="composer-mute"
           data-muted={muted ? "true" : "false"}
           aria-label={muted ? "Activar el micrófono" : "Silenciar el micrófono"}
+          // Muted is a state you have to be able to see from across the room,
+          // so it fills red with the struck-through mic, as claude.ai does.
+          // Live is the plain mic, like every other control in the field
+          // (Joaquin, 22/oct).
           className={cn(
-            "text-text-secondary grid size-9 shrink-0 place-items-center rounded-full",
+            "grid size-9 shrink-0 place-items-center",
+            BUTTON_RADIUS,
             "cursor-pointer outline-none",
             "transition-[color,background-color] duration-(--duration-control) ease-(--ease-standard)",
-            "hover:text-foreground hover:bg-surface-tertiary",
-            "focus-visible:ring-ring focus-visible:ring-2",
+            "focus-key:ring-ring focus-key:ring-2",
+            muted
+              ? "bg-destructive hover:bg-destructive/85 text-white"
+              : "text-foreground hover:bg-surface-tertiary",
           )}
         >
           {muted ? <MicOff className="size-5" /> : <Mic className="size-5" />}
@@ -134,17 +160,19 @@ export function Composer({
         // filled circle were logic references — which control is offered when —
         // and not a look to copy.
         className={cn(
-          "text-foreground grid size-9 shrink-0 place-items-center rounded-full",
+          "text-foreground grid size-9 shrink-0 place-items-center",
+          BUTTON_RADIUS,
           "cursor-pointer outline-none",
           "transition-[opacity,background-color] duration-(--duration-control) ease-(--ease-standard)",
-          "hover:bg-surface-tertiary focus-visible:ring-ring focus-visible:ring-2",
+          "hover:bg-surface-tertiary focus-key:ring-ring focus-key:ring-2",
           "disabled:pointer-events-none disabled:opacity-40",
         )}
       >
         {action === "send" ? (
           <SendArrow />
         ) : action === "hang up" ? (
-          <X className="size-5" />
+          // Leaving the call reads as hanging up, not as closing something.
+          <PhoneOff className="size-5" />
         ) : (
           <Waveform />
         )}
