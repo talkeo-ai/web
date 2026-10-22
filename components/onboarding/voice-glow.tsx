@@ -30,7 +30,7 @@ const TALKEO: Rgba = [217 / 255, 119 / 255, 87 / 255, 1];
  * behind the field and the field cuts it, as in claude.ai. Anchored at the
  * foot, it floated clear of the field with a gap under it (Joaquin, 22/oct).
  */
-const SINK_PX = 32;
+const SINK_PX = 44;
 /**
  * Nothing of it shows below this line, measured up from the composer's foot.
  * Clear of the rounded corners, so the glow is cut behind the field and never
