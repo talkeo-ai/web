@@ -97,6 +97,6 @@ test("signup is the same screen", async ({ page }) => {
   await page.goto("/es/signup");
   await page.waitForURL("**/es/login");
   await expect(
-    page.getByRole("heading", { name: "Entrá a Talkeo" }),
+    page.getByRole("button", { name: "Continuar con Google" }),
   ).toBeVisible();
 });

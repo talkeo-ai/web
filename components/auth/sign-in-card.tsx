@@ -179,9 +179,9 @@ export function SignInCard({
             return (
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-heading text-foreground text-[26px] leading-[1.2] font-semibold tracking-[-0.02em]">
+                  <h2 className="font-heading text-foreground mt-4 text-[20px] leading-[1.25] font-semibold tracking-[-0.01em]">
                     {t("switchedTitle")}
-                  </h1>
+                  </h2>
                   <p className="text-text-secondary text-[15px] leading-normal">
                     {t("switchedBody")}
                   </p>
@@ -203,9 +203,9 @@ export function SignInCard({
                 }}
               >
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-heading text-foreground text-[26px] leading-[1.2] font-semibold tracking-[-0.02em]">
+                  <h2 className="font-heading text-foreground mt-4 text-[20px] leading-[1.25] font-semibold tracking-[-0.01em]">
                     {t("codeTitle")}
-                  </h1>
+                  </h2>
                   <p className="text-text-secondary text-[15px] leading-normal">
                     {t.rich("codeBody", {
                       address: email.trim(),
@@ -281,14 +281,9 @@ export function SignInCard({
 
           return (
             <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <h1 className="font-heading text-foreground text-[26px] leading-[1.2] font-semibold tracking-[-0.02em]">
-                  {t("title")}
-                </h1>
-                <p className="text-text-secondary text-[15px] leading-normal">
-                  {t("subtitle")}
-                </p>
-              </div>
+              <p className="text-text-secondary mb-2 text-[15px] leading-normal">
+                {t("subtitle")}
+              </p>
 
               <Button
                 size="lg"

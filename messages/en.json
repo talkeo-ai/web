@@ -615,7 +615,6 @@
     }
   },
   "auth": {
-    "title": "Sign in to Talkeo",
     "subtitle": "First time here? Your account is created in the same step.",
     "google": "Continue with Google",
     "or": "or",

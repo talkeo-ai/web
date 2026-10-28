@@ -228,7 +228,6 @@
     }
   },
   "auth": {
-    "title": "Entrá a Talkeo",
     "subtitle": "Si es tu primera vez, tu cuenta se crea en el mismo paso.",
     "google": "Continuar con Google",
     "or": "o",
