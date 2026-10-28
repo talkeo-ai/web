@@ -443,11 +443,6 @@
     "errorLogged": "Error logged",
     "errorAge": "\"I have 25 years\" → \"I am 25\""
   },
-  "inside": {
-    "streak": "{days, plural, one {# day} other {# days}} streak",
-    "dose": "{minutes} of {goal} minutes today",
-    "start": "Start"
-  },
   "onboarding": {
     "name": {
       "question": "What's your name?",
