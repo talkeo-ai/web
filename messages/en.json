@@ -443,6 +443,15 @@
     "errorLogged": "Error logged",
     "errorAge": "\"I have 25 years\" → \"I am 25\""
   },
+  "inside": {
+    "nav": "Sections",
+    "sections": {
+      "home": "Home",
+      "practice": "Practice",
+      "progress": "Progress",
+      "profile": "Profile"
+    }
+  },
   "onboarding": {
     "name": {
       "question": "What's your name?",
