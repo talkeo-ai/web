@@ -410,7 +410,8 @@
    long one. A screen that fills the viewport and scrolls inside itself never
    scrolls the document at all, so there the reservation is just a dead strip
    down the right-hand edge — visible as a margin the panel does not have. */
-html:has([data-slot="chat-workspace"]) {
+html:has([data-slot="chat-workspace"]),
+html:has([data-slot="inside"]) {
   scrollbar-gutter: auto;
   overflow: hidden;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  ChartNoAxesColumn,
+  TrendingUp,
   House,
   Mic,
   User,
@@ -17,7 +17,7 @@ type Section = "home" | "practice" | "progress" | "profile";
 const MAIN: { key: Section; Icon: LucideIcon }[] = [
   { key: "home", Icon: House },
   { key: "practice", Icon: Mic },
-  { key: "progress", Icon: ChartNoAxesColumn },
+  { key: "progress", Icon: TrendingUp },
 ];
 
 /**
@@ -93,15 +93,17 @@ function RailEntry({
       aria-current={active ? "page" : undefined}
       className="group focus-key:ring-ring flex w-16 cursor-pointer flex-col items-center gap-1 rounded-xl outline-none focus-key:ring-2"
     >
-      {/* The indicator is the only thing that marks the section: a pill
-          behind the icon, wider than tall, the label left alone under it. */}
+      {/* The section is marked by a solid tile behind the icon, made of the
+          same material as the card: the same face, edge and shadow, so the
+          entry reads as attached to what it opened. A tint of the rail's own
+          colour read as faint and unfinished (Joaquin, 27/oct, after Cisma). */}
       <span
         className={cn(
-          "flex h-8 w-14 items-center justify-center rounded-full",
-          "transition-colors duration-(--duration-control) ease-(--ease-standard)",
+          "flex size-11 items-center justify-center rounded-[14px] border",
+          "transition-[background-color,border-color,box-shadow,color] duration-(--duration-control) ease-(--ease-standard)",
           active
-            ? "bg-foreground/[0.08] text-foreground"
-            : "text-text-secondary group-hover:bg-foreground/[0.04] group-hover:text-foreground",
+            ? "bg-card text-foreground border-black/[0.06] shadow-xs dark:border-white/[0.08]"
+            : "text-text-secondary group-hover:bg-foreground/[0.05] group-hover:text-foreground border-transparent",
         )}
       >
         <Icon className="size-[22px]" strokeWidth={active ? 2.1 : 1.8} />
