@@ -56,11 +56,10 @@
     "errorLogged": "Error registrado",
     "errorAge": "\"I have 25 years\" → \"I am 25\""
   },
-  "home": {
-    "placeholder": "Base lista. Todavía no hay app.",
-    "loading": "Cargando",
-    "sessionReady": "Sesión activa",
-    "sessionMissing": "Sin sesión"
+  "inside": {
+    "streak": "Racha de {days, plural, one {# día} other {# días}}",
+    "dose": "{minutes} de {goal} minutos hoy",
+    "start": "Empezar"
   },
   "onboarding": {
     "name": {

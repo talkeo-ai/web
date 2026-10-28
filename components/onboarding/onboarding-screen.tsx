@@ -41,7 +41,7 @@ export function OnboardingScreen({ opened }: { opened: OpenedInterview }) {
   // reach the registry.
   return (
     <MarkTargets>
-      <Screen opened={opened} t={t} onLeave={() => router.push("/")} />
+      <Screen opened={opened} t={t} onLeave={() => router.push("/home")} />
     </MarkTargets>
   );
 }
