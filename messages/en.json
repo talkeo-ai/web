@@ -452,6 +452,29 @@
       "practice": "Practice",
       "progress": "Progress",
       "profile": "Profile"
+    },
+    "home": {
+      "goals": "Your goals",
+      "streakLong": "{days, plural, one {# day in a row} other {# days in a row}}",
+      "todayGoal": "{minutes} of {goal} minutes today",
+      "today": "Today",
+      "duration": "{minutes} min",
+      "kind": {
+        "voice": "Speak",
+        "writing": "Write",
+        "listening": "Listen",
+        "reading": "Read"
+      },
+      "steps": "Today's steps",
+      "stepOf": "Step {n} of {total}",
+      "start": "Start",
+      "continue": "Continue",
+      "unit": "Unit {n}",
+      "unitProgress": "{share, number, percent}",
+      "backToToday": "Go to today",
+      "road": "Path",
+      "repeat": "Repeat",
+      "skipAhead": "Do it early"
     }
   },
   "onboarding": {
