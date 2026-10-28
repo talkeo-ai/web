@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  TrendingUp,
-  House,
-  Mic,
-  User,
-  type LucideIcon,
-} from "lucide-react";
+import { House, Mic, TrendingUp, User, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -24,49 +18,56 @@ const MAIN: { key: Section; Icon: LucideIcon }[] = [
  * The inside, as one page: a fixed rail on the left and a card on the right.
  *
  * The window never scrolls; only the card does. The rail does not expand: each
- * entry is a large icon with its name under it. Switching sections is state
- * here and not a navigation, so nothing reloads.
+ * entry is an icon on a tile with its name under it. Switching sections is
+ * state here and not a navigation, so nothing reloads.
  *
- * Everything sits on one 4px grid with a single gutter (12px): the space
- * around the card and the rail's own top and bottom are the same, so the logo
- * lines up with the card's top edge and the last entry with its bottom.
+ * Sized after Cisma's rail, which Joaquin pointed at (27/oct): a narrow rail,
+ * 40px tiles with a 12px corner and a 20px icon, the selected one filled solid
+ * and flat, a thin gutter of 8px around a card with a quiet edge and no shadow.
+ * The profile sits at the bottom as a round avatar.
  */
 export function InsideShell() {
   const t = useTranslations("inside");
   const [section, setSection] = useState<Section>("home");
 
-  const entry = (key: Section, Icon: LucideIcon) => (
-    <RailEntry
-      key={key}
-      Icon={Icon}
-      label={t(`sections.${key}`)}
-      active={key === section}
-      onSelect={() => setSection(key)}
-    />
-  );
-
   return (
     <div
       data-slot="inside"
-      className="bg-surface-sunken flex h-dvh overflow-hidden p-3"
+      className="bg-surface-sunken flex h-dvh overflow-hidden p-2"
     >
       <nav
         aria-label={t("nav")}
-        className="flex w-[76px] shrink-0 flex-col items-center"
+        className="flex w-[72px] shrink-0 flex-col items-center py-2 pr-2"
       >
-        <div className="flex h-14 items-center justify-center">
+        <div className="flex size-10 items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Talkeo" className="size-8" />
+          <img src="/logo.png" alt="Talkeo" className="size-7" />
         </div>
-        <div className="mt-4 flex flex-col gap-3">
-          {MAIN.map(({ key, Icon }) => entry(key, Icon))}
+        <div className="mt-6 flex flex-col gap-2">
+          {MAIN.map(({ key, Icon }) => (
+            <RailEntry
+              key={key}
+              Icon={Icon}
+              label={t(`sections.${key}`)}
+              active={key === section}
+              onSelect={() => setSection(key)}
+            />
+          ))}
         </div>
-        <div className="mt-auto">{entry("profile", User)}</div>
+        <div className="mt-auto">
+          <RailEntry
+            Icon={User}
+            label={t("sections.profile")}
+            active={section === "profile"}
+            onSelect={() => setSection("profile")}
+            round
+          />
+        </div>
       </nav>
 
-      <main className="bg-card ml-3 min-w-0 flex-1 overflow-y-auto rounded-[20px] border border-black/[0.05] shadow-xs dark:border-white/[0.06]">
-        <div className="mx-auto w-full max-w-3xl px-10 py-10">
-          <h1 className="font-heading text-foreground text-[28px] leading-tight font-semibold tracking-[-0.01em]">
+      <main className="bg-card min-w-0 flex-1 overflow-y-auto rounded-xl border border-black/[0.06] dark:border-white/[0.07]">
+        <div className="mx-auto w-full max-w-3xl px-8 py-8">
+          <h1 className="font-heading text-foreground text-2xl font-semibold tracking-[-0.01em]">
             {t(`sections.${section}`)}
           </h1>
         </div>
@@ -80,37 +81,38 @@ function RailEntry({
   label,
   active,
   onSelect,
+  round = false,
 }: {
   Icon: LucideIcon;
   label: string;
   active: boolean;
   onSelect: () => void;
+  round?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-current={active ? "page" : undefined}
-      className="group focus-key:ring-ring flex w-16 cursor-pointer flex-col items-center gap-1 rounded-xl outline-none focus-key:ring-2"
+      className="group focus-key:ring-ring flex w-14 cursor-pointer flex-col items-center gap-1 rounded-xl outline-none focus-key:ring-2"
     >
-      {/* The section is marked by a solid tile behind the icon, made of the
-          same material as the card: the same face, edge and shadow, so the
-          entry reads as attached to what it opened. A tint of the rail's own
-          colour read as faint and unfinished (Joaquin, 27/oct, after Cisma). */}
       <span
         className={cn(
-          "flex size-11 items-center justify-center rounded-[14px] border",
-          "transition-[background-color,border-color,box-shadow,color] duration-(--duration-control) ease-(--ease-standard)",
+          "flex size-10 items-center justify-center",
+          round ? "rounded-full" : "rounded-xl",
+          "transition-colors duration-(--duration-control) ease-(--ease-standard)",
           active
-            ? "bg-card text-foreground border-black/[0.06] shadow-xs dark:border-white/[0.08]"
-            : "text-text-secondary group-hover:bg-foreground/[0.05] group-hover:text-foreground border-transparent",
+            ? "bg-surface-tertiary text-foreground"
+            : round
+              ? "bg-surface-secondary text-text-secondary group-hover:bg-surface-tertiary group-hover:text-foreground"
+              : "text-text-secondary group-hover:bg-surface-secondary group-hover:text-foreground",
         )}
       >
-        <Icon className="size-[22px]" strokeWidth={active ? 2.1 : 1.8} />
+        <Icon className="size-5" strokeWidth={active ? 2 : 1.75} />
       </span>
       <span
         className={cn(
-          "text-[11.5px] leading-4 font-medium",
+          "text-[11px] leading-[14px] font-medium",
           "transition-colors duration-(--duration-control) ease-(--ease-standard)",
           active
             ? "text-foreground"
