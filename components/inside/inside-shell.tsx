@@ -56,11 +56,12 @@ export function InsideShell() {
     setPeek(false);
   };
 
-  const nav = (
+  const nav = (floating: boolean) => (
     <SidebarContent
       section={section}
       onSelect={setSection}
       onToggle={toggle}
+      floating={floating}
       t={t}
     />
   );
@@ -82,7 +83,7 @@ export function InsideShell() {
           folded ? "w-0" : SIDEBAR_WIDTH,
         )}
       >
-        <div className={cn("h-full", SIDEBAR_WIDTH)}>{nav}</div>
+        <div className={cn("h-full", SIDEBAR_WIDTH)}>{nav(false)}</div>
       </aside>
 
       {/* Folded: a strip on the left edge calls the sidebar back, floating. */}
@@ -108,7 +109,7 @@ export function InsideShell() {
             : "pointer-events-none -translate-x-full opacity-0 ease-(--ease-exit)",
         )}
       >
-        {nav}
+        {nav(true)}
       </aside>
 
       <div
@@ -143,15 +144,20 @@ function SidebarContent({
   section,
   onSelect,
   onToggle,
+  floating,
   t,
 }: {
   section: Section;
   onSelect: (section: Section) => void;
   onToggle: () => void;
+  floating: boolean;
   t: ReturnType<typeof useTranslations<"inside">>;
 }) {
+  // Floating, the box already sits 8px in from the top and bottom, so the rows
+  // drop their own 8px: every row lands where it was docked. With both, the
+  // floating one read as slipped down (Joaquin, 27/oct).
   return (
-    <div className="flex h-full flex-col px-3 py-2">
+    <div className={cn("flex h-full flex-col px-3", !floating && "py-2")}>
       <div className="flex h-11 items-center gap-2 px-1.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" className="size-5 rounded-[5px]" />
