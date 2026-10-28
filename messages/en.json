@@ -614,6 +614,52 @@
       "restore": "Exit full screen"
     }
   },
+  "auth": {
+    "title": "Sign in to Talkeo",
+    "subtitle": "First time here? Your account is created in the same step.",
+    "google": "Continue with Google",
+    "or": "or",
+    "emailLabel": "Your email",
+    "emailPlaceholder": "you@email.com",
+    "sendCode": "Get a code",
+    "emailHint": "We'll send you a 6-digit code and a link. No passwords.",
+    "codeTitle": "Check your email",
+    "codeBody": "We sent a code to <email>{address}</email>. Type it here or tap the link in the email.",
+    "codeLabel": "6-digit code",
+    "verify": "Sign in",
+    "otherEmail": "Use another email",
+    "resend": "Send the code again",
+    "resendIn": "Send again in {seconds} s",
+    "resent": "We sent you a new code.",
+    "switchedTitle": "You're in your account",
+    "switchedBody": "That email already had an account, so you signed in there. What you just did without an account stays separate.",
+    "continue": "Continue",
+    "legal": "By continuing you accept the <terms>Terms</terms> and the <privacy>Privacy Policy</privacy>.",
+    "home": "Back to home",
+    "aside": {
+      "title": "What you practise, kept",
+      "points": [
+        "What you know and what you're missing is recorded",
+        "Pick up on your phone or computer, where you left off",
+        "Every day, practice put together for you"
+      ]
+    },
+    "verifyPage": {
+      "working": "Signing you in…",
+      "otherBrowser": "This link works in the browser where you asked for the code. If you're on another one, type the code there.",
+      "invalid": "This link doesn't work here. If you asked for the code in another browser, type it there; if not, ask for a new one.",
+      "back": "Go to sign in"
+    },
+    "errors": {
+      "CODE_INVALID": "That's not the code. Check it or ask for a new one.",
+      "RATE_LIMITED": "You asked for a lot of codes. Wait a bit and try again.",
+      "EMAIL_REJECTED": "Use an email you check.",
+      "CHALLENGE_FAILED": "We couldn't check this browser. Reload the page.",
+      "OAUTH_FAILED": "We couldn't sign you in with Google. Try again or use your email.",
+      "google": "We couldn't sign you in with Google. Try again or use your email.",
+      "generic": "Something went wrong. Try again."
+    }
+  },
   "notFound": {
     "title": "This page doesn't exist",
     "cta": "Back to home"

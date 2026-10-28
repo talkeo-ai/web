@@ -227,6 +227,52 @@
       "restore": "Salir de pantalla completa"
     }
   },
+  "auth": {
+    "title": "Entrá a Talkeo",
+    "subtitle": "Si es tu primera vez, tu cuenta se crea en el mismo paso.",
+    "google": "Continuar con Google",
+    "or": "o",
+    "emailLabel": "Tu email",
+    "emailPlaceholder": "tu@email.com",
+    "sendCode": "Recibir código",
+    "emailHint": "Te mandamos un código de 6 dígitos y un link. Sin contraseñas.",
+    "codeTitle": "Revisá tu mail",
+    "codeBody": "Mandamos un código a <email>{address}</email>. Escribilo acá o tocá el link del mail.",
+    "codeLabel": "Código de 6 dígitos",
+    "verify": "Entrar",
+    "otherEmail": "Usar otro email",
+    "resend": "Reenviar código",
+    "resendIn": "Reenviar en {seconds} s",
+    "resent": "Te mandamos otro código.",
+    "switchedTitle": "Entraste a tu cuenta",
+    "switchedBody": "Ese email ya tenía una cuenta, así que entraste ahí. Lo que hiciste recién sin cuenta queda aparte.",
+    "continue": "Seguir",
+    "legal": "Al continuar aceptás los <terms>Términos</terms> y la <privacy>Política de privacidad</privacy>.",
+    "home": "Volver al inicio",
+    "aside": {
+      "title": "Lo que practicás, guardado",
+      "points": [
+        "Lo que ya sabés y lo que te falta queda registrado",
+        "Seguís desde el celular o la compu, donde lo dejaste",
+        "Cada día, una práctica armada para vos"
+      ]
+    },
+    "verifyPage": {
+      "working": "Entrando…",
+      "otherBrowser": "Este link funciona en el navegador donde pediste el código. Si estás en otro, escribí el código allá.",
+      "invalid": "Este link ya no sirve acá. Si pediste el código en otro navegador, escribilo allá; si no, pedí uno nuevo.",
+      "back": "Ir a entrar"
+    },
+    "errors": {
+      "CODE_INVALID": "Ese código no es. Revisalo o pedí otro.",
+      "RATE_LIMITED": "Pediste muchos códigos. Esperá un rato y probá de nuevo.",
+      "EMAIL_REJECTED": "Usá un email que revises.",
+      "CHALLENGE_FAILED": "No pudimos verificar este navegador. Recargá la página.",
+      "OAUTH_FAILED": "No pudimos entrar con Google. Probá de nuevo o usá tu email.",
+      "google": "No pudimos entrar con Google. Probá de nuevo o usá tu email.",
+      "generic": "Algo salió mal. Probá de nuevo."
+    }
+  },
   "notFound": {
     "title": "Esta página no existe",
     "cta": "Volver al inicio"

@@ -34,11 +34,24 @@ type MockAccount = {
   used_percent: number;
 };
 
-const accounts = new Map<string, MockAccount>();
-/** Session token → user. A signed-out token is removed. */
-const tokens = new Map<string, string>();
-/** Email → the session that asked for its code. */
-const pendingCodes = new Map<string, string>();
+type MockAccountsState = {
+  accounts: Map<string, MockAccount>;
+  /** Session token → user. A signed-out token is removed. */
+  tokens: Map<string, string>;
+  /** Email → the session that asked for its code. */
+  pendingCodes: Map<string, string>;
+};
+
+// On the process, not the module: Next bundles route handlers apart from the
+// pages and their server actions, so a module-level map would exist twice and
+// the Google callback would not know the session the sign-in page started.
+const shared = globalThis as { __talkeoMockAccounts?: MockAccountsState };
+const state: MockAccountsState = (shared.__talkeoMockAccounts ??= {
+  accounts: new Map(),
+  tokens: new Map(),
+  pendingCodes: new Map(),
+});
+const { accounts, tokens, pendingCodes } = state;
 
 /** Drops every account and session. Tests call it next to `resetMockStore`. */
 export function resetMockAccounts(): void {
