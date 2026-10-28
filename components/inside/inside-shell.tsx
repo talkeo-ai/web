@@ -102,7 +102,7 @@ export function InsideShell() {
         inert={!(folded && peek)}
         onMouseLeave={() => setPeek(false)}
         className={cn(
-          "bg-surface-sunken absolute inset-y-2 left-0 z-30 overflow-hidden rounded-r-lg border border-l-0",
+          "bg-surface-sunken absolute top-2 bottom-0 left-0 z-30 overflow-hidden rounded-tr-[10px] border border-b-0 border-l-0",
           "border-black/[0.08] shadow-[0_8px_24px_-8px_rgb(0_0_0/0.25)] dark:border-white/[0.08]",
           "transition-[translate,opacity] duration-200",
           SIDEBAR_WIDTH,
@@ -155,11 +155,12 @@ function SidebarContent({
   floating: boolean;
   t: ReturnType<typeof useTranslations<"inside">>;
 }) {
-  // Floating, the box already sits 8px in from the top and bottom, so the rows
-  // drop their own 8px: every row lands where it was docked. With both, the
-  // floating one read as slipped down (Joaquin, 27/oct).
+  // Floating, the box sits 8px in from the top, so the rows drop their own top
+  // 8px; it runs down to the window's edge, so they keep the bottom 8px. Every
+  // row lands where it was docked: with both tops it read as slipped down, and
+  // inset at the bottom the last row sat on the box's edge (Joaquin, 27/oct).
   return (
-    <div className={cn("flex h-full flex-col px-3", !floating && "py-2")}>
+    <div className={cn("flex h-full flex-col px-3 pb-2", !floating && "pt-2")}>
       <div className="flex h-13 items-center gap-2.5 px-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" className="size-6 rounded-md" />
