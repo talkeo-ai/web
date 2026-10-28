@@ -90,14 +90,14 @@ export function InsideShell() {
         inert={folded}
         className={cn(
           "shrink-0 overflow-hidden",
-          "transition-[width] duration-300",
+          "transition-[width] duration-200",
           SMOOTH,
           folded ? "w-2" : SIDEBAR_WIDTH,
         )}
       >
         <div
           className={cn(
-            "h-full transition-opacity duration-300",
+            "h-full transition-opacity duration-200",
             SMOOTH,
             SIDEBAR_WIDTH,
             folded ? "opacity-0" : "opacity-100",
@@ -127,8 +127,8 @@ export function InsideShell() {
           SMOOTH,
           SIDEBAR_WIDTH,
           folded && peek
-            ? "translate-x-0 opacity-100 duration-300"
-            : "pointer-events-none -translate-x-full opacity-0 duration-200",
+            ? "translate-x-0 opacity-100 duration-200"
+            : "pointer-events-none -translate-x-full opacity-0 duration-150",
         )}
       >
         {nav(true)}
