@@ -11,7 +11,11 @@ import {
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
+import { MOCK_HOME } from "@/lib/inside/mock";
 import { cn } from "@/lib/utils";
+
+import { GoalProgress } from "./goal-progress";
+import { HomeSection, HomeTabs, useHomeView } from "./home-section";
 
 type Section = "home" | "practice" | "progress" | "profile";
 
@@ -48,6 +52,7 @@ export function InsideShell() {
   const [folded, setFolded] = useState(false);
   const [peek, setPeek] = useState(false);
   const peeking = folded && peek;
+  const homeView = useHomeView();
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -146,7 +151,7 @@ export function InsideShell() {
       </aside>
 
       <div className="flex min-w-0 flex-1 p-2 pl-0">
-        <main className="bg-background flex min-w-0 flex-1 flex-col overflow-hidden rounded-[10px] border border-black/[0.06] dark:border-white/[0.07]">
+        <main className="bg-background relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-[10px] border border-black/[0.06] dark:border-white/[0.07]">
           {/* The fold button lives here in both states, first in the bar, so
               the title never moves. Shown only while folded, it pushed the
               title over each time (Joaquin, 27/oct). */}
@@ -159,10 +164,29 @@ export function InsideShell() {
             <h1 className="text-foreground text-[15px] font-medium">
               {t(`sections.${section}`)}
             </h1>
+            <div className="ml-auto">
+              <GoalProgress home={MOCK_HOME} />
+            </div>
           </header>
-          <div className="flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-3xl px-8 py-8" />
+          <div data-slot="inside-scroll" className="scroll-quiet flex-1 overflow-y-auto">
+            <div className="mx-auto h-full w-full max-w-3xl px-8">
+              {section === "home" && (
+                <HomeSection
+                  home={MOCK_HOME}
+                  shown={homeView.shown}
+                  leaving={homeView.leaving}
+                />
+              )}
+            </div>
           </div>
+          {/* Floating in the panel's bottom-right corner, over the content,
+              where the thumb and the pointer already rest. In the bar it read
+              as one more label (Joaquin, 27/oct). */}
+          {section === "home" && (
+            <div className="absolute right-4 bottom-4 z-40">
+              <HomeTabs view={homeView.view} onChange={homeView.change} />
+            </div>
+          )}
         </main>
       </div>
     </div>

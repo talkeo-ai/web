@@ -65,6 +65,29 @@
       "practice": "Practicar",
       "progress": "Progreso",
       "profile": "Perfil"
+    },
+    "home": {
+      "goals": "Tus objetivos",
+      "streakLong": "{days, plural, one {# día seguido} other {# días seguidos}}",
+      "todayGoal": "{minutes} de {goal} minutos hoy",
+      "today": "Hoy",
+      "duration": "{minutes} min",
+      "kind": {
+        "voice": "Hablar",
+        "writing": "Escribir",
+        "listening": "Escuchar",
+        "reading": "Leer"
+      },
+      "steps": "Los pasos de hoy",
+      "stepOf": "Paso {n} de {total}",
+      "start": "Empezar",
+      "continue": "Seguir",
+      "unit": "Unidad {n}",
+      "unitProgress": "{share, number, percent}",
+      "backToToday": "Ir a hoy",
+      "road": "Camino",
+      "repeat": "Repetir",
+      "skipAhead": "Adelantar"
     }
   },
   "onboarding": {
