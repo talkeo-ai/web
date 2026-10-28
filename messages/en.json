@@ -636,14 +636,6 @@
     "continue": "Continue",
     "legal": "By continuing you accept the <terms>Terms</terms> and the <privacy>Privacy Policy</privacy>.",
     "home": "Back to home",
-    "aside": {
-      "title": "What you practise, kept",
-      "points": [
-        "What you know and what you're missing is recorded",
-        "Pick up on your phone or computer, where you left off",
-        "Every day, practice put together for you"
-      ]
-    },
     "verifyPage": {
       "working": "Signing you in…",
       "otherBrowser": "This link works in the browser where you asked for the code. If you're on another one, type the code there.",

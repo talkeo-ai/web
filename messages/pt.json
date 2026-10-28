@@ -249,14 +249,6 @@
     "continue": "Continuar",
     "legal": "Ao continuar você aceita os <terms>Termos</terms> e a <privacy>Política de privacidade</privacy>.",
     "home": "Voltar ao início",
-    "aside": {
-      "title": "O que você pratica, guardado",
-      "points": [
-        "O que você já sabe e o que falta fica registrado",
-        "Continue no celular ou no computador, de onde parou",
-        "Todo dia, uma prática montada para você"
-      ]
-    },
     "verifyPage": {
       "working": "Entrando…",
       "otherBrowser": "Este link funciona no navegador onde você pediu o código. Se estiver em outro, digite o código lá.",
