@@ -56,6 +56,15 @@
     "errorLogged": "Error registrado",
     "errorAge": "\"I have 25 years\" → \"I am 25\""
   },
+  "inside": {
+    "nav": "Secciones",
+    "sections": {
+      "home": "Inicio",
+      "practice": "Practicar",
+      "progress": "Progreso",
+      "profile": "Perfil"
+    }
+  },
   "onboarding": {
     "name": {
       "question": "¿Cómo te llamás?",
