@@ -4,6 +4,7 @@ import {
   GATHER_CAP_MS,
   openCall,
   RECOVER_MS,
+  STUN_URL,
   worthAskingAgain,
   type MicRefusal,
   type RoomCall,
@@ -128,7 +129,7 @@ class FakePeer {
   private listeners = new Map<string, Set<() => void>>();
   private trackListeners: ((event: unknown) => void)[] = [];
 
-  constructor() {
+  constructor(readonly config?: RTCConfiguration) {
     FakePeer.last = this;
   }
   addTrack(track: unknown) {
@@ -229,6 +230,16 @@ describe("joining the room", () => {
       token: "tok",
     });
     expect(FakePeer.last.remote).toEqual({ type: "answer", sdp: "v=0 answer" });
+  });
+
+  it("asks a STUN server for its public address, so a host with no inbound UDP can reach it", async () => {
+    microphone();
+    withPeer();
+    answering(200);
+
+    await (await opened()).join(ROOM);
+
+    expect(FakePeer.last.config?.iceServers).toEqual([{ urls: STUN_URL }]);
   });
 
   it("sends the microphone on the line", async () => {

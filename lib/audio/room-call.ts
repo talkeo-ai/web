@@ -69,6 +69,9 @@ export type CallFailure =
   /** Anything else: the room is down, unreachable, or refused the offer. */
   | "unavailable";
 
+/** Where the browser asks for its own public address. */
+export const STUN_URL = "stun:stun.l.google.com:19302";
+
 /** How long to wait for the browser to finish finding its network paths. */
 export const GATHER_CAP_MS = 2000;
 /**
@@ -215,7 +218,11 @@ function buildCall(stream: MediaStream, context: AudioContext | null): RoomCall 
 
       let connection: RTCPeerConnection;
       try {
-        connection = new RTCPeerConnection();
+        // A public STUN server so the offer carries this side's public address. The
+        // room runs on a host with no inbound UDP: it reaches out to the address it
+        // is given, and a browser behind a NAT that offered only its private one
+        // would never be reached.
+        connection = new RTCPeerConnection({ iceServers: [{ urls: STUN_URL }] });
       } catch {
         return fail("unavailable");
       }
