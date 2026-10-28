@@ -40,11 +40,7 @@ vi.mock("@/core/channel", async () => {
         resume: () => {},
         say: () => {},
         cardEdited: () => {},
-        choseMode: () => {},
         setVoice: () => {},
-        listenStart: () => {},
-        sendAudio: () => {},
-        listenStop: () => {},
         close: () => {
           closed += 1;
           queue.finish();

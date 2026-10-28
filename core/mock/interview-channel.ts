@@ -91,7 +91,6 @@ function foldGoal(body: Record<string, unknown>, edit: CardEdit) {
  */
 type Progress = {
   next: number;
-  mode: string;
   named: string | null;
   bodies: Record<string, Record<string, unknown>>;
   goalsShown: boolean;
@@ -104,12 +103,6 @@ export function openMockInterview(sessionId = ""): InterviewChannel {
   const queue = new MessageQueue<InterviewMessage>();
   let next = was?.next ?? 0;
   let running = false;
-  let listening = false;
-  // Empty until they pick, exactly as the service reports it: the entrance is
-  // what asks, so a channel that answered "text" before anybody had chosen would
-  // have a screen setting itself up for a typist while the question was still on
-  // it.
-  let mode = was?.mode ?? "";
   let named: string | null = was?.named ?? null;
   // Every edit since the last turn, not only the last one: a card with two
   // lines changed sends two, and keeping one dropped the other.
@@ -157,7 +150,6 @@ export function openMockInterview(sessionId = ""): InterviewChannel {
         turn_id: turn.turn_id,
         stage,
         stage_name: `stage_${stage}`,
-        mode,
         stages_total: INTERVIEW_STAGES,
       });
 
@@ -257,7 +249,7 @@ export function openMockInterview(sessionId = ""): InterviewChannel {
           flow: {
             step: turn.closing ? "items" : "talkeo_interview",
             mode: "standard",
-            mic_granted: mode === "speak",
+            mic_granted: false,
             display_name: named,
           },
         },
@@ -281,29 +273,11 @@ export function openMockInterview(sessionId = ""): InterviewChannel {
     cardEdited: (edit) => {
       pendingEdits.push(edit);
     },
-    choseMode: (chosen) => {
-      mode = chosen;
-    },
     setVoice: () => {
       // Nothing to silence: this channel never speaks.
     },
-    // No pretend speech: the recording cannot hear, so an open microphone
-    // hears nothing until the screen gives up (Joaquin, 22/oct). It used to
-    // answer with a scripted line, which read as the product making up what
-    // they said.
-    listenStart: () => {
-      listening = true;
-    },
-    sendAudio: () => {
-      // The recording is what the person said; the frames are not read.
-    },
-    listenStop: () => {
-      if (!listening) return;
-      listening = false;
-      queue.push({ kind: "nothing_heard", reason: "" });
-    },
     close: () => {
-      progress.set(sessionId, { next, mode, named, bodies, goalsShown, nameTaken });
+      progress.set(sessionId, { next, named, bodies, goalsShown, nameTaken });
       closed = true;
       queue.finish();
     },

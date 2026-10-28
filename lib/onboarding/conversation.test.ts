@@ -22,7 +22,6 @@ const started: InterviewMessage = {
   turn_id: "tt_1",
   stage: 2,
   stage_name: "scope",
-  mode: "text",
   stages_total: 7,
 };
 
@@ -150,14 +149,13 @@ describe("what the person says", () => {
   });
 
   it("leaves nothing behind when they were listened to and said nothing", () => {
-    // Whose turn it is does not change, so the screen has to be able to offer
-    // to listen again rather than wait for a turn nobody is generating.
+    // Whose turn it is does not change, so nothing may wait for a turn nobody
+    // is generating.
     const state = through([
       { kind: "transcript", delta: "mmm", is_final: false },
       { kind: "nothing_heard", reason: "" },
     ]);
     expect(state.thread).toHaveLength(0);
-    expect(state.listening).toBe(false);
     expect(state.answering).toBe(false);
   });
 
@@ -231,5 +229,18 @@ describe("audio", () => {
       { kind: "audio", turn_id: "tt_1", data: new ArrayBuffer(8) },
     ]);
     expect(state.turn?.text).toBe("");
+  });
+});
+
+describe("a room attaching", () => {
+  it("is not part of the conversation", () => {
+    // Whether a call is live belongs to the call. A reducer that reacted to it
+    // would redraw a thread because somebody else hung up.
+    const before = through([started]);
+    const after = advance(before, {
+      kind: "message",
+      message: { kind: "call_state", live: true },
+    });
+    expect(after).toBe(before);
   });
 });

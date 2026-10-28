@@ -480,7 +480,12 @@
       "broken": "Something broke on my side while opening the microphone.",
       "unknown": "I could not open the microphone.",
       "again": "Press again to ask for it, or choose to write.",
-      "orWrite": "You can keep writing."
+      "orWrite": "You can keep writing.",
+      "room": {
+        "expired": "The call took too long to start.",
+        "busy": "This conversation already has a call open.",
+        "unavailable": "Calls are not available right now."
+      }
     },
     "exit": {
       "leave": "Leave",

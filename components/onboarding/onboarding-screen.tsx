@@ -191,8 +191,8 @@ function Screen({
               }}
               onClose={() => setHintGone(true)}
             />
-          {run.micRefusal ? (
-            <MicNotice refusal={run.micRefusal} className="mb-2" />
+          {run.callNotice ? (
+            <MicNotice notice={run.callNotice} className="mb-2" />
           ) : null}
           {/* Behind the field: it rises from under the composer's edge. */}
           <VoiceGlow {...run.glow} />
@@ -208,7 +208,9 @@ function Screen({
               canSend={!conversation.answering}
               // From the first message, to see it with the invitation to speak
               // (Joaquin, 22/oct). It used to wait for the name.
-              canCall
+              // Not while the line is open from another tab or a page that was
+              // reloaded mid-call: the room has one person in it.
+              canCall={!run.callElsewhere}
               onType={() => setHintGone(true)}
               onSend={(text) => {
                 scroll.follow();
