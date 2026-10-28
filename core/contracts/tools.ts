@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+import {
+  accountResultSchema,
+  beginGoogleResultSchema,
+  okAccountResultSchema,
+  sessionResultSchema,
+  startEmailCodeResultSchema,
+  streamTicketResultSchema,
+} from "./accounts";
 import { replyArtefactSchema, uploadArtefactSchema } from "./artefacts";
 import {
   areaSchema,
@@ -483,6 +491,16 @@ export const TOOLS = {
   report_view: okResultSchema,
   edit_plan_card: planCardResultSchema,
   start_call: startCallResultSchema,
+
+  begin_anonymous: sessionResultSchema,
+  get_account: accountResultSchema,
+  start_email_code: startEmailCodeResultSchema,
+  verify_email_code: sessionResultSchema,
+  begin_google: beginGoogleResultSchema,
+  finish_google: sessionResultSchema,
+  sign_out: okAccountResultSchema,
+  issue_stream_ticket: streamTicketResultSchema,
+  delete_account: okAccountResultSchema,
 } as const;
 
 export type ToolName = keyof typeof TOOLS;

@@ -11,6 +11,7 @@ import {
   TOOLS,
   type ToolName,
 } from "./contracts";
+import accounts from "./mock/fixtures/accounts.json";
 import errors from "./mock/fixtures/errors.json";
 import goalV2 from "./mock/fixtures/goal-v2.json";
 import items from "./mock/fixtures/items.json";
@@ -33,6 +34,15 @@ import verdict from "./mock/fixtures/verdict.json";
 
 /** Every recorded answer, by the tool it answers. */
 const RECORDED: [tool: ToolName, variant: string, value: unknown][] = [
+  // The service's own contract fixture for accounts, copied in as is.
+  ...Object.entries(accounts).map(
+    ([tool, value]): [ToolName, string, unknown] => [
+      tool as ToolName,
+      "",
+      value,
+    ],
+  ),
+
   ["create_anonymous_user", "", session.create_anonymous_user],
   ["create_session", "", session.create_session],
   ["get_flow_state", "", session.get_flow_state],
@@ -145,8 +155,8 @@ describe("the recorded answers of the service", () => {
 
 describe("the catalog", () => {
   it("names every call the service catalogs, and no more", () => {
-    expect(TOOL_NAMES).toHaveLength(37);
-    expect(new Set(TOOL_NAMES).size).toBe(37);
+    expect(TOOL_NAMES).toHaveLength(46);
+    expect(new Set(TOOL_NAMES).size).toBe(46);
   });
 
   it("has a recorded answer for every call", () => {

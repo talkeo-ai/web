@@ -1,3 +1,4 @@
+export * from "./accounts";
 export * from "./artefacts";
 export * from "./enums";
 export * from "./errors";

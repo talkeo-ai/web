@@ -13,5 +13,18 @@
   },
   "not_found": {
     "error": { "code": "NOT_FOUND", "message": "session_id not found" }
+  },
+  "unauthenticated": {
+    "error": { "code": "UNAUTHENTICATED", "message": "missing or wrong service key", "usage": null }
+  },
+  "quota_exhausted": {
+    "error": {
+      "code": "QUOTA_EXHAUSTED",
+      "message": "out of allowance",
+      "usage": { "kind": "anonymous", "gate": "sign_up", "used_percent": 100, "window_hours": null }
+    }
+  },
+  "code_invalid": {
+    "error": { "code": "CODE_INVALID", "message": "wrong code", "usage": null }
   }
 }

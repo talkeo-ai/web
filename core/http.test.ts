@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { isCoreError } from "./contracts";
 import { createHttpCore } from "./http";
+import accounts from "./mock/fixtures/accounts.json";
 import errors from "./mock/fixtures/errors.json";
 import items from "./mock/fixtures/items.json";
 import planCard from "./mock/fixtures/plan-card.json";
@@ -126,6 +127,50 @@ describe("the HTTP adapter", () => {
       (error: unknown) =>
         isCoreError(error) && error.code === errors.flow_mismatch.error.code,
     );
+  });
+
+  it("carries the allowance on a quota failure", async () => {
+    answering(402, errors.quota_exhausted);
+    const core = createHttpCore(BASE_URL);
+
+    await expect(core.talkeoTurn({ session_id: "s_1" })).rejects.toSatisfy(
+      (error: unknown) =>
+        isCoreError(error) &&
+        error.code === "QUOTA_EXHAUSTED" &&
+        error.usage?.gate === "sign_up",
+    );
+  });
+
+  it("sends the service key and the browser's session on every call", async () => {
+    answering(200, accounts.get_account);
+    const fetchMock = vi.mocked(fetch);
+    const core = createHttpCore(BASE_URL, {
+      serviceKey: "k_server",
+      sessionToken: async () => "t_browser",
+    });
+
+    const { account } = await core.getAccount();
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+      string,
+      string
+    >;
+    expect(headers["x-core-service-key"]).toBe("k_server");
+    expect(headers.authorization).toBe("Bearer t_browser");
+    expect(account.usage.used_percent).toBe(12);
+  });
+
+  it("sends neither when it has none", async () => {
+    answering(200, session.create_anonymous_user);
+    const fetchMock = vi.mocked(fetch);
+
+    await createHttpCore(BASE_URL).createAnonymousUser();
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+      string,
+      string
+    >;
+    expect(headers).toEqual({ "content-type": "application/json" });
   });
 
   it("reads the failure code even on a 200", async () => {

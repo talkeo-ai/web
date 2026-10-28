@@ -1,0 +1,56 @@
+{
+  "begin_anonymous": {
+    "schema_version": 1,
+    "session_token": "smoke-session-token-anonymous-0001",
+    "switched": false,
+    "account": {
+      "user_id": "a1b2c3d4-0116-4000-8000-000000000001",
+      "registered": false,
+      "email": null,
+      "identities": [],
+      "usage": { "kind": "anonymous", "gate": "ok", "used_percent": 0, "window_hours": null }
+    }
+  },
+  "get_account": {
+    "schema_version": 1,
+    "account": {
+      "user_id": "a1b2c3d4-0116-4000-8000-000000000001",
+      "registered": true,
+      "email": "smoke-116@example.com",
+      "identities": [{ "kind": "email", "email": "smoke-116@example.com" }],
+      "usage": { "kind": "registered", "gate": "ok", "used_percent": 12, "window_hours": 24 }
+    }
+  },
+  "start_email_code": { "schema_version": 1, "ok": true, "expires_in": 600 },
+  "verify_email_code": {
+    "schema_version": 1,
+    "session_token": "smoke-session-token-registered-0002",
+    "switched": false,
+    "account": {
+      "user_id": "a1b2c3d4-0116-4000-8000-000000000001",
+      "registered": true,
+      "email": "smoke-116@example.com",
+      "identities": [{ "kind": "email", "email": "smoke-116@example.com" }],
+      "usage": { "kind": "registered", "gate": "ok", "used_percent": 0, "window_hours": 24 }
+    }
+  },
+  "begin_google": {
+    "schema_version": 1,
+    "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth?client_id=smoke&response_type=code&scope=openid+email&state=smoke-state&code_challenge=smoke&code_challenge_method=S256&redirect_uri=https%3A%2F%2Fexample.com%2Fauth%2Fgoogle"
+  },
+  "finish_google": {
+    "schema_version": 1,
+    "session_token": "smoke-session-token-registered-0003",
+    "switched": true,
+    "account": {
+      "user_id": "a1b2c3d4-0116-4000-8000-000000000002",
+      "registered": true,
+      "email": "smoke-116@example.com",
+      "identities": [{ "kind": "google", "email": "smoke-116@example.com" }],
+      "usage": { "kind": "registered", "gate": "ok", "used_percent": 40, "window_hours": 24 }
+    }
+  },
+  "sign_out": { "schema_version": 1, "ok": true },
+  "issue_stream_ticket": { "schema_version": 1, "ticket": "smoke-ticket-0001", "expires_in": 60 },
+  "delete_account": { "schema_version": 1, "ok": true }
+}

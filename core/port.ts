@@ -1,4 +1,17 @@
 import type {
+  AccountResult,
+  BeginAnonymousRequest,
+  BeginGoogleRequest,
+  BeginGoogleResult,
+  DeleteAccountRequest,
+  FinishGoogleRequest,
+  IssueStreamTicketRequest,
+  OkAccountResult,
+  SessionResult,
+  StartEmailCodeRequest,
+  StartEmailCodeResult,
+  StreamTicketResult,
+  VerifyEmailCodeRequest,
   AddInterestRequest,
   AttachArtefactRequest,
   AttachArtefactResult,
@@ -213,4 +226,38 @@ export interface CorePort {
 
   /** One tap: drop a cell, or add one the user feels is missing. */
   editPlanCard(request: EditPlanCardRequest): Promise<PlanCardResult>;
+
+  // --- accounts ---
+  //
+  // The caller is the browser session the adapter was built with, never an id
+  // in the body. The calls that sign in return a new session token, and the
+  // server action that made the call is what stores it.
+
+  /** The first visit: an anonymous user on this device, if the device still has allowance. */
+  beginAnonymous(request: BeginAnonymousRequest): Promise<SessionResult>;
+
+  /** Who is signed in, and how much of the allowance is used. */
+  getAccount(): Promise<AccountResult>;
+
+  /** Mails a six-digit code, with a link that carries it. */
+  startEmailCode(request: StartEmailCodeRequest): Promise<StartEmailCodeResult>;
+
+  /** Signs in with the code, on the same user, or on the account the email already has. */
+  verifyEmailCode(request: VerifyEmailCodeRequest): Promise<SessionResult>;
+
+  /** Where to send the browser to ask Google. */
+  beginGoogle(request: BeginGoogleRequest): Promise<BeginGoogleResult>;
+
+  /** What Google sent back, turned into a session. */
+  finishGoogle(request: FinishGoogleRequest): Promise<SessionResult>;
+
+  signOut(): Promise<OkAccountResult>;
+
+  /** A one-use pass for the interview socket, which cannot carry headers. */
+  issueStreamTicket(
+    request: IssueStreamTicketRequest,
+  ): Promise<StreamTicketResult>;
+
+  /** Erases the account and everything measured about it. */
+  deleteAccount(request: DeleteAccountRequest): Promise<OkAccountResult>;
 }

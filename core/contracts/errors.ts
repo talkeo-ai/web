@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { usageSchema, type Usage } from "./accounts";
+
 /**
  * The failures the service reports to a surface.
  *
@@ -18,11 +20,31 @@ export const errorCodeSchema = z.enum([
   "NOT_FOUND",
   /** A cataloged call whose implementation has not landed on the service. */
   "NOT_IMPLEMENTED",
+  /** No session, or one that ended: start anonymous again or sign in. */
+  "UNAUTHENTICATED",
+  /** The session is fine, the ids in the request belong to someone else. */
+  "FORBIDDEN",
+  /** Out of allowance; the body's `usage.gate` says what to show. */
+  "QUOTA_EXHAUSTED",
+  /** The bot check was missing, failed, or already used. */
+  "CHALLENGE_FAILED",
+  /** Wrong, expired or spent code. A new one can always be asked for. */
+  "CODE_INVALID",
+  /** Not an address a code can go to, or a throwaway mailbox. */
+  "EMAIL_REJECTED",
+  /** Too many codes for this address or from this network. */
+  "RATE_LIMITED",
+  /** This email or Google account belongs to another registered account. */
+  "IDENTITY_TAKEN",
+  /** Google came back without a verified email, or with a stale state. */
+  "OAUTH_FAILED",
 ]);
 
 export const errorBodySchema = z.object({
   code: errorCodeSchema,
   message: z.string(),
+  /** Present when the failure is about the allowance. */
+  usage: usageSchema.nullable().optional(),
 });
 
 export const errorResultSchema = z.object({ error: errorBodySchema });
@@ -39,11 +61,13 @@ export type ErrorBody = z.infer<typeof errorBodySchema>;
  */
 export class CoreError extends Error {
   readonly code: ErrorCode;
+  readonly usage: Usage | null;
 
-  constructor(code: ErrorCode, message: string) {
+  constructor(code: ErrorCode, message: string, usage: Usage | null = null) {
     super(message);
     this.name = "CoreError";
     this.code = code;
+    this.usage = usage;
   }
 }
 

@@ -512,6 +512,16 @@ describe("the port", () => {
     "reportView",
     "editPlanCard",
     "startCall",
+    // Accounts: who is calling, never what they know.
+    "beginAnonymous",
+    "getAccount",
+    "startEmailCode",
+    "verifyEmailCode",
+    "beginGoogle",
+    "finishGoogle",
+    "signOut",
+    "issueStreamTicket",
+    "deleteAccount",
   ];
 
   it("exposes the catalog and nothing else", () => {

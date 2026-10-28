@@ -17,6 +17,7 @@ import {
 } from "../contracts";
 import type { CorePort } from "../port";
 
+import { createMockAccounts } from "./accounts";
 import {
   DAY_PLAN,
   DOSE,
@@ -243,8 +244,12 @@ function labelOf(session: MockSession, cellId: string): string {
   return today.find((cell) => cell.cell_id === cellId)?.label ?? cellId;
 }
 
-export function createMockCore(): CorePort {
+export function createMockCore(
+  sessionToken: () => Promise<string | undefined> = async () => undefined,
+): CorePort {
   return {
+    ...createMockAccounts(sessionToken),
+
     // --- reads ---
 
     async getFlowState({ session_id }) {

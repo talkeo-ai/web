@@ -19,14 +19,38 @@ type ResultOf<Name extends ToolName> = z.output<(typeof TOOLS)[Name]>;
 
 const CONTRACT_PATH = "/v1/tools";
 
-export function createHttpCore(baseUrl: string): CorePort {
+/**
+ * Who this server is, and whose browser it is calling for.
+ *
+ * The service key says the call comes from this server; the session token,
+ * read from a cookie the browser cannot see, says for whom. A service running
+ * with accounts off ignores both, so sending them is always safe.
+ */
+export interface CoreCredentials {
+  serviceKey?: string;
+  sessionToken?: () => Promise<string | undefined>;
+}
+
+export function createHttpCore(
+  baseUrl: string,
+  credentials: CoreCredentials = {},
+): CorePort {
   async function call<Name extends ToolName>(
     tool: Name,
     request?: unknown,
   ): Promise<ResultOf<Name>> {
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+    };
+    if (credentials.serviceKey) {
+      headers["x-core-service-key"] = credentials.serviceKey;
+    }
+    const token = await credentials.sessionToken?.();
+    if (token) headers.authorization = `Bearer ${token}`;
+
     const response = await fetch(`${baseUrl}${CONTRACT_PATH}/${tool}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers,
       body: JSON.stringify(request ?? {}),
     });
 
@@ -36,7 +60,8 @@ export function createHttpCore(baseUrl: string): CorePort {
     // caller has to see: the status alone does not say which one it was.
     const failure = errorResultSchema.safeParse(body);
     if (failure.success) {
-      throw new CoreError(failure.data.error.code, failure.data.error.message);
+      const { code, message, usage } = failure.data.error;
+      throw new CoreError(code, message, usage ?? null);
     }
 
     if (!response.ok) {
@@ -85,5 +110,15 @@ export function createHttpCore(baseUrl: string): CorePort {
     reportView: (request) => call("report_view", request),
     editPlanCard: (request) => call("edit_plan_card", request),
     startCall: (request) => call("start_call", request),
+
+    beginAnonymous: (request) => call("begin_anonymous", request),
+    getAccount: () => call("get_account"),
+    startEmailCode: (request) => call("start_email_code", request),
+    verifyEmailCode: (request) => call("verify_email_code", request),
+    beginGoogle: (request) => call("begin_google", request),
+    finishGoogle: (request) => call("finish_google", request),
+    signOut: () => call("sign_out"),
+    issueStreamTicket: (request) => call("issue_stream_ticket", request),
+    deleteAccount: (request) => call("delete_account", request),
   };
 }
