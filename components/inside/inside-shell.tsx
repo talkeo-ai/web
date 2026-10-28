@@ -58,11 +58,12 @@ export function InsideShell() {
     setPeek(false);
   };
 
-  const nav = (
+  const nav = (floating: boolean) => (
     <SidebarContent
       section={section}
       onSelect={setSection}
       onToggle={toggle}
+      floating={floating}
       t={t}
     />
   );
@@ -84,7 +85,7 @@ export function InsideShell() {
           folded ? "w-0" : SIDEBAR_WIDTH,
         )}
       >
-        <div className={cn("h-full", SIDEBAR_WIDTH)}>{nav}</div>
+        <div className={cn("h-full", SIDEBAR_WIDTH)}>{nav(false)}</div>
       </aside>
 
       {/* Folded: a strip on the left edge calls the sidebar back, floating. */}
@@ -101,9 +102,7 @@ export function InsideShell() {
         inert={!(folded && peek)}
         onMouseLeave={() => setPeek(false)}
         className={cn(
-          // Below the panel's bar, as Linear drops it, so the bar and its way
-          // back stay in sight (Joaquin, 27/oct).
-          "bg-surface-sunken absolute top-[52px] bottom-2 left-0 z-30 overflow-hidden rounded-r-[10px] border border-l-0",
+          "bg-surface-sunken absolute inset-y-2 left-0 z-30 overflow-hidden rounded-r-lg border border-l-0",
           "border-black/[0.08] shadow-[0_8px_24px_-8px_rgb(0_0_0/0.25)] dark:border-white/[0.08]",
           "transition-[translate,opacity] duration-200",
           SIDEBAR_WIDTH,
@@ -112,7 +111,7 @@ export function InsideShell() {
             : "pointer-events-none -translate-x-full opacity-0 ease-(--ease-exit)",
         )}
       >
-        {nav}
+        {nav(true)}
       </aside>
 
       <div
@@ -147,15 +146,20 @@ function SidebarContent({
   section,
   onSelect,
   onToggle,
+  floating,
   t,
 }: {
   section: Section;
   onSelect: (section: Section) => void;
   onToggle: () => void;
+  floating: boolean;
   t: ReturnType<typeof useTranslations<"inside">>;
 }) {
+  // Floating, the box already sits 8px in from the top and bottom, so the rows
+  // drop their own 8px: every row lands where it was docked. With both, the
+  // floating one read as slipped down (Joaquin, 27/oct).
   return (
-    <div className="flex h-full flex-col px-3 py-2">
+    <div className={cn("flex h-full flex-col px-3", !floating && "py-2")}>
       <div className="flex h-13 items-center gap-2.5 px-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" className="size-6 rounded-md" />
