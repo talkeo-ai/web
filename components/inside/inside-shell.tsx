@@ -21,12 +21,14 @@ const MAIN: { key: Section; Icon: LucideIcon }[] = [
   { key: "progress", Icon: TrendingUp },
 ];
 
-const SIDEBAR_WIDTH = "w-[244px]";
+const SIDEBAR_WIDTH = "w-[272px]";
 
 /**
  * The inside, as one page, drawn after Linear (Joaquin, 27/oct): a sidebar of
  * rows on the page's sunken colour and the content in a panel set on it, with
- * an 8px gutter, a quiet edge and an 8px corner. Only the panel scrolls.
+ * an 8px gutter, a quiet edge and a 10px corner. Only the panel scrolls.
+ * Linear's own sizes (13px text, 30px rows) read as too small here (Joaquin,
+ * 27/oct), so everything is a step up: 15px text, 36px rows, 18px icons.
  *
  * The sidebar folds away with its button or `[`, as Linear's does. Folded, it
  * comes back floating over the panel while the pointer rests on the window's
@@ -118,8 +120,8 @@ export function InsideShell() {
           !folded && "pl-0",
         )}
       >
-        <main className="bg-background flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-black/[0.06] dark:border-white/[0.07]">
-          <header className="flex h-11 shrink-0 items-center gap-1.5 border-b border-black/[0.05] px-3 dark:border-white/[0.05]">
+        <main className="bg-background flex min-w-0 flex-1 flex-col overflow-hidden rounded-[10px] border border-black/[0.06] dark:border-white/[0.07]">
+          <header className="flex h-13 shrink-0 items-center gap-2 border-b border-black/[0.05] px-4 dark:border-white/[0.05]">
             {folded && (
               <IconButton
                 label={t("expand")}
@@ -127,7 +129,7 @@ export function InsideShell() {
                 Icon={PanelLeft}
               />
             )}
-            <h1 className="text-foreground text-[13px] font-medium">
+            <h1 className="text-foreground text-[15px] font-medium">
               {t(`sections.${section}`)}
             </h1>
           </header>
@@ -158,16 +160,16 @@ function SidebarContent({
   // floating one read as slipped down (Joaquin, 27/oct).
   return (
     <div className={cn("flex h-full flex-col px-3", !floating && "py-2")}>
-      <div className="flex h-11 items-center gap-2 px-1.5">
+      <div className="flex h-13 items-center gap-2.5 px-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="" className="size-5 rounded-[5px]" />
-        <span className="text-foreground flex-1 text-[13px] font-semibold">
+        <img src="/logo.png" alt="" className="size-6 rounded-md" />
+        <span className="text-foreground flex-1 text-[15px] font-semibold">
           Talkeo
         </span>
         <IconButton label={t("collapse")} onClick={onToggle} Icon={PanelLeft} />
       </div>
 
-      <nav className="mt-2 flex flex-col gap-px">
+      <nav className="mt-3 flex flex-col gap-0.5">
         {MAIN.map(({ key, Icon }) => (
           <Row
             key={key}
@@ -179,7 +181,7 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="mt-auto flex flex-col gap-px">
+      <div className="mt-auto flex flex-col gap-0.5">
         <Row
           Icon={User}
           label={t("sections.profile")}
@@ -208,7 +210,7 @@ function Row({
       onClick={onSelect}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "focus-key:ring-ring flex h-[30px] cursor-pointer items-center gap-2.5 rounded-md px-2 text-left text-[13px] outline-none focus-key:ring-2",
+        "focus-key:ring-ring flex h-9 cursor-pointer items-center gap-3 rounded-lg px-2.5 text-left text-[15px] outline-none focus-key:ring-2",
         "transition-colors duration-(--duration-control) ease-(--ease-standard)",
         active
           ? "bg-foreground/[0.07] text-foreground font-medium"
@@ -216,7 +218,7 @@ function Row({
       )}
     >
       <Icon
-        className={cn("size-4", active ? "opacity-100" : "opacity-70")}
+        className={cn("size-[18px]", active ? "opacity-100" : "opacity-70")}
         strokeWidth={1.75}
       />
       {label}
@@ -239,9 +241,9 @@ function IconButton({
       onClick={onClick}
       aria-label={label}
       title={`${label}  [`}
-      className="text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] focus-key:ring-ring flex size-7 cursor-pointer items-center justify-center rounded-md outline-none transition-colors duration-(--duration-control) focus-key:ring-2"
+      className="text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] focus-key:ring-ring flex size-8 cursor-pointer items-center justify-center rounded-lg outline-none transition-colors duration-(--duration-control) focus-key:ring-2"
     >
-      <Icon className="size-4" strokeWidth={1.75} />
+      <Icon className="size-[18px]" strokeWidth={1.75} />
     </button>
   );
 }
