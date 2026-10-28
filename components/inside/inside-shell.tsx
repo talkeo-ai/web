@@ -23,8 +23,10 @@ const MAIN: { key: Section; Icon: LucideIcon }[] = [
  *
  * Sized after Cisma's rail, which Joaquin pointed at (27/oct): a narrow rail,
  * 40px tiles with a 12px corner and a 20px icon, the selected one filled solid
- * and flat, a thin gutter of 8px around a card with a quiet edge and no shadow.
- * The profile sits at the bottom as a round avatar.
+ * and flat. The profile sits at the bottom as a round avatar. The content runs
+ * to the window's edges on the page's own colour, split from the rail by a
+ * single line: as a rounded card in the card colour it read as a lighter grey
+ * box set on the page (Joaquin, 27/oct).
  */
 export function InsideShell() {
   const t = useTranslations("inside");
@@ -33,11 +35,11 @@ export function InsideShell() {
   return (
     <div
       data-slot="inside"
-      className="bg-surface-sunken flex h-dvh overflow-hidden p-2"
+      className="bg-surface-sunken flex h-dvh overflow-hidden"
     >
       <nav
         aria-label={t("nav")}
-        className="flex w-[72px] shrink-0 flex-col items-center py-2 pr-2"
+        className="flex w-[72px] shrink-0 flex-col items-center py-4"
       >
         <div className="flex size-10 items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -65,7 +67,7 @@ export function InsideShell() {
         </div>
       </nav>
 
-      <main className="bg-card min-w-0 flex-1 overflow-y-auto rounded-xl border border-black/[0.06] dark:border-white/[0.07]">
+      <main className="bg-background min-w-0 flex-1 overflow-y-auto border-l border-black/[0.06] dark:border-white/[0.07]">
         <div className="mx-auto w-full max-w-3xl px-8 py-8">
           <h1 className="font-heading text-foreground text-2xl font-semibold tracking-[-0.01em]">
             {t(`sections.${section}`)}
