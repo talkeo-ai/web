@@ -58,6 +58,8 @@
   },
   "inside": {
     "nav": "Secciones",
+    "collapse": "Ocultar el menú",
+    "expand": "Mostrar el menú",
     "sections": {
       "home": "Inicio",
       "practice": "Practicar",

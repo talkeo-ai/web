@@ -445,6 +445,8 @@
   },
   "inside": {
     "nav": "Sections",
+    "collapse": "Hide the menu",
+    "expand": "Show the menu",
     "sections": {
       "home": "Home",
       "practice": "Practice",
