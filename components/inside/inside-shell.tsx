@@ -23,6 +23,9 @@ const MAIN: { key: Section; Icon: LucideIcon }[] = [
 
 const SIDEBAR_WIDTH = "w-[272px]";
 
+/** A long, soft settle: quick off the mark, no visible end to the motion. */
+const SMOOTH = "ease-[cubic-bezier(0.32,0.72,0,1)]";
+
 /**
  * The inside, as one page, drawn after Linear (Joaquin, 27/oct): a sidebar of
  * rows on the page's sunken colour and the content in a panel set on it, with
@@ -30,7 +33,7 @@ const SIDEBAR_WIDTH = "w-[272px]";
  * Linear's own sizes (13px text, 30px rows) read as too small here (Joaquin,
  * 27/oct), so everything is a step up: 15px text, 36px rows, 18px icons.
  *
- * The sidebar folds away with its button or `[`, as Linear's does. Folded, it
+ * The sidebar folds away with the button in the panel's bar or `[`. Folded, it
  * comes back floating over the panel while the pointer rests on the window's
  * left edge, and leaves when the pointer does. Switching sections is state
  * here and not a navigation, so nothing reloads.
@@ -62,7 +65,6 @@ export function InsideShell() {
     <SidebarContent
       section={section}
       onSelect={setSection}
-      onToggle={toggle}
       floating={floating}
       t={t}
     />
@@ -74,18 +76,31 @@ export function InsideShell() {
       className="bg-surface-sunken relative flex h-dvh overflow-hidden"
     >
       {/* Docked: the width closes and opens, the rows inside keep theirs so
-          nothing rewraps on the way. */}
+          nothing rewraps on the way, and fade as they go. Folded it keeps 8px,
+          which is the panel's gutter: the panel's own padding never changes,
+          so the only thing moving is this width. Two properties moving at once
+          on different curves is what read as not smooth (Joaquin, 27/oct). */}
       <aside
         aria-label={t("nav")}
         aria-hidden={folded}
         inert={folded}
         className={cn(
           "shrink-0 overflow-hidden",
-          "transition-[width] duration-200 ease-(--ease-standard)",
-          folded ? "w-0" : SIDEBAR_WIDTH,
+          "transition-[width] duration-300",
+          SMOOTH,
+          folded ? "w-2" : SIDEBAR_WIDTH,
         )}
       >
-        <div className={cn("h-full", SIDEBAR_WIDTH)}>{nav(false)}</div>
+        <div
+          className={cn(
+            "h-full transition-opacity duration-300",
+            SMOOTH,
+            SIDEBAR_WIDTH,
+            folded ? "opacity-0" : "opacity-100",
+          )}
+        >
+          {nav(false)}
+        </div>
       </aside>
 
       {/* Folded: a strip on the left edge calls the sidebar back, floating. */}
@@ -104,31 +119,28 @@ export function InsideShell() {
         className={cn(
           "bg-surface-sunken absolute top-4 bottom-0 left-0 z-30 overflow-hidden rounded-tr-[10px] border border-b-0 border-l-0",
           "border-black/[0.08] shadow-[0_8px_24px_-8px_rgb(0_0_0/0.25)] dark:border-white/[0.08]",
-          "transition-[translate,opacity] duration-200",
+          "transition-[translate,opacity]",
+          SMOOTH,
           SIDEBAR_WIDTH,
           folded && peek
-            ? "translate-x-0 opacity-100 ease-(--ease-entrance)"
-            : "pointer-events-none -translate-x-full opacity-0 ease-(--ease-exit)",
+            ? "translate-x-0 opacity-100 duration-300"
+            : "pointer-events-none -translate-x-full opacity-0 duration-200",
         )}
       >
         {nav(true)}
       </aside>
 
-      <div
-        className={cn(
-          "flex min-w-0 flex-1 p-2 transition-[padding] duration-200",
-          !folded && "pl-0",
-        )}
-      >
+      <div className="flex min-w-0 flex-1 p-2 pl-0">
         <main className="bg-background flex min-w-0 flex-1 flex-col overflow-hidden rounded-[10px] border border-black/[0.06] dark:border-white/[0.07]">
-          <header className="flex h-13 shrink-0 items-center gap-2 border-b border-black/[0.05] px-4 dark:border-white/[0.05]">
-            {folded && (
-              <IconButton
-                label={t("expand")}
-                onClick={toggle}
-                Icon={PanelLeft}
-              />
-            )}
+          {/* The fold button lives here in both states, first in the bar, so
+              the title never moves. Shown only while folded, it pushed the
+              title over each time (Joaquin, 27/oct). */}
+          <header className="flex h-13 shrink-0 items-center gap-2 px-3">
+            <IconButton
+              label={folded ? t("expand") : t("collapse")}
+              onClick={toggle}
+              Icon={PanelLeft}
+            />
             <h1 className="text-foreground text-[15px] font-medium">
               {t(`sections.${section}`)}
             </h1>
@@ -145,13 +157,11 @@ export function InsideShell() {
 function SidebarContent({
   section,
   onSelect,
-  onToggle,
   floating,
   t,
 }: {
   section: Section;
   onSelect: (section: Section) => void;
-  onToggle: () => void;
   floating: boolean;
   t: ReturnType<typeof useTranslations<"inside">>;
 }) {
@@ -167,7 +177,6 @@ function SidebarContent({
         <span className="text-foreground flex-1 text-[15px] font-semibold">
           Talkeo
         </span>
-        <IconButton label={t("collapse")} onClick={onToggle} Icon={PanelLeft} />
       </div>
 
       <nav className="mt-3 flex flex-col gap-0.5">
