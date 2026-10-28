@@ -4,16 +4,15 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "r
 
 import type { InterviewChannel } from "@/core/channel";
 import type { CardEdit, Mark, TalkeoTurn } from "@/core/contracts";
-import {
-  CAPTURE_MIME,
-  openMicrophone,
-  type Microphone,
-  type MicRefusal,
-} from "@/lib/audio/microphone";
+import { openCall, type RoomCall } from "@/lib/audio/room-call";
 import { claimVoiceOnFirstGesture, voice } from "@/lib/audio/voice";
 import { useTurnPlayback } from "@/lib/talkeo/use-turn-playback";
 
-import type { OpenedInterview } from "@/app/[locale]/(app)/onboarding/actions";
+import {
+  startCall as askForRoom,
+  type OpenedInterview,
+} from "@/app/[locale]/(app)/onboarding/actions";
+import type { CallNotice } from "@/components/onboarding/mic-notice";
 
 import type { Said } from "./conversation";
 import { answerName, flush } from "./outbox";
@@ -34,7 +33,7 @@ import { readInterview } from "./shared-channel";
  * The only stateful piece of this screen, and deliberately the only one: what
  * the conversation means, which surface is up and what is queued are all decided by
  * pure functions in `machine.ts`. Everything here is a connection to something
- * outside React — a socket, a microphone, an audio graph, a timer — which is
+ * outside React — a socket, a call, an audio graph, a timer — which is
  * what an effect is actually for.
  */
 
@@ -87,14 +86,21 @@ export function useInterview(
   const [voiced, setVoiced] = useState("");
   const [micMuted, setMicMuted] = useState(false);
   const [voiceOn, setVoiceOn] = useState(true);
-  /** Why the microphone did not open, or empty. Cleared by it opening. */
-  const [micRefusal, setMicRefusal] = useState<MicRefusal | "">("");
-  /** The open microphone's meter, for the glow. State so the glow re-renders. */
+  /** Why the call did not start or ended, or null. Cleared by a call starting. */
+  const [callNotice, setCallNotice] = useState<CallNotice | null>(null);
+  /** The open call's microphone meter, for the glow. State so the glow re-renders. */
   const [micMeter, setMicMeter] = useState<AnalyserNode | null>(null);
+  /** The Core says a room is attached to this conversation, from anywhere. */
+  const [callLive, setCallLive] = useState(false);
 
   const player = useMemo(() => voice(), []);
   const channel = useRef<InterviewChannel | null>(null);
-  const microphone = useRef<Microphone | null>(null);
+  /** This browser's call. Null when there is none, or while one is starting. */
+  const call = useRef<RoomCall | null>(null);
+  /** A press is being answered: the prompt, or the room. A second press waits. */
+  const starting = useRef(false);
+  // Whether the Core has said a room is attached for the call this screen holds.
+  const roomSeen = useRef(false);
   /** Whether this screen is still here, for a permission prompt that outlives it. */
   const alive = useRef(true);
   // The turn's frames as they arrive, so the last one can be put back after a
@@ -188,6 +194,21 @@ export function useInterview(
     const { channel: open, opened: mine, release } = readInterview(
       sessionId,
       (message) => {
+        // Whether a room is attached is the call's, not the conversation's.
+        if (message.kind === "call_state") {
+          setCallLive(message.live);
+          return;
+        }
+        // ⚠ Nothing is played from the socket during a call: the room carries
+        // the voice, and none should arrive. If a frame does (a turn that began
+        // in text just as the call opened), playing it would put two voices
+        // over each other.
+        if (
+          call.current &&
+          (message.kind === "audio_format" || message.kind === "audio")
+        ) {
+          return;
+        }
         // Audio never reaches the reducer: a turn's worth of it is hundreds of
         // kilobytes and it has nothing to do with what is on screen.
         if (message.kind === "audio_format") {
@@ -269,86 +290,128 @@ export function useInterview(
     });
   }, [sessionId, conversation.thread, conversation.closed]);
 
-  // --- the microphone ------------------------------------------------------
+  // --- the call -----------------------------------------------------------
+
+  const dropCall = useCallback(() => {
+    call.current?.close();
+    call.current = null;
+    roomSeen.current = false;
+    setMicMeter(null);
+    setInCall(false);
+    setMicMuted(false);
+  }, []);
 
   /**
-   * Ask for the microphone. **From a click handler and nowhere else.**
+   * Start a call. **From a click handler and nowhere else.**
    *
    * ⚠ This used to be an effect keyed on `inCall`: the press set the state, React
    * committed, and `getUserMedia` ran a render later with the gesture long gone.
    * WebKit refuses that without ever raising the prompt, and the refusal it
    * gives is `NotAllowedError` — the same one a person says no with. So somebody
-   * who was never asked was told they had declined.
+   * who was never asked was told they had declined. The microphone is therefore
+   * the first thing asked for, synchronously inside the press; the token comes
+   * after it, because a denied prompt should not have cost a room.
    *
-   * Returns whether it opened, because the caller has a decision to make about
-   * it: nothing settles the answer mode until this is true.
+   * Returns whether the line is up.
    */
-  const askForMicrophone = useCallback(async () => {
-    if (microphone.current) return true;
-    const opened = await openMicrophone();
-    if (!alive.current) {
+  const startCall = useCallback(async () => {
+    if (call.current || starting.current) return false;
+    starting.current = true;
+    try {
+      const opened = await openCall();
+      if (!opened.ok) {
+        if (alive.current) setCallNotice({ from: "mic", refusal: opened.refusal });
+        return false;
+      }
+      const line = opened.call;
       // They left while the prompt was up. Closing it here is what stops the
       // recording indicator staying on for a call nobody is in.
-      if (opened.ok) opened.microphone.close();
-      return false;
-    }
-    if (!opened.ok) {
-      setMicRefusal(opened.refusal);
-      return false;
-    }
-    setMicRefusal("");
-    microphone.current = opened.microphone;
-    opened.microphone.onFrame((frame) => channel.current?.sendAudio(frame));
-    opened.microphone.mute(micMuted);
-    setMicMeter(opened.microphone.meter);
-    setInCall(true);
-    return true;
-  }, [micMuted]);
+      if (!alive.current) {
+        line.close();
+        return false;
+      }
 
-  const dropMicrophone = useCallback(() => {
-    microphone.current?.close();
-    microphone.current = null;
-    setMicMeter(null);
-  }, []);
+      // Mock mode has no room to join and `startCall` says so. The simplest
+      // honest thing is to say that calls are not available here: a local-only
+      // microphone would light a glow for a conversation nobody is hearing,
+      // and the typed one carries on regardless.
+      // ⚠ A Server Action that cannot reach the server REJECTS rather than
+      // returning a failure, and by then the microphone is open: without the
+      // catch the recording light stayed on for a call that never started.
+      const room = await askForRoom().catch(() => null);
+      if (!room?.ok) {
+        line.close();
+        if (alive.current) {
+          setCallNotice({ from: "room", failure: "unavailable" });
+        }
+        return false;
+      }
+      // Gone while the token was on its way: no offer, or the room would hold
+      // this session for a call nobody is on.
+      if (!alive.current) {
+        line.close();
+        return false;
+      }
+      const joined = await line.join(room);
+      if (!joined.ok) {
+        // `join` has already let go of the microphone.
+        if (alive.current) {
+          setCallNotice({ from: "room", failure: joined.failure });
+        }
+        return false;
+      }
+      if (!alive.current) {
+        line.close();
+        return false;
+      }
+
+      call.current = line;
+      // If the line is lost the call UI ends and they carry on typing: the
+      // socket never depended on it.
+      line.onLost(() => {
+        if (call.current !== line) return;
+        dropCall();
+        setCallNotice({ from: "room", failure: "unavailable" });
+      });
+      setCallNotice(null);
+      setMicMeter(line.micMeter);
+      setInCall(true);
+      return true;
+    } finally {
+      starting.current = false;
+    }
+  }, [dropCall]);
 
   useEffect(() => {
     alive.current = true;
     return () => {
       alive.current = false;
-      dropMicrophone();
+      dropCall();
     };
-  }, [dropMicrophone]);
+  }, [dropCall]);
 
   useEffect(() => {
-    microphone.current?.mute(micMuted);
+    call.current?.mute(micMuted);
   }, [micMuted]);
 
-  /**
-   * Listening opens when it is their turn and closes when it is not.
-   *
-   * There is no detector here: the service runs one and decides when the turn is
-   * over, and the turn starting is how this finds out. `nothing_heard` puts it
-   * back to not-listening, so this opens it again — which is the whole reason
-   * that message exists.
-   */
-  const theirTurn = !conversation.answering && !conversation.closed;
+  // The speaker key during a call: the voice is the room's there, and the
+  // Core's `set_voice` only reaches its own.
   useEffect(() => {
-    const open = microphone.current;
-    // The microphone and not `inCall`: listening for a device that never opened
-    // is a turn the service waits out with nothing arriving.
-    if (!inCall || !open || !theirTurn || conversation.listening) return;
-    channel.current?.listenStart({
-      mime: CAPTURE_MIME,
-      // The rate it actually gave, which is not always the one we asked for.
-      sampleRate: open.sampleRate,
-    });
-    dispatch({ kind: "listening", on: true });
-  }, [inCall, theirTurn, conversation.listening]);
+    call.current?.silence(!voiceOn);
+  }, [voiceOn, inCall]);
 
+  // The room went away while this screen is on the call: the Core closed it,
+  // the call reached its length, or the room fell over. The call ends here too
+  // rather than recording into nothing until the network notices. Only once
+  // the Core has said this call was live: a `false` left over from the last
+  // call must not end the next one.
   useEffect(() => {
-    if (!conversation.answering || !conversation.listening) return;
-    dispatch({ kind: "listening", on: false });
-  }, [conversation.answering, conversation.listening]);
+    if (callLive) {
+      if (call.current || starting.current) roomSeen.current = true;
+      return;
+    }
+    if (roomSeen.current && call.current) dropCall();
+  }, [callLive, dropCall]);
 
   // --- the turn being said, and the beat after it --------------------------
 
@@ -492,15 +555,11 @@ export function useInterview(
   }, [player]);
 
   const hangUp = useCallback(() => {
-    setInCall(false);
-    setMicMuted(false);
     // Released here rather than by an effect's cleanup: leaving a call is them
     // asking for the device back, and a render later is long enough to notice
     // the browser still saying it is recording.
-    dropMicrophone();
-    channel.current?.listenStop();
-    dispatch({ kind: "listening", on: false });
-  }, [dropMicrophone]);
+    dropCall();
+  }, [dropCall]);
 
   return {
     ...state,
@@ -515,20 +574,27 @@ export function useInterview(
       // Talkeo's whenever it talks with its voice on, call or no call: it
       // speaks either way. Theirs only in a call with the microphone live
       // (Joaquin, 22/oct).
-      shown: talking ? voiceOn : inCall && !micMuted,
+      shown: talking ? inCall || voiceOn : inCall && !micMuted,
       talking,
-      talkingAloud,
+      // In a call the voice is the room's, so it is always aloud and the meter
+      // that follows it is the room's. The turn's own audio format is a text
+      // mode thing that never arrives during a call.
+      talkingAloud: inCall || talkingAloud,
       micMeter: micMuted ? null : micMeter,
-      talkeoMeter: player.meter,
+      talkeoMeter: () =>
+        inCall ? (call.current?.remoteMeter() ?? null) : player.meter(),
     },
     voiceOn,
-    micRefusal,
+    /** Why the call did not start or ended. Null when there is nothing to say. */
+    callNotice,
+    /** A room is attached and it is not this browser's. */
+    callElsewhere: callLive && !inCall,
     say,
     answerSurface,
     toggleVoice,
     toggleMic: () => setMicMuted((on) => !on),
-    /** Asks for the microphone. Call it from a click handler. */
-    startCall: askForMicrophone,
+    /** Opens the microphone and the room. Call it from a click handler. */
+    startCall,
     hangUp,
   };
 }

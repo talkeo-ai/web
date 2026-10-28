@@ -48,6 +48,8 @@ import type {
   SetScopeResult,
   SetSituationClassRequest,
   SignGoalRequest,
+  StartCallRequest,
+  StartCallResult,
   SituationClassesResult,
   StateMapResult,
   StateSummaryResult,
@@ -200,6 +202,14 @@ export interface CorePort {
 
   /** What is on screen right now. Accepted at any step; never evidence. */
   reportView(request: ReportViewRequest): Promise<OkResult>;
+
+  /**
+   * A way into the voice room for this session.
+   *
+   * Not every deployment has a room: the recording does not, and says so with
+   * `NOT_IMPLEMENTED`, which a screen turns into "calls are not available".
+   */
+  startCall(request: StartCallRequest): Promise<StartCallResult>;
 
   /** One tap: drop a cell, or add one the user feels is missing. */
   editPlanCard(request: EditPlanCardRequest): Promise<PlanCardResult>;

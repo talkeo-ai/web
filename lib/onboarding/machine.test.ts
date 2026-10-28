@@ -23,7 +23,6 @@ const started: InterviewMessage = {
   turn_id: "tt_1",
   stage: 1,
   stage_name: "entrance",
-  mode: "",
   stages_total: 7,
 };
 

@@ -14,7 +14,9 @@ import {
  * Three things about this channel that a JSON client would get wrong, and that
  * are handled here so nothing above has to know them:
  *
- * - **Audio arrives as binary frames with no envelope.** Which turn they belong
+ * - **Talkeo's voice in text mode arrives as binary frames with no envelope.**
+ *   There is nothing binary going the other way: a call is a separate room, and
+ *   this socket only ever sends JSON. Which turn they belong
  *   to is only said by the `audio_format` that preceded them, so that is tracked
  *   here and the frames come out already bound to a turn.
  * - **The service says nothing on connect.** It answers; it never opens. The
@@ -76,20 +78,9 @@ export function openInterviewSocket(
   return {
     messages: () => queue.iterate(),
     resume: () => send({ kind: "resume" }),
-    say: (text) => send({ kind: "say", text }),
+    say: (text) => send({ kind: "say", text, via: "typed" }),
     cardEdited: (edit: CardEdit) => send({ kind: "card_edited", edit }),
-    choseMode: (mode) => send({ kind: "chose_mode", mode }),
     setVoice: (on) => send({ kind: "set_voice", on }),
-    listenStart: ({ mime, sampleRate }) =>
-      send({ kind: "listen_start", mime, sample_rate: sampleRate }),
-    sendAudio: (frame) => {
-      if (closed) return;
-      if (socket.readyState === WebSocket.OPEN) socket.send(frame);
-      // Dropped rather than queued: a microphone frame that arrives late is
-      // noise in the middle of a sentence, and the ones before the socket opens
-      // are silence anyway.
-    },
-    listenStop: () => send({ kind: "listen_stop" }),
     close: () => {
       stop();
       socket.close();

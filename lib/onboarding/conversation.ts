@@ -43,8 +43,6 @@ export type Conversation = {
   cards: Record<string, InterviewCard>;
   stage: number;
   stagesTotal: number;
-  /** "speak" | "text", or empty until the entrance settles it. */
-  mode: string;
   /**
    * Their name, as the service has it.
    *
@@ -60,7 +58,6 @@ export type Conversation = {
    * nothing to send a message TO until the turn being written is finished.
    */
   answering: boolean;
-  listening: boolean;
   closed: boolean;
   /** Set when the service reported one. Nothing clears it but a new turn. */
   failed: string;
@@ -83,10 +80,8 @@ export const noConversation: Conversation = {
   cards: {},
   stage: 0,
   stagesTotal: 0,
-  mode: "",
   name: "",
   answering: false,
-  listening: false,
   closed: false,
   failed: "",
   confirmed: [],
@@ -96,8 +91,6 @@ export type ConversationAction =
   | { kind: "message"; message: InterviewMessage }
   /** They typed something and it went out. Shown here rather than waited for. */
   | { kind: "said"; text: string }
-  /** The microphone opened or closed. */
-  | { kind: "listening"; on: boolean }
   /** Everything the service already knows, on a screen that just opened. */
   | {
       kind: "restored";
@@ -176,14 +169,6 @@ export function advance(
     };
   }
 
-  if (action.kind === "listening") {
-    return {
-      ...state,
-      listening: action.on,
-      transcript: action.on ? { settled: "", guess: "" } : state.transcript,
-    };
-  }
-
   if (action.kind === "restored") {
     // ⚠ It arrives late — the cache is read asynchronously — and by then the
     // socket may already have said something. What is on screen is then ahead of
@@ -244,7 +229,6 @@ function fold(state: Conversation, message: InterviewMessage): Conversation {
         },
         stage: message.stage || state.stage,
         stagesTotal: message.stages_total || state.stagesTotal,
-        mode: message.mode || state.mode,
         answering: true,
         failed: "",
       };
@@ -288,11 +272,9 @@ function fold(state: Conversation, message: InterviewMessage): Conversation {
 
     case "nothing_heard":
       // Whose turn it is does not change: they were listened to and said
-      // nothing, so the screen has to offer to listen again rather than wait
-      // for a turn that is never generated.
+      // nothing, so nothing may wait for a turn that is never generated.
       return {
         ...state,
-        listening: false,
         answering: false,
         transcript: { settled: "", guess: "" },
         failed: message.reason,
@@ -332,6 +314,11 @@ function fold(state: Conversation, message: InterviewMessage): Conversation {
         answering: false,
         failed: message.error.message,
       };
+
+    // Whether a room is attached is the call's business and not part of what
+    // was said: the hook reads it before it gets here.
+    case "call_state":
+      return state;
 
     // Audio is the player's, and a turn's worth of it has no business in a
     // render.

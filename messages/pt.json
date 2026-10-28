@@ -93,7 +93,12 @@
       "broken": "Algo quebrou do meu lado ao abrir o microfone.",
       "unknown": "Não consegui abrir o microfone.",
       "again": "Toque de novo para pedir, ou escolha escrever.",
-      "orWrite": "Você pode seguir escrevendo."
+      "orWrite": "Você pode seguir escrevendo.",
+      "room": {
+        "expired": "A chamada demorou demais para começar.",
+        "busy": "Esta conversa já tem uma chamada aberta.",
+        "unavailable": "As chamadas não estão disponíveis agora."
+      }
     },
     "exit": {
       "leave": "Sair",

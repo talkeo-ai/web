@@ -323,6 +323,30 @@ export const interviewStateResultSchema = z.object({
   flow: flowSchema,
 });
 
+/**
+ * Joining the voice room for this session.
+ *
+ * A call does not go over the interview socket: the microphone and Talkeo's
+ * voice travel through a separate room, and the socket stays open beside it for
+ * the text, the cards and the turn boundaries. This is the one call that opens
+ * the way in.
+ *
+ * ⚠ `token` is single-purpose and short-lived (`expires_in`, in seconds). It is
+ * handed to the room as it is and never stored: a call that fails to connect
+ * asks for a new one rather than retrying with a stale one.
+ */
+export const startCallRequestSchema = z.object({
+  session_id: z.string(),
+});
+
+export const startCallResultSchema = z.object({
+  ...versioned,
+  token: z.string(),
+  /** Where to send the offer: the room answers at `${room_url}/offer`. */
+  room_url: z.string(),
+  expires_in: z.number().int(),
+});
+
 /** Text pasted or a link, to materialise the goal. Files come later. */
 export const attachArtefactRequestSchema = z.object({
   session_id: z.string(),
@@ -458,6 +482,7 @@ export const TOOLS = {
   set_scope: setScopeResultSchema,
   report_view: okResultSchema,
   edit_plan_card: planCardResultSchema,
+  start_call: startCallResultSchema,
 } as const;
 
 export type ToolName = keyof typeof TOOLS;
@@ -533,6 +558,8 @@ export type GetInterviewStateRequest = z.infer<
 export type InterviewStateResult = z.infer<typeof interviewStateResultSchema>;
 export type AttachArtefactRequest = z.infer<typeof attachArtefactRequestSchema>;
 export type AttachArtefactResult = z.infer<typeof attachArtefactResultSchema>;
+export type StartCallRequest = z.infer<typeof startCallRequestSchema>;
+export type StartCallResult = z.infer<typeof startCallResultSchema>;
 export type SetScopeRequest = z.infer<typeof setScopeRequestSchema>;
 export type SetScopeResult = z.infer<typeof setScopeResultSchema>;
 export type ReportViewRequest = z.infer<typeof reportViewRequestSchema>;

@@ -12,8 +12,13 @@ import { talkeoTurnResultSchema } from "./tools";
  * The interview as a stream.
  *
  * A turn arrives in pieces so it can be shown as it is being said instead of as
- * one body once it is over, and so the person's audio has somewhere to go while
- * they are still talking.
+ * one body once it is over.
+ *
+ * **A call is not on this socket.** The person's voice and Talkeo's during a call
+ * go through a separate room (`lib/audio/room-call.ts`); this socket stays open
+ * beside it and keeps delivering exactly what it delivers outside a call — the
+ * text, the cards, the transcript of what they said and where each turn begins
+ * and ends. There is no way to send audio up it any more.
  *
  * The rule that keeps this additive: **the stream is the progressive disclosure
  * of a `TalkeoTurn`, and the last message is that turn.** Ignore every other kind
@@ -22,9 +27,10 @@ import { talkeoTurnResultSchema } from "./tools";
  *
  * ⚠ Two things about this channel that are not visible from the types:
  *
- * - **Audio is binary frames on the same socket**, not a field. A reader that
- *   only parses JSON trips over the first one. They belong to the turn named by
- *   the last `audio_format`.
+ * - **Talkeo's voice in text mode is binary frames on this socket**, not a
+ *   field. A reader that only parses JSON trips over the first one. They belong
+ *   to the turn named by the last `audio_format`. None arrive during a call: the
+ *   room carries the voice then.
  * - **Some turns carry no `text` at all.** The entrance is fixed copy and a
  *   resumed turn is a replay, so neither streams fragments: they arrive as
  *   `turn_started` then `turn_done`, and the words are only in the result. A
@@ -39,12 +45,6 @@ export const turnStartedSchema = z.object({
   turn_id: z.string(),
   stage: z.number().int(),
   stage_name: z.string(),
-  /**
-   * Whether this turn is going to be heard, said before it is generated. Read
-   * off the turn that just finished it would set the microphone up one turn
-   * late, which is the whole first spoken turn of the interview.
-   */
-  mode: z.string().default(""),
   /** How many stages there are, so nothing here has to hard-code seven. */
   stages_total: z.number().int().default(0),
 });
@@ -102,6 +102,8 @@ export const turnWordTimingsSchema = z.object({
 /**
  * What the person is saying, while they say it. `is_final` marks text that will
  * not change; the end of their turn is decided by the transcription, not by this.
+ * During a call it comes from the room by way of the Core, so it arrives here
+ * exactly as it did when the audio went up this socket.
  */
 export const turnTranscriptSchema = z.object({
   kind: z.literal("transcript"),
@@ -123,6 +125,19 @@ export const nothingHeardSchema = z.object({
   reason: z.string().default(""),
 });
 
+/**
+ * A room attached to this conversation, or let go of it.
+ *
+ * Broadcast to every connection of the session when it happens, so a screen that
+ * was reloaded in the middle of a call finds out the line is live rather than
+ * offering to start another. It says nothing about WHICH browser holds the line:
+ * a screen that did not open it can only show "in a call elsewhere".
+ */
+export const callStateSchema = z.object({
+  kind: z.literal("call_state"),
+  live: z.boolean(),
+});
+
 export const turnDoneSchema = z.object({
   kind: z.literal("turn_done"),
   result: talkeoTurnResultSchema,
@@ -142,6 +157,7 @@ export const talkeoStreamOutSchema = z.discriminatedUnion("kind", [
   turnWordTimingsSchema,
   turnTranscriptSchema,
   nothingHeardSchema,
+  callStateSchema,
   turnDoneSchema,
   streamErrorSchema,
 ]);
@@ -151,46 +167,24 @@ export const talkeoStreamOutSchema = z.discriminatedUnion("kind", [
 export const saySchema = z.object({
   kind: z.literal("say"),
   text: z.string(),
+  /**
+   * How it was said. What the room transcribes reaches the Core without going
+   * through this screen, so the only `say` this client sends is one that was
+   * typed, and it says so: the Core keeps the two apart in the record.
+   */
+  via: z.enum(["typed", "spoken"]).optional(),
 });
 
 /** The same edit the request carries, on its way up. It may arrive on its own or
- * be followed by a `say` in the same breath. */
+ * be followed by a `say` in the same breath, and several may come before one
+ * `say`: the Core keeps every one of them, in the order they were sent. */
 export const cardEditedSchema = z.object({
   kind: z.literal("card_edited"),
   edit: cardEditSchema,
 });
 
-/**
- * The screen has heard voice and is about to send frames, starting with the ones
- * it buffered just before: without that head start the first word is gone.
- */
-export const listenStartSchema = z.object({
-  kind: z.literal("listen_start"),
-  mime: z.string(),
-  sample_rate: z.number().int(),
-});
-
-/**
- * The screen gave up on the turn. Normally the transcription decides a turn is
- * over and this never arrives.
- */
-export const listenStopSchema = z.object({ kind: z.literal("listen_stop") });
-
 /** Give me whatever turn I should be looking at. It starts, restarts and re-reads. */
 export const resumeSchema = z.object({ kind: z.literal("resume") });
-
-/**
- * They picked speaking or writing on screen.
- *
- * The choice has always existed — the entrance asks for it in words — but the
- * only way to register it was to type an answer a keyword match could read. Two
- * buttons have nothing to type, and posting a Spanish word for a regex would tie
- * this screen to the wording of a question it does not own.
- */
-export const choseModeSchema = z.object({
-  kind: z.literal("chose_mode"),
-  mode: z.enum(["speak", "text"]),
-});
 
 /**
  * Whether to speak the turns at all.
@@ -207,10 +201,7 @@ export const setVoiceSchema = z.object({
 export const talkeoStreamInSchema = z.discriminatedUnion("kind", [
   saySchema,
   cardEditedSchema,
-  listenStartSchema,
-  listenStopSchema,
   resumeSchema,
-  choseModeSchema,
   setVoiceSchema,
 ]);
 
@@ -222,6 +213,7 @@ export type TurnAudioFormat = z.infer<typeof turnAudioFormatSchema>;
 export type TurnWordTimings = z.infer<typeof turnWordTimingsSchema>;
 export type TurnTranscript = z.infer<typeof turnTranscriptSchema>;
 export type NothingHeard = z.infer<typeof nothingHeardSchema>;
+export type CallState = z.infer<typeof callStateSchema>;
 export type TurnDone = z.infer<typeof turnDoneSchema>;
 export type StreamError = z.infer<typeof streamErrorSchema>;
 export type TalkeoStreamOut = z.infer<typeof talkeoStreamOutSchema>;

@@ -120,41 +120,4 @@ describe("the recorded interview channel", () => {
     );
     expect(cards).toHaveLength(1);
   });
-
-  it("makes up nothing they said: an open microphone hears nothing", async () => {
-    // It used to answer with a scripted line, which read as the product
-    // inventing what they said (Joaquin, 22/oct).
-    vi.useFakeTimers();
-    const channel = openMockInterview();
-    const seen: InterviewMessage[] = [];
-    const reading = (async () => {
-      for await (const message of channel.messages()) seen.push(message);
-    })();
-    channel.listenStart({ mime: "audio/pcm", sampleRate: 16000 });
-    await vi.advanceTimersByTimeAsync(10_000);
-    channel.close();
-    await reading;
-    vi.useRealTimers();
-
-    expect(seen).toEqual([]);
-  });
-
-  it("says it heard nothing when the screen gives up, so nobody waits on a turn", async () => {
-    vi.useFakeTimers();
-    const channel = openMockInterview();
-    const seen: InterviewMessage[] = [];
-    const reading = (async () => {
-      for await (const message of channel.messages()) {
-        seen.push(message);
-        if (message.kind === "nothing_heard") return;
-      }
-    })();
-    channel.listenStart({ mime: "audio/pcm", sampleRate: 16000 });
-    channel.listenStop();
-    await vi.advanceTimersByTimeAsync(1000);
-    await reading;
-    vi.useRealTimers();
-
-    expect(seen.at(-1)?.kind).toBe("nothing_heard");
-  });
 });

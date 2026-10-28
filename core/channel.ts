@@ -49,7 +49,12 @@ export interface InterviewChannel {
   /** Ask for whatever turn should be on screen. Starts, restarts and re-reads. */
   resume(): void;
 
-  /** What they typed. */
+  /**
+   * What they typed.
+   *
+   * Always sent as typed: what they say in a call never passes through this
+   * screen, the room hands it to the Core directly.
+   */
   say(text: string): void;
 
   /**
@@ -60,30 +65,14 @@ export interface InterviewChannel {
    */
   cardEdited(edit: CardEdit): void;
 
-  /** Speaking or writing, picked on screen rather than said out loud. */
-  choseMode(mode: "speak" | "text"): void;
-
   /**
    * Whether the turns are spoken at all.
    *
    * It stops the synthesis and not just this end's speaker, so a muted
-   * conversation is not one being paid for and thrown away.
+   * conversation is not one being paid for and thrown away. It is about Talkeo's
+   * voice in text mode; a call has its own.
    */
   setVoice(on: boolean): void;
-
-  /** About to send microphone frames, in this format. */
-  listenStart(format: { mime: string; sampleRate: number }): void;
-
-  /** One frame of what the microphone heard. */
-  sendAudio(frame: ArrayBuffer): void;
-
-  /**
-   * Stop listening.
-   *
-   * Normally unnecessary: the transcription decides a turn is over. This is the
-   * screen giving up on one — they left the call, or nobody ever spoke.
-   */
-  listenStop(): void;
 
   close(): void;
 }

@@ -871,6 +871,18 @@ export function createMockCore(): CorePort {
       };
     },
 
+    // The recording has no room to join. This is the honest answer rather than
+    // a pretend token: a screen that is handed one would try to open a
+    // connection to nowhere, and one that is told "not implemented" can say that
+    // calls are not available here and leave the typed conversation alone.
+    async startCall({ session_id }) {
+      requireSession(session_id);
+      throw new CoreError(
+        "NOT_IMPLEMENTED",
+        "the recording has no voice room to join",
+      );
+    },
+
     async editPlanCard({ session_id, remove_cell_ids, add_labels }) {
       const session = requireSession(session_id);
       requireStep(session, "plan");
