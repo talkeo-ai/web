@@ -9,7 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -46,25 +46,25 @@ export function InsideShell() {
   const t = useTranslations("inside");
   const [section, setSection] = useState<Section>("home");
   const [folded, setFolded] = useState(false);
-  const peek = usePeek();
-  const peeking = folded && peek.open;
+  const [peek, setPeek] = useState(false);
+  const peeking = folded && peek;
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") return peek.hide();
+      if (event.key === "Escape") return setPeek(false);
       if (event.key !== "[" || event.metaKey || event.ctrlKey) return;
       const target = event.target as HTMLElement | null;
       if (target?.closest("input, textarea, [contenteditable='true']")) return;
       setFolded((value) => !value);
-      peek.hide();
+      setPeek(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [peek]);
+  }, []);
 
   const toggle = () => {
     setFolded((value) => !value);
-    peek.hide();
+    setPeek(false);
   };
 
   const nav = (floating: boolean) => (
@@ -109,28 +109,24 @@ export function InsideShell() {
         </div>
       </aside>
 
-      {/* Folded: the left edge, or resting on the fold button, calls the
-          sidebar back floating. Both go through `usePeek`, which waits a beat
-          before opening and before closing: a pointer crossing the edge on its
-          way somewhere does not flash it open, and one that slips out for an
-          instant does not slam it shut. */}
+      {/* Folded: only the left edge calls the sidebar back, floating, at once;
+          leaving it sends it away. Delays on both ends and opening from the
+          fold button read as odd (Joaquin, 27/oct). */}
       {folded && (
         <div
           aria-hidden
-          className="absolute inset-y-0 left-0 z-20 w-3"
-          onMouseEnter={peek.enter}
-          onMouseLeave={peek.leave}
+          className="absolute inset-y-0 left-0 z-20 w-2"
+          onMouseEnter={() => setPeek(true)}
         />
       )}
       <aside
         aria-label={t("nav")}
         aria-hidden={!peeking}
         inert={!peeking}
-        onMouseEnter={peek.enter}
-        onMouseLeave={peek.leave}
-        onFocus={peek.show}
+        onMouseLeave={() => setPeek(false)}
+        onFocus={() => setPeek(true)}
         onBlur={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) peek.hide();
+          if (!event.currentTarget.contains(event.relatedTarget)) setPeek(false);
         }}
         className={cn(
           "bg-surface-sunken absolute top-4 bottom-0 left-0 z-30 overflow-hidden rounded-tr-xl border border-b-0 border-l-0",
@@ -141,11 +137,9 @@ export function InsideShell() {
           "transition-[translate,opacity]",
           SMOOTH,
           SIDEBAR_WIDTH,
-          // A short travel and a fade, not the whole width: the eye reads
-          // "it's here" without watching 272px slide past.
           peeking
             ? "translate-x-0 opacity-100 duration-200"
-            : "pointer-events-none -translate-x-4 opacity-0 duration-150",
+            : "pointer-events-none -translate-x-full opacity-0 duration-150",
         )}
       >
         {nav(true)}
@@ -160,8 +154,6 @@ export function InsideShell() {
             <IconButton
               label={folded ? t("expand") : t("collapse")}
               onClick={toggle}
-              onMouseEnter={folded ? peek.enter : undefined}
-              onMouseLeave={folded ? peek.leave : undefined}
               Icon={PanelLeft}
             />
             <h1 className="text-foreground text-[15px] font-medium">
@@ -175,39 +167,6 @@ export function InsideShell() {
       </div>
     </div>
   );
-}
-
-/**
- * Hover intent for the floating sidebar: open after a short rest, close after
- * a grace period, and cancel either if the pointer changes its mind first.
- */
-function usePeek() {
-  const [open, setOpen] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  return useMemo(() => {
-    const clear = () => {
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = null;
-    };
-    const later = (value: boolean, ms: number) => {
-      clear();
-      timer.current = setTimeout(() => setOpen(value), ms);
-    };
-    return {
-      open,
-      enter: () => (open ? clear() : later(true, 90)),
-      leave: () => (open ? later(false, 280) : clear()),
-      show: () => {
-        clear();
-        setOpen(true);
-      },
-      hide: () => {
-        clear();
-        setOpen(false);
-      },
-    };
-  }, [open]);
 }
 
 function SidebarContent({
@@ -227,7 +186,9 @@ function SidebarContent({
   // box's edge, and 8px from the top read as cramped (Joaquin, 27/oct).
   return (
     <div className={cn("flex h-full flex-col px-3 pb-2", !floating && "pt-2")}>
-      <div className="flex h-13 items-center gap-2.5 px-2">
+      {/* The logo centred on the rows' icon column and "Talkeo" starting on
+          their text line: 7 + 24/2 = 10 + 18/2, and 7 + 24 + 9 = 10 + 18 + 12. */}
+      <div className="flex h-13 items-center gap-[9px] px-[7px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" className="size-6 rounded-md" />
         <span className="text-foreground flex-1 text-[15px] font-semibold">
@@ -275,19 +236,32 @@ function Row({
       type="button"
       onClick={onSelect}
       aria-current={active ? "page" : undefined}
+      // Three steps of the same tint, so the states read as one family: hover
+      // 5%, selected 8%, pressed 11%. The tint arrives fast and leaves slow, so
+      // running the pointer down the list leaves a short trail instead of
+      // flicker. The focus ring sits inside the row, where the sidebar's
+      // clipping cannot cut it.
       className={cn(
-        "focus-key:ring-ring flex h-9 cursor-pointer items-center gap-3 rounded-lg px-2.5 text-left text-[15px] outline-none focus-key:ring-2",
-        "transition-colors duration-(--duration-control) ease-(--ease-standard)",
+        "group flex h-9 cursor-pointer items-center gap-3 rounded-lg px-2.5 text-left text-[15px] outline-none select-none",
+        "focus-key:ring-ring focus-key:ring-2 focus-key:ring-inset",
+        "transition-colors duration-(--duration-highlight-out) ease-(--ease-standard)",
+        "hover:duration-(--duration-highlight-in) active:bg-foreground/[0.11]",
         active
-          ? "bg-foreground/[0.07] text-foreground font-medium"
-          : "text-foreground/80 hover:bg-foreground/[0.04] hover:text-foreground",
+          ? "bg-foreground/[0.08] text-foreground font-medium"
+          : "text-foreground/75 hover:bg-foreground/[0.05] hover:text-foreground",
       )}
     >
       <Icon
-        className={cn("size-[18px]", active ? "opacity-100" : "opacity-70")}
-        strokeWidth={1.75}
+        className={cn(
+          "size-[18px] transition-colors duration-(--duration-highlight-out)",
+          "group-hover:duration-(--duration-highlight-in)",
+          active
+            ? "text-foreground"
+            : "text-text-secondary group-hover:text-foreground",
+        )}
+        strokeWidth={active ? 2 : 1.75}
       />
-      {label}
+      <span className="truncate">{label}</span>
     </button>
   );
 }
@@ -295,24 +269,16 @@ function Row({
 function IconButton({
   label,
   onClick,
-  onMouseEnter,
-  onMouseLeave,
   Icon,
 }: {
   label: string;
   onClick: () => void;
-  onMouseEnter?: () => void;
-  onMouseLeave?: () => void;
   Icon: LucideIcon;
 }) {
-  // No native `title`: its tooltip landed on top of the floating sidebar that
-  // resting here opens.
   return (
     <button
       type="button"
       onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
       aria-label={label}
       aria-keyshortcuts="["
       className="text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] focus-key:ring-ring flex size-8 cursor-pointer items-center justify-center rounded-lg outline-none transition-colors duration-(--duration-control) focus-key:ring-2"
