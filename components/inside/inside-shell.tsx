@@ -9,7 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -46,23 +46,25 @@ export function InsideShell() {
   const t = useTranslations("inside");
   const [section, setSection] = useState<Section>("home");
   const [folded, setFolded] = useState(false);
-  const [peek, setPeek] = useState(false);
+  const peek = usePeek();
+  const peeking = folded && peek.open;
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") return peek.hide();
       if (event.key !== "[" || event.metaKey || event.ctrlKey) return;
       const target = event.target as HTMLElement | null;
       if (target?.closest("input, textarea, [contenteditable='true']")) return;
       setFolded((value) => !value);
-      setPeek(false);
+      peek.hide();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [peek]);
 
   const toggle = () => {
     setFolded((value) => !value);
-    setPeek(false);
+    peek.hide();
   };
 
   const nav = (floating: boolean) => (
@@ -107,28 +109,43 @@ export function InsideShell() {
         </div>
       </aside>
 
-      {/* Folded: a strip on the left edge calls the sidebar back, floating. */}
+      {/* Folded: the left edge, or resting on the fold button, calls the
+          sidebar back floating. Both go through `usePeek`, which waits a beat
+          before opening and before closing: a pointer crossing the edge on its
+          way somewhere does not flash it open, and one that slips out for an
+          instant does not slam it shut. */}
       {folded && (
         <div
           aria-hidden
-          className="absolute inset-y-0 left-0 z-20 w-2"
-          onMouseEnter={() => setPeek(true)}
+          className="absolute inset-y-0 left-0 z-20 w-3"
+          onMouseEnter={peek.enter}
+          onMouseLeave={peek.leave}
         />
       )}
       <aside
         aria-label={t("nav")}
-        aria-hidden={!(folded && peek)}
-        inert={!(folded && peek)}
-        onMouseLeave={() => setPeek(false)}
+        aria-hidden={!peeking}
+        inert={!peeking}
+        onMouseEnter={peek.enter}
+        onMouseLeave={peek.leave}
+        onFocus={peek.show}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) peek.hide();
+        }}
         className={cn(
-          "bg-surface-sunken absolute top-4 bottom-0 left-0 z-30 overflow-hidden rounded-tr-[10px] border border-b-0 border-l-0",
-          "border-black/[0.08] shadow-[0_8px_24px_-8px_rgb(0_0_0/0.25)] dark:border-white/[0.08]",
+          "bg-surface-sunken absolute top-4 bottom-0 left-0 z-30 overflow-hidden rounded-tr-xl border border-b-0 border-l-0",
+          "border-black/[0.07] dark:border-white/[0.08]",
+          // Two shadows: a tight one that gives the edge, a wide soft one that
+          // lifts it. One heavy shadow reads as a smudge.
+          "shadow-[0_1px_2px_rgb(0_0_0/0.06),0_16px_40px_-12px_rgb(0_0_0/0.3)]",
           "transition-[translate,opacity]",
           SMOOTH,
           SIDEBAR_WIDTH,
-          folded && peek
+          // A short travel and a fade, not the whole width: the eye reads
+          // "it's here" without watching 272px slide past.
+          peeking
             ? "translate-x-0 opacity-100 duration-200"
-            : "pointer-events-none -translate-x-full opacity-0 duration-150",
+            : "pointer-events-none -translate-x-4 opacity-0 duration-150",
         )}
       >
         {nav(true)}
@@ -143,6 +160,8 @@ export function InsideShell() {
             <IconButton
               label={folded ? t("expand") : t("collapse")}
               onClick={toggle}
+              onMouseEnter={folded ? peek.enter : undefined}
+              onMouseLeave={folded ? peek.leave : undefined}
               Icon={PanelLeft}
             />
             <h1 className="text-foreground text-[15px] font-medium">
@@ -156,6 +175,39 @@ export function InsideShell() {
       </div>
     </div>
   );
+}
+
+/**
+ * Hover intent for the floating sidebar: open after a short rest, close after
+ * a grace period, and cancel either if the pointer changes its mind first.
+ */
+function usePeek() {
+  const [open, setOpen] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  return useMemo(() => {
+    const clear = () => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = null;
+    };
+    const later = (value: boolean, ms: number) => {
+      clear();
+      timer.current = setTimeout(() => setOpen(value), ms);
+    };
+    return {
+      open,
+      enter: () => (open ? clear() : later(true, 90)),
+      leave: () => (open ? later(false, 280) : clear()),
+      show: () => {
+        clear();
+        setOpen(true);
+      },
+      hide: () => {
+        clear();
+        setOpen(false);
+      },
+    };
+  }, [open]);
 }
 
 function SidebarContent({
@@ -243,18 +295,26 @@ function Row({
 function IconButton({
   label,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
   Icon,
 }: {
   label: string;
   onClick: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   Icon: LucideIcon;
 }) {
+  // No native `title`: its tooltip landed on top of the floating sidebar that
+  // resting here opens.
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       aria-label={label}
-      title={`${label}  [`}
+      aria-keyshortcuts="["
       className="text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] focus-key:ring-ring flex size-8 cursor-pointer items-center justify-center rounded-lg outline-none transition-colors duration-(--duration-control) focus-key:ring-2"
     >
       <Icon className="size-[18px]" strokeWidth={1.75} />
