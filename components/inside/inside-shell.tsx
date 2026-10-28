@@ -23,8 +23,12 @@ const MAIN: { key: Section; Icon: LucideIcon }[] = [
 
 const SIDEBAR_WIDTH = "w-[272px]";
 
-/** A long, soft settle: quick off the mark, no visible end to the motion. */
-const SMOOTH = "ease-[cubic-bezier(0.32,0.72,0,1)]";
+/**
+ * Ease-in-out sine: the speed rises from zero and falls back to zero, a
+ * symmetric hump, so the motion neither jumps off nor brakes hard. A curve that
+ * was quick off the mark read as a lurch at the start (Joaquin, 27/oct).
+ */
+const SMOOTH = "ease-[cubic-bezier(0.37,0,0.63,1)]";
 
 /**
  * The inside, as one page, drawn after Linear (Joaquin, 27/oct): a sidebar of
