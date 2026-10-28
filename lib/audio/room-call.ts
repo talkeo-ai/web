@@ -98,6 +98,11 @@ export type RoomCall = {
   join(room: { roomUrl: string; token: string }): Promise<JoinResult>;
   /** Sends silence instead of the room. The line stays open. */
   mute(on: boolean): void;
+  /**
+   * Talkeo's voice in the call, off or on. The speaker key's: during a call the
+   * voice is the room's, and the Core's `set_voice` does not reach it.
+   */
+  silence(on: boolean): void;
   /** Called once if the line is lost after `join`. Never after `close`. */
   onLost(handler: () => void): void;
   close(): void;
@@ -174,6 +179,8 @@ function buildCall(stream: MediaStream, context: AudioContext | null): RoomCall 
   let peer: RTCPeerConnection | null = null;
   let remote: AnalyserNode | null = null;
   let player: HTMLAudioElement | null = null;
+  // Kept apart from the element: the key can be pressed before the voice arrives.
+  let silenced = false;
   let lost: () => void = () => {};
   let recovering: ReturnType<typeof setTimeout> | undefined;
   let closed = false;
@@ -204,6 +211,10 @@ function buildCall(stream: MediaStream, context: AudioContext | null): RoomCall 
     remoteMeter: () => remote,
     mute: (on) => {
       if (micTrack) micTrack.enabled = !on;
+    },
+    silence: (on) => {
+      silenced = on;
+      if (player) player.muted = on;
     },
     onLost: (handler) => {
       lost = handler;
@@ -247,6 +258,7 @@ function buildCall(stream: MediaStream, context: AudioContext | null): RoomCall 
         const element = new Audio();
         element.autoplay = true;
         element.srcObject = heard;
+        element.muted = silenced;
         player = element;
         void element.play().catch(() => {
           // Autoplay refused: the press that started the call is a gesture, so

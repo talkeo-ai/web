@@ -113,6 +113,9 @@ export async function startCall(): Promise<StartedCall> {
     // A service that declined and one that could not be reached look the same
     // from the screen: either way there is no call to make.
     if (isCoreError(error) || error instanceof Error) {
+      // The screen only says "not available"; the server log says why, or a
+      // deploy missing its room setting looks exactly like a room that is down.
+      console.error("start_call failed:", error.message);
       return { ok: false, reason: "unavailable" };
     }
     throw error;

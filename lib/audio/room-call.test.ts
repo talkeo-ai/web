@@ -266,6 +266,28 @@ describe("joining the room", () => {
     expect(track.enabled).toBe(true);
   });
 
+  it("the speaker key silences Talkeo in the call, pressed before or after the voice arrives", async () => {
+    microphone();
+    withPeer();
+    const played: HTMLMediaElement[] = [];
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(function (
+      this: HTMLMediaElement,
+    ) {
+      played.push(this);
+      return Promise.resolve();
+    });
+    answering(200);
+    const call = await opened();
+    await call.join(ROOM);
+
+    call.silence(true);
+    FakePeer.last.hears({});
+    expect(played).toHaveLength(1);
+    expect(played[0].muted).toBe(true);
+    call.silence(false);
+    expect(played[0].muted).toBe(false);
+  });
+
   it.each([
     [401, "expired"],
     [409, "busy"],

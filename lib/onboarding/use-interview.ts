@@ -99,6 +99,8 @@ export function useInterview(
   const call = useRef<RoomCall | null>(null);
   /** A press is being answered: the prompt, or the room. A second press waits. */
   const starting = useRef(false);
+  // Whether the Core has said a room is attached for the call this screen holds.
+  const roomSeen = useRef(false);
   /** Whether this screen is still here, for a permission prompt that outlives it. */
   const alive = useRef(true);
   // The turn's frames as they arrive, so the last one can be put back after a
@@ -293,6 +295,7 @@ export function useInterview(
   const dropCall = useCallback(() => {
     call.current?.close();
     call.current = null;
+    roomSeen.current = false;
     setMicMeter(null);
     setInCall(false);
     setMicMuted(false);
@@ -343,6 +346,12 @@ export function useInterview(
         }
         return false;
       }
+      // Gone while the token was on its way: no offer, or the room would hold
+      // this session for a call nobody is on.
+      if (!alive.current) {
+        line.close();
+        return false;
+      }
       const joined = await line.join(room);
       if (!joined.ok) {
         // `join` has already let go of the microphone.
@@ -384,6 +393,25 @@ export function useInterview(
   useEffect(() => {
     call.current?.mute(micMuted);
   }, [micMuted]);
+
+  // The speaker key during a call: the voice is the room's there, and the
+  // Core's `set_voice` only reaches its own.
+  useEffect(() => {
+    call.current?.silence(!voiceOn);
+  }, [voiceOn, inCall]);
+
+  // The room went away while this screen is on the call: the Core closed it,
+  // the call reached its length, or the room fell over. The call ends here too
+  // rather than recording into nothing until the network notices. Only once
+  // the Core has said this call was live: a `false` left over from the last
+  // call must not end the next one.
+  useEffect(() => {
+    if (callLive) {
+      if (call.current || starting.current) roomSeen.current = true;
+      return;
+    }
+    if (roomSeen.current && call.current) dropCall();
+  }, [callLive, dropCall]);
 
   // --- the turn being said, and the beat after it --------------------------
 

@@ -97,7 +97,8 @@ const RECORDED: [tool: ToolName, variant: string, value: unknown][] = [
   ["edit_plan_card", "", planCard.edit_plan_card],
 
   // Written by hand rather than recorded: the room only exists on a deployed
-  // service, and the token is single-use, so there is nothing worth keeping.
+  // service, and the token expires within a minute, so there is nothing worth
+  // keeping.
   [
     "start_call",
     "",
