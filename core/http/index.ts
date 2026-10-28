@@ -84,5 +84,6 @@ export function createHttpCore(baseUrl: string): CorePort {
     setScope: (request) => call("set_scope", request),
     reportView: (request) => call("report_view", request),
     editPlanCard: (request) => call("edit_plan_card", request),
+    startCall: (request) => call("start_call", request),
   };
 }

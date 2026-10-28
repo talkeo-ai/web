@@ -84,6 +84,41 @@ export async function openInterviewSession(
   };
 }
 
+export type StartedCall =
+  | { ok: true; token: string; roomUrl: string }
+  | { ok: false; reason: "unavailable" | "no session" };
+
+/**
+ * A way into the voice room for the conversation this browser is in.
+ *
+ * The session comes from the cookie and not from the caller, like everything
+ * else here: the id of a conversation is not something a page should be able to
+ * hand over for somebody else's.
+ *
+ * Failure is a value and not a throw, because it is an ordinary outcome — a
+ * deployment without a room, or a service that is down — and a Server Action
+ * that throws reaches the screen as a stripped error with nothing to branch on.
+ */
+export async function startCall(): Promise<StartedCall> {
+  const jar = await cookies();
+  const sessionId = jar.get(SESSION_COOKIE)?.value;
+  if (!sessionId) return { ok: false, reason: "no session" };
+
+  try {
+    const { token, room_url } = await core().startCall({
+      session_id: sessionId,
+    });
+    return { ok: true, token, roomUrl: room_url };
+  } catch (error) {
+    // A service that declined and one that could not be reached look the same
+    // from the screen: either way there is no call to make.
+    if (isCoreError(error) || error instanceof Error) {
+      return { ok: false, reason: "unavailable" };
+    }
+    throw error;
+  }
+}
+
 async function resume(sessionId: string): Promise<OpenedInterview | null> {
   try {
     const { state, flow } = await core().getInterviewState({

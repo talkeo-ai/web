@@ -134,6 +134,13 @@ describe("the mock adapter", () => {
     core = createMockCore();
   });
 
+  it("has no voice room to join, and says so in a way a screen can read", async () => {
+    const { session_id } = await openRun(core, FULL_CLIENT);
+    await expect(core.startCall({ session_id })).rejects.toMatchObject({
+      code: "NOT_IMPLEMENTED",
+    });
+  });
+
   it("walks a whole run, step by step", async () => {
     const { user_id, session_id, flow } = await openRun(core, FULL_CLIENT);
     expect(flow.step).toBe("talkeo_interview");
@@ -504,6 +511,7 @@ describe("the port", () => {
     "setScope",
     "reportView",
     "editPlanCard",
+    "startCall",
   ];
 
   it("exposes the catalog and nothing else", () => {

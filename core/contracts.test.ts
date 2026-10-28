@@ -95,6 +95,19 @@ const RECORDED: [tool: ToolName, variant: string, value: unknown][] = [
   ["get_goal_v2", "", goalV2.get_goal_v2],
   ["get_plan_card", "", planCard.get_plan_card],
   ["edit_plan_card", "", planCard.edit_plan_card],
+
+  // Written by hand rather than recorded: the room only exists on a deployed
+  // service, and the token is single-use, so there is nothing worth keeping.
+  [
+    "start_call",
+    "",
+    {
+      schema_version: 1,
+      token: "tok_example",
+      room_url: "https://room.example/rooms/abc",
+      expires_in: 60,
+    },
+  ],
 ];
 
 describe("the recorded answers of the service", () => {
@@ -131,8 +144,8 @@ describe("the recorded answers of the service", () => {
 
 describe("the catalog", () => {
   it("names every call the service catalogs, and no more", () => {
-    expect(TOOL_NAMES).toHaveLength(36);
-    expect(new Set(TOOL_NAMES).size).toBe(36);
+    expect(TOOL_NAMES).toHaveLength(37);
+    expect(new Set(TOOL_NAMES).size).toBe(37);
   });
 
   it("has a recorded answer for every call", () => {
