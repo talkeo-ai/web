@@ -37,6 +37,20 @@ export function useCardDrag({
   /** True while the pointer is down: the card follows, it does not ease. */
   const [held, setHeld] = useState(false);
   const from = useRef(0);
+  // ⚠ The handlers read these, never the state. A fast flick delivers down,
+  // move and up before React renders in between, so all three run on one
+  // render's closures: read from state, the up saw "not held", returned, and
+  // the card stayed held with the button released, following the bare mouse
+  // until a reload (Joaquin, 1/nov). The state is only what gets drawn.
+  const heldNow = useRef(false);
+  const dxNow = useRef(0);
+
+  const release = () => {
+    heldNow.current = false;
+    dxNow.current = 0;
+    setHeld(false);
+    setDx(0);
+  };
 
   const clamp = (raw: number) => {
     const side: Side = raw < 0 ? "left" : "right";
@@ -53,23 +67,33 @@ export function useCardDrag({
       if ((event.target as HTMLElement).closest(INTERACTIVE)) return;
       event.currentTarget.setPointerCapture(event.pointerId);
       from.current = event.clientX;
+      heldNow.current = true;
+      dxNow.current = 0;
       setHeld(true);
     },
     onPointerMove: (event: React.PointerEvent<HTMLElement>) => {
-      if (!held) return;
-      setDx(clamp(event.clientX - from.current));
+      if (!heldNow.current) return;
+      const next = clamp(event.clientX - from.current);
+      dxNow.current = next;
+      setDx(next);
     },
     onPointerUp: (event: React.PointerEvent<HTMLElement>) => {
-      if (!held) return;
-      event.currentTarget.releasePointerCapture(event.pointerId);
-      setHeld(false);
-      const side: Side = dx < 0 ? "left" : "right";
-      if (Math.abs(dx) >= CARD_COMMIT_PX && allow[side]) onCommit(side, dx);
-      setDx(0);
+      if (!heldNow.current) return;
+      const at = dxNow.current;
+      release();
+      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      const side: Side = at < 0 ? "left" : "right";
+      if (Math.abs(at) >= CARD_COMMIT_PX && allow[side]) onCommit(side, at);
     },
     onPointerCancel: () => {
-      setHeld(false);
-      setDx(0);
+      if (heldNow.current) release();
+    },
+    // The browser can take the pointer away without an up (the window loses
+    // focus, a system gesture): the card goes back instead of staying held.
+    onLostPointerCapture: () => {
+      if (heldNow.current) release();
     },
   };
 
