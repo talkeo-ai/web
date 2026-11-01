@@ -8,7 +8,7 @@ import type { Home } from "@/lib/inside/mock";
 import { cn } from "@/lib/utils";
 
 import { Segmented } from "./segmented";
-import { ARRIVE, CARD, arrive, type T } from "./ui";
+import { ARRIVE, CARD, PAGE_TITLE, PRIMARY, arrive, type T } from "./ui";
 
 const MINUTES = ["5", "10", "15", "20", "30"] as const;
 const LOCALES = [
@@ -22,17 +22,7 @@ const LOCALES = [
  * target the Core already takes (`set_dose_target`); the rest is local to
  * this screen until there is an account to keep it on.
  */
-export function Settings({
-  home,
-  t,
-  autoOpen,
-  onAutoOpen,
-}: {
-  home: Home;
-  t: T;
-  autoOpen: boolean;
-  onAutoOpen: (on: boolean) => void;
-}) {
+export function Settings({ home, t }: { home: Home; t: T }) {
   const [minutes, setMinutes] = useState<string>(String(home.dose.target_session_minutes));
   const [reminder, setReminder] = useState(true);
   const [voice, setVoice] = useState(true);
@@ -41,11 +31,8 @@ export function Settings({
   const pathname = usePathname();
 
   return (
-    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 pb-6">
-      <h1
-        className={cn("font-heading text-foreground text-[30px] leading-[1.05] font-medium tracking-[-0.035em] lg:text-[40px]", ARRIVE)}
-        style={arrive(0)}
-      >
+    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-6">
+      <h1 className={cn(PAGE_TITLE, ARRIVE)} style={arrive(0)}>
         {t("settings.title")}
       </h1>
 
@@ -58,7 +45,7 @@ export function Settings({
           <Link
             href="/login"
             prefetch={false}
-            className="font-heading inline-flex h-8 items-center rounded-full bg-[var(--brand)] px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
+            className={cn(PRIMARY, "h-9 px-4 text-[13px]")}
           >
             {t("save.cta")}
           </Link>
@@ -82,9 +69,6 @@ export function Settings({
       <Group title={t("settings.talkeo")} order={3}>
         <Row label={t("settings.voice")}>
           <Switch on={voice} onChange={setVoice} label={t("settings.voice")} />
-        </Row>
-        <Row label={t("settings.autoOpen")}>
-          <Switch on={autoOpen} onChange={onAutoOpen} label={t("settings.autoOpen")} />
         </Row>
         <Row label={t("settings.language")} stack>
           <Segmented

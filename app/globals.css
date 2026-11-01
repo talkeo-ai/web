@@ -438,7 +438,6 @@
    scrolls the document at all, so there the reservation is just a dead strip
    down the right-hand edge — visible as a margin the panel does not have. */
 html:has([data-slot="chat-workspace"]),
-html:has([data-slot="inside"]),
 html:has([data-sky] [data-slot="onboarding"]) {
   scrollbar-gutter: auto;
   overflow: hidden;
@@ -767,6 +766,36 @@ body[data-scroll-locked] {
   100% {
     transform: scale(1.7);
     opacity: 0;
+  }
+}
+
+/* The sky in today's card, drifting so slowly it reads as weather, not motion. */
+@keyframes hero-drift {
+  from {
+    transform: scale(1.05) translateX(0);
+  }
+  to {
+    transform: scale(1.12) translateX(-2%);
+  }
+}
+
+/* A ring drawing itself to its value (pathLength 100). */
+@keyframes dash-in {
+  from {
+    stroke-dashoffset: 100;
+  }
+}
+
+/* Talkeo's glow, breathing slowly behind its face. */
+@keyframes glow-breathe {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
   }
 }
 

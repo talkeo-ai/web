@@ -120,6 +120,22 @@
       "review": "Revisar"
     },
     "week": "Sua semana",
+    "streakDays": "{days, plural, one {dia seguido} other {dias seguidos}}",
+    "lessons": "{n, plural, one {# lição} other {# lições}}",
+    "noBar": "Sem barra: medida por área",
+    "hero": {
+      "label": "Aula de hoje",
+      "now": "Agora",
+      "steps": "{done} de {total}",
+      "see": "Ver a aula",
+      "hide": "Ocultar",
+      "todayLabel": "Hoje"
+    },
+    "ask": {
+      "title": "Pergunte ao Talkeo",
+      "line": "Sobre sua aula, seu nível ou o que precisar",
+      "open": "Abrir o Talkeo"
+    },
     "streak": "{days, plural, one {# dia seguido} other {# dias seguidos}}",
     "todayMinutes": "{done} de {target} min hoje",
     "level": "Seu nível por área",
@@ -152,7 +168,8 @@
       "today": "Hoje",
       "practice": "Praticar",
       "progress": "Progresso",
-      "settings": "Ajustes"
+      "settings": "Ajustes",
+      "talkeo": "Talkeo"
     },
     "views": {
       "class": "Aula do dia",
@@ -165,7 +182,15 @@
       "placeholder": "Pergunte algo ao Talkeo",
       "send": "Enviar",
       "typing": "Talkeo está escrevendo",
-      "mic": "Falar em voz alta"
+      "mic": "Falar em voz alta",
+      "newChat": "Nova conversa",
+      "expand": "Abrir em tela cheia",
+      "ask": "Sobre o que você quer falar?",
+      "askLine": "Pratique falando ou pergunte o que quiser.",
+      "call": "Ligar para o Talkeo",
+      "callLine": "Uma conversa em voz alta, como uma ligação",
+      "chat": "Escrever",
+      "chatLine": "Perguntas, dúvidas ou prática por escrito"
     },
     "practice": {
       "title": "Praticar",
@@ -192,7 +217,9 @@
       "measured": "{pct}% medido",
       "activity": "As últimas 4 semanas",
       "minutesTotal": "{minutes} min falando ou escrevendo",
-      "daysActive": "{days} dias com prática"
+      "daysActive": "{days} dias com prática",
+      "minutesUnit": "min praticados",
+      "daysUnit": "dias com prática"
     },
     "settings": {
       "title": "Ajustes",

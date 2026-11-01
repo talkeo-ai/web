@@ -5,10 +5,8 @@ import { useLayoutEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { GLASS } from "./ui";
-
 /**
- * A glass segment whose white pill slides to the chosen option instead of
+ * A segment whose white pill slides to the chosen option instead of
  * jumping: the pill is one element that moves, measured from the option it
  * lands on, so it travels the real distance at any width and in any language.
  * Written straight to the element's style, not through state, so moving it
@@ -56,14 +54,14 @@ export function Segmented<V extends string>({
     <div
       ref={track}
       role="tablist"
-      className={cn("relative isolate flex items-center rounded-full p-1", GLASS, className)}
+      className={cn("relative isolate flex items-center rounded-full bg-black/[0.05] p-1 dark:bg-white/10", className)}
     >
       <span
         ref={pill}
         aria-hidden
         className={cn(
           "bg-card absolute top-1 bottom-1 left-0 -z-10 rounded-full",
-          "shadow-[0_1px_2px_rgb(28_25_23/0.06),0_4px_12px_-6px_rgb(40_90_170/0.3)]",
+          "shadow-[0_1px_2px_rgb(16_24_40/0.08),0_2px_8px_-2px_rgb(16_24_40/0.08)]",
           "transition-[transform,width] duration-[380ms] ease-(--ease-entrance) motion-reduce:transition-none",
         )}
       />

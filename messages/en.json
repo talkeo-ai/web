@@ -507,6 +507,22 @@
       "review": "Review"
     },
     "week": "Your week",
+    "streakDays": "{days, plural, one {day in a row} other {days in a row}}",
+    "lessons": "{n, plural, one {# lesson} other {# lessons}}",
+    "noBar": "No bar: measured by area",
+    "hero": {
+      "label": "Today's class",
+      "now": "Now",
+      "steps": "{done} of {total}",
+      "see": "See the class",
+      "hide": "Hide",
+      "todayLabel": "Today"
+    },
+    "ask": {
+      "title": "Ask Talkeo",
+      "line": "About your class, your level or anything you need",
+      "open": "Open Talkeo"
+    },
     "streak": "{days, plural, one {# day in a row} other {# days in a row}}",
     "todayMinutes": "{done} of {target} min today",
     "level": "Your level by area",
@@ -539,7 +555,8 @@
       "today": "Today",
       "practice": "Practice",
       "progress": "Progress",
-      "settings": "Settings"
+      "settings": "Settings",
+      "talkeo": "Talkeo"
     },
     "views": {
       "class": "Today's class",
@@ -552,7 +569,15 @@
       "placeholder": "Ask Talkeo something",
       "send": "Send",
       "typing": "Talkeo is typing",
-      "mic": "Speak to it out loud"
+      "mic": "Speak to it out loud",
+      "newChat": "New chat",
+      "expand": "Open large",
+      "ask": "What do you want to talk about?",
+      "askLine": "Practise speaking, or ask it anything.",
+      "call": "Call Talkeo",
+      "callLine": "A conversation out loud, like a call",
+      "chat": "Write to it",
+      "chatLine": "Questions, doubts or written practice"
     },
     "practice": {
       "title": "Practice",
@@ -579,7 +604,9 @@
       "measured": "{pct}% measured",
       "activity": "The last 4 weeks",
       "minutesTotal": "{minutes} min speaking or writing",
-      "daysActive": "{days} days with practice"
+      "daysActive": "{days} days with practice",
+      "minutesUnit": "min practised",
+      "daysUnit": "days with practice"
     },
     "settings": {
       "title": "Settings",

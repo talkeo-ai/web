@@ -120,6 +120,22 @@
       "review": "Repasar"
     },
     "week": "Tu semana",
+    "streakDays": "{days, plural, one {día seguido} other {días seguidos}}",
+    "lessons": "{n, plural, one {# lección} other {# lecciones}}",
+    "noBar": "Sin barra: se mide por área",
+    "hero": {
+      "label": "Clase de hoy",
+      "now": "Ahora",
+      "steps": "{done} de {total}",
+      "see": "Ver la clase",
+      "hide": "Ocultar",
+      "todayLabel": "Hoy"
+    },
+    "ask": {
+      "title": "Preguntale a Talkeo",
+      "line": "Sobre tu clase, tu nivel o lo que necesites",
+      "open": "Abrir Talkeo"
+    },
     "streak": "{days, plural, one {# día seguido} other {# días seguidos}}",
     "todayMinutes": "{done} de {target} min hoy",
     "level": "Tu nivel por área",
@@ -152,7 +168,8 @@
       "today": "Hoy",
       "practice": "Practicar",
       "progress": "Progreso",
-      "settings": "Ajustes"
+      "settings": "Ajustes",
+      "talkeo": "Talkeo"
     },
     "views": {
       "class": "Clase del día",
@@ -165,7 +182,15 @@
       "placeholder": "Preguntale algo a Talkeo",
       "send": "Enviar",
       "typing": "Talkeo está escribiendo",
-      "mic": "Hablarle en voz alta"
+      "mic": "Hablarle en voz alta",
+      "newChat": "Nueva charla",
+      "expand": "Abrir en grande",
+      "ask": "¿De qué querés hablar?",
+      "askLine": "Practicá hablando o preguntale lo que quieras.",
+      "call": "Llamar a Talkeo",
+      "callLine": "Una charla en voz alta, como una llamada",
+      "chat": "Escribirle",
+      "chatLine": "Preguntas, dudas o práctica por escrito"
     },
     "practice": {
       "title": "Practicar",
@@ -192,7 +217,9 @@
       "measured": "{pct}% medido",
       "activity": "Las últimas 4 semanas",
       "minutesTotal": "{minutes} min hablando o escribiendo",
-      "daysActive": "{days} días con práctica"
+      "daysActive": "{days} días con práctica",
+      "minutesUnit": "min practicados",
+      "daysUnit": "días con práctica"
     },
     "settings": {
       "title": "Ajustes",

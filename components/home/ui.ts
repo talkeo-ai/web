@@ -3,29 +3,35 @@ import type { useTranslations } from "next-intl";
 export type T = ReturnType<typeof useTranslations<"home">>;
 
 /**
- * The cards: the word deck's white card and long blue shadow, the one
- * vocabulary the landing, the measurement and the interview already share.
- * `--sky-card-shadow` lives with the other sky styles in `globals.css`.
+ * The inside's vocabulary, after the apps people pay for (Appllama, 1/nov:
+ * Bevel, Ladder, Calm, Speak, Praktika): a quiet grey ground, white cards
+ * that barely lift off it, one image where the eye should go first, and
+ * colour kept for what you act on.
  */
-export const CARD = "bg-card rounded-[24px] shadow-[var(--sky-card-shadow)]";
 
-/** The glass every floating control on the sky is made of. */
-export const GLASS =
-  "bg-white/55 shadow-[0_0_0_1px_rgb(255_255_255/0.65),0_8px_24px_-12px_rgb(40_90_170/0.35)] backdrop-blur-xl dark:bg-white/10 dark:shadow-none";
+/** The ground every section stands on. */
+export const GROUND = "bg-[#F3F4F7] dark:bg-background";
 
-/** The brand blue running into the sky's own blue, for what leads. */
-export const LEAD_FILL =
-  "bg-[linear-gradient(135deg,oklch(0.5_0.18_256)_0%,oklch(0.56_0.17_250)_45%,oklch(0.7_0.12_230)_100%)]";
+/** A white card, lifted by a hairline and a soft shadow, never a border. */
+export const CARD =
+  "bg-card rounded-[24px] shadow-[0_0_0_1px_rgb(16_24_40/0.04),0_1px_2px_rgb(16_24_40/0.04),0_8px_24px_-12px_rgb(16_24_40/0.08)] dark:shadow-[0_0_0_1px_rgb(255_255_255/0.06)]";
 
-export const BRAND_FILL = "bg-[linear-gradient(135deg,var(--brand),oklch(0.7_0.12_230))]";
+/** The main action: dark, round, unmistakable. */
+export const PRIMARY =
+  "font-heading inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background transition-[transform,opacity] duration-200 hover:opacity-90 active:scale-[0.97]";
+
+/** A quiet action beside it. */
+export const QUIET =
+  "font-heading inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-black/[0.05] px-3.5 text-[13px] font-semibold text-foreground transition-colors duration-200 hover:bg-black/[0.08] dark:bg-white/10 dark:hover:bg-white/15";
+
+export const PAGE_TITLE = "font-heading text-foreground text-[30px] leading-[1.1] font-semibold tracking-[-0.03em] sm:text-[34px]";
+export const CARD_TITLE = "font-heading text-foreground text-[17px] font-semibold tracking-[-0.015em]";
+export const LABEL = "text-text-secondary text-[13px] font-medium";
 
 /** Each block arrives a beat after the one above it, rising a little. */
 export const ARRIVE = "motion-safe:animate-[home-in_620ms_var(--ease-entrance)_both]";
 export function arrive(order: number): React.CSSProperties {
   return { animationDelay: `${40 + order * 60}ms` };
 }
-
-/** The ease-in-out sine the inside already moved on (27/oct): no lurch, no brake. */
-export const SMOOTH = "ease-[cubic-bezier(0.37,0,0.63,1)]";
 
 export const BANDS = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;

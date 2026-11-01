@@ -1,176 +1,190 @@
 "use client";
 
-import {
-  ArrowRight,
-  BookOpen,
-  Check,
-  Flame,
-  Headphones,
-  Mic,
-  PenLine,
-  RotateCcw,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Lock, Play, X } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useState, useSyncExternalStore } from "react";
 
 import { Link } from "@/lib/i18n/navigation";
-import type { Home, PlanBlock, RoadUnit } from "@/lib/inside/mock";
+import { MOCK_TALKEO, type Home, type RoadUnit } from "@/lib/inside/mock";
 import { cn } from "@/lib/utils";
 
-import { Segmented } from "./segmented";
-import { ARRIVE, BRAND_FILL, CARD, GLASS, LEAD_FILL, arrive, type T } from "./ui";
+import type { Section } from "./home";
+import { Avatar } from "./talkeo";
+import { ARRIVE, CARD, CARD_TITLE, LABEL, PAGE_TITLE, PRIMARY, arrive, type T } from "./ui";
 
-const KIND_ICON: Record<PlanBlock["kind"], LucideIcon> = {
-  speak: Mic,
-  write: PenLine,
-  listen: Headphones,
-  read: BookOpen,
-  review: RotateCcw,
-};
-
-type View = "class" | "road";
+const noSubscribe = () => () => {};
+/** Today, read only in the browser: read while prerendering it would freeze at build day. */
+function useToday() {
+  const day = useSyncExternalStore(noSubscribe, () => new Date().toDateString(), () => null);
+  return day ? new Date(day) : null;
+}
 
 /**
- * Today: what to do now, and little else (Joaquin, 1/nov: "hacer lo que te
- * toca hacer y no muchas cosas más"). The day's class or the fixed path,
- * switched in place, the week in one line, and the account ask that does not
- * block. On a desktop it fits the window; nothing on it needs a scroll.
+ * Today: one thing in front, the rest beside it (Joaquin, 1/nov: "hacer lo
+ * que te toca hacer y no muchas cosas más"). The day's class is the one big
+ * card with the sky in it, the way Ladder, Elevate and Calm open on a single
+ * hero; its steps fold away until asked for. Beside it, the week, Talkeo
+ * and the account ask; below it, the fixed path for whoever wants to see
+ * where this is going.
  */
-export function Today({ home, t }: { home: Home; t: T }) {
-  const [view, setView] = useState<View>("class");
+export function Today({
+  home,
+  t,
+  onAsk,
+  onSection,
+}: {
+  home: Home;
+  t: T;
+  onAsk: (text: string) => void;
+  onSection: (s: Section) => void;
+}) {
+  const locale = useLocale();
+  const today = useToday();
+  const date = today
+    ? new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(today)
+    : " ";
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-[860px] flex-col">
-      <header className={cn("mb-5 flex flex-wrap items-end justify-between gap-4", ARRIVE)} style={arrive(0)}>
-        <div>
-          <h1 className="font-heading text-foreground text-[30px] leading-[1.05] font-medium tracking-[-0.035em] lg:text-[40px]">
-            {t("greeting", { name: home.name })}
-          </h1>
-          <p className="text-foreground/65 mt-1.5 text-[15px] lg:text-[17px]">
-            {t("lead", { goal: home.plan.goal })}
-          </p>
-        </div>
-        <Segmented
-          value={view}
-          onChange={setView}
-          options={[
-            { value: "class", label: t("views.class") },
-            { value: "road", label: t("views.road") },
-          ]}
-        />
+    <div className="flex flex-col gap-6">
+      <header className={ARRIVE} style={arrive(0)}>
+        <p className="text-text-secondary text-[14px] font-medium first-letter:uppercase">{date}</p>
+        <h1 className={cn(PAGE_TITLE, "mt-1")}>{t("greeting", { name: home.name })}</h1>
       </header>
 
-      {/* The two views share one place: the one leaving fades, the one
-          arriving rises in, keyed so each switch replays it. */}
-      <div key={view} className="motion-safe:animate-[view-in_420ms_var(--ease-entrance)_both]">
-        {view === "class" ? (
-          <div className="flex flex-col gap-4">
-            <TodayCard home={home} t={t} />
-            <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <WeekStrip home={home} t={t} />
-              {!home.saved && <SaveBar t={t} />}
-            </div>
-          </div>
-        ) : (
+      {/* On a phone: the class, then the week and Talkeo, then the path.
+          On a wide screen the side column runs beside both. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+          <Hero home={home} t={t} />
+        </div>
+        <aside className="flex min-w-0 flex-col gap-5 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <Week home={home} t={t} />
+          <Ask t={t} onAsk={onAsk} onOpen={() => onSection("talkeo")} />
+          {!home.saved && <Save t={t} />}
+        </aside>
+        <div className="min-w-0 lg:col-start-1 lg:row-start-2">
           <Road units={home.road} t={t} />
-        )}
+        </div>
       </div>
     </div>
   );
 }
 
-function TodayCard({ home, t }: { home: Home; t: T }) {
+function Hero({ home, t }: { home: Home; t: T }) {
+  const [open, setOpen] = useState(false);
   const { blocks } = home.plan;
   const done = blocks.filter((b) => b.done).length;
   const current = blocks.find((b) => !b.done);
   const total = blocks.reduce((sum, b) => sum + b.minutes, 0);
 
   return (
-    <section
-      aria-label={t("today")}
-      className={cn(
-        "relative isolate overflow-hidden rounded-[28px] p-6 text-white sm:p-7",
-        "shadow-[0_1px_2px_rgb(28_25_23/0.08),0_30px_60px_-24px_rgb(30_80_180/0.6)]",
-        LEAD_FILL,
-        ARRIVE,
-      )}
-      style={arrive(1)}
-    >
-      {/* Light on the card, so the fill reads as a lit surface rather than a
-          flat swatch: a soft bloom in the corner and a fine top edge. */}
-      <div aria-hidden className="pointer-events-none absolute -top-24 -right-16 -z-10 size-[340px] rounded-full bg-white/25 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 -z-10 size-[300px] rounded-full bg-[oklch(0.8_0.1_220)]/40 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-[28px] shadow-[inset_0_1px_0_rgb(255_255_255/0.35)]" />
+    <section className={cn(CARD, "overflow-hidden rounded-[28px]", ARRIVE)} style={arrive(1)}>
+      <div className="relative isolate flex min-h-[360px] flex-col overflow-hidden p-6 text-white sm:p-8">
+        {/* The sky the measurement and the interview stood on, now the
+            picture of today's class. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/hero/sky-1280.webp"
+          alt=""
+          className="absolute inset-0 -z-20 size-full scale-105 object-cover object-[70%_40%] motion-safe:animate-[hero-drift_24s_ease-in-out_infinite_alternate]"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgb(9_28_66/0.86)_0%,rgb(12_40_92/0.62)_45%,rgb(20_60_130/0.1)_100%)]"
+        />
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:gap-7">
-        <div className="flex min-w-0 flex-col">
-          <span className="font-heading inline-flex w-fit items-center gap-2 rounded-full bg-white/18 px-3 py-1 text-[13px] font-medium ring-1 ring-white/25 backdrop-blur">
-            {t("today")}
-            <span className="size-1 rounded-full bg-white/70" />
-            {t("minutes", { minutes: total })}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-white/15 px-3 py-1 text-[13px] font-semibold ring-1 ring-white/25 backdrop-blur-md">
+            {t("hero.label")}
           </span>
-          <h2 className="font-heading mt-4 text-[28px] leading-[1.05] font-medium tracking-[-0.03em] sm:text-[34px]">
+          <span className="text-[13px] font-medium text-white/75">
+            {home.plan.goal} · {t("minutes", { minutes: total })}
+          </span>
+        </div>
+
+        <div className="mt-auto pt-14">
+          <h2 className="font-heading max-w-[460px] text-[34px] leading-[1.05] font-semibold tracking-[-0.03em] sm:text-[42px]">
             {home.plan.title}
           </h2>
-          <p className="mt-2 text-[15px] text-white/80">{t("forGoal", { goal: home.plan.goal })}</p>
+          {current && (
+            <p className="mt-3 max-w-[460px] text-[15px] text-white/80">
+              <span className="font-semibold text-white">{t("hero.now")}:</span> {current.objective} ·{" "}
+              {t("minutes", { minutes: current.minutes })}
+            </p>
+          )}
 
-          <div className="mt-auto pt-6">
-            <p className="mb-2.5 text-[13px] text-white/80 tabular-nums">{t("progress", { done, total: blocks.length })}</p>
-            <div className="h-1.5 overflow-hidden rounded-full bg-white/22">
-              <div
-                className="h-full origin-left rounded-full bg-white motion-safe:animate-[bar-grow_1100ms_var(--ease-entrance)_both]"
-                style={{ width: `${(done / blocks.length) * 100}%`, animationDelay: "380ms" }}
-              />
+          {/* One segment per step: the count you can see at a glance. */}
+          <div className="mt-6 flex max-w-[360px] items-center gap-3">
+            <div className="flex flex-1 gap-1.5">
+              {blocks.map((b, i) => (
+                <span key={b.index} className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/25">
+                  <span
+                    className={cn(
+                      "block h-full origin-left rounded-full",
+                      b.done && "bg-white motion-safe:animate-[bar-grow_700ms_var(--ease-entrance)_both]",
+                      b === current && "w-1/3 bg-white/70",
+                    )}
+                    style={{ animationDelay: `${400 + i * 90}ms` }}
+                  />
+                </span>
+              ))}
             </div>
+            <span className="text-[13px] font-medium text-white/80 tabular-nums">
+              {t("hero.steps", { done, total: blocks.length })}
+            </span>
+          </div>
+
+          <div className="mt-7 flex flex-wrap items-center gap-3">
             <button
               type="button"
-              className={cn(
-                "font-heading group mt-5 inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-6 text-[16px] font-semibold text-[var(--brand-text)] sm:w-auto",
-                "shadow-[0_10px_24px_-10px_rgb(10_30_90/0.55)]",
-                "transition-transform duration-(--duration-press-out) ease-(--ease-standard) active:scale-[0.97] active:duration-(--duration-press-in)",
-              )}
+              className="font-heading inline-flex h-12 cursor-pointer items-center gap-2 rounded-full bg-white px-6 text-[16px] font-semibold text-[#0B1730] shadow-[0_10px_30px_-10px_rgb(0_0_0/0.5)] transition-transform duration-200 hover:scale-[1.02] active:scale-[0.97]"
             >
-              {done === 0 ? t("start") : t("continue")}
-              <ArrowRight className="size-[18px] transition-transform duration-300 ease-(--ease-entrance) group-hover:translate-x-0.5" />
+              <Play className="size-4 fill-current" />
+              {done ? t("continue") : t("start")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-expanded={open}
+              className="inline-flex h-12 cursor-pointer items-center gap-1.5 rounded-full px-4 text-[15px] font-semibold text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              {open ? t("hero.hide") : t("hero.see")}
+              <ChevronDown className={cn("size-4 transition-transform duration-300", open && "rotate-180")} />
             </button>
           </div>
         </div>
+      </div>
 
-        <ol className="flex min-w-0 flex-col gap-1.5">
-          {blocks.map((block) => {
-            const Icon = block.done ? Check : KIND_ICON[block.kind];
-            const now = block === current;
+      {/* The steps, folded until asked for: a list on the home was what
+          read as "lleno" (1/nov). Grid rows animate the height. */}
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows] duration-[420ms] ease-(--ease-entrance)",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <ol className="min-h-0 overflow-hidden" inert={!open}>
+          {blocks.map((b) => {
+            const now = b === current;
             return (
-              <li
-                key={block.index}
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl px-3 py-2.5",
-                  now ? "bg-white text-foreground shadow-[0_8px_20px_-10px_rgb(10_30_90/0.5)]" : "bg-white/[0.08]",
-                )}
-              >
+              <li key={b.index} className="flex items-center gap-4 border-t border-black/[0.05] px-6 py-3.5 sm:px-8 dark:border-white/[0.06]">
                 <span
                   className={cn(
-                    "grid size-9 shrink-0 place-items-center rounded-full",
-                    block.done && "bg-white/90 text-[var(--brand)]",
+                    "grid size-7 shrink-0 place-items-center rounded-full text-[12px] font-semibold",
+                    b.done && "bg-foreground text-background",
                     now && "bg-[var(--brand)] text-white",
-                    !block.done && !now && "bg-white/15 text-white",
+                    !b.done && !now && "text-text-tertiary shadow-[inset_0_0_0_1.5px_rgb(16_24_40/0.12)]",
                   )}
                 >
-                  <Icon className="size-[17px]" strokeWidth={block.done ? 2.75 : 2} />
+                  {b.done ? <Check className="size-3.5" strokeWidth={3} /> : b.index + 1}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className={cn("block text-[12px] font-medium", now ? "text-[var(--brand-text)]" : "text-white/65")}>
-                    {t(`kind.${block.kind}`)}
-                  </span>
-                  <span className={cn("block truncate text-[15px] leading-snug", block.done && "text-white/70")}>
-                    {block.objective}
-                  </span>
-                </span>
-                <span className={cn("shrink-0 text-[13px] tabular-nums", now ? "text-text-secondary" : "text-white/60")}>
-                  {t("minutes", { minutes: block.minutes })}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <p className={cn("text-[15px]", b.done ? "text-text-tertiary" : "text-foreground", now && "font-semibold")}>
+                    {b.objective}
+                  </p>
+                  <p className="text-text-tertiary text-[12px]">{t(`kind.${b.kind}`)}</p>
+                </div>
+                <span className="text-text-tertiary text-[13px] tabular-nums">{t("minutes", { minutes: b.minutes })}</span>
               </li>
             );
           })}
@@ -180,201 +194,221 @@ function TodayCard({ home, t }: { home: Home; t: T }) {
   );
 }
 
-const noSubscribe = () => () => {};
-
-/** The week in one line: the streak, seven days and today's minutes. */
-function WeekStrip({ home, t }: { home: Home; t: T }) {
+function Week({ home, t }: { home: Home; t: T }) {
   const locale = useLocale();
-  // Today is read only in the browser: read while prerendering, it would be
-  // frozen at whatever day the page was built. A day string, so the snapshot
-  // stays the same value between renders.
-  const day = useSyncExternalStore(noSubscribe, () => new Date().toDateString(), () => null);
+  const today = useToday();
   const narrow = new Intl.DateTimeFormat(locale, { weekday: "narrow" });
   const days = home.week.map((practised, i) => {
     let label = "";
-    if (day) {
-      const date = new Date(day);
-      date.setDate(date.getDate() - (home.week.length - 1 - i));
-      label = narrow.format(date);
+    if (today) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - (home.week.length - 1 - i));
+      label = narrow.format(d);
     }
     return { practised, label, today: i === home.week.length - 1 };
   });
-  const { produced_minutes_today: produced, target_session_minutes: target } = home.dose;
+  const { produced_minutes_today: produced, target_session_minutes: target, streak_days } = home.dose;
+  const share = Math.min(produced / target, 1);
 
   return (
-    <section className={cn(CARD, "flex items-center gap-4 p-4", ARRIVE)} style={arrive(2)}>
-      <div className="min-w-0 flex-1">
-        <p className="font-heading text-foreground flex items-center gap-1.5 text-[16px] font-medium">
-          <Flame className="size-4 text-[oklch(0.7_0.17_55)]" strokeWidth={2.25} />
-          {t("streak", { days: home.dose.streak_days })}
-        </p>
-        <ol className="mt-2.5 flex gap-1.5">
-          {days.map((d, i) => (
-            <li key={i} className="flex flex-col items-center gap-1">
-              <span
-                className={cn(
-                  "grid size-7 place-items-center rounded-full",
-                  d.practised ? cn(BRAND_FILL, "text-white") : "bg-surface-secondary",
-                  d.today && !d.practised && "ring-2 ring-[var(--brand)]/40 ring-offset-1 ring-offset-[var(--card)]",
-                )}
-              >
-                {d.practised ? <Check className="size-3.5" strokeWidth={3} /> : null}
-              </span>
-              <span className={cn("h-3 text-[10px] font-medium uppercase", d.today ? "text-foreground" : "text-text-tertiary")}>
-                {d.label}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <MinutesRing share={Math.min(produced / target, 1)} />
-        <span className="text-text-secondary text-[11px] tabular-nums">
-          {Math.round(produced)}/{target} min
+    <section className={cn(CARD, "p-5", ARRIVE)} style={arrive(2)}>
+      <p className={LABEL}>{t("week")}</p>
+      <div className="mt-2 flex items-baseline gap-2">
+        <span className="font-heading text-foreground text-[40px] leading-none font-semibold tracking-[-0.04em] tabular-nums">
+          {streak_days}
         </span>
+        <span className="text-text-secondary text-[15px]">{t("streakDays", { days: streak_days })}</span>
+      </div>
+
+      <ol className="mt-5 grid grid-cols-7 gap-1">
+        {days.map((d, i) => (
+          <li key={i} className="flex flex-col items-center gap-1.5">
+            <span
+              className={cn(
+                "grid size-8 place-items-center rounded-full",
+                d.practised ? "bg-[oklch(0.7_0.17_55)] text-white" : "bg-black/[0.05] dark:bg-white/10",
+                d.today && !d.practised && "bg-transparent shadow-[inset_0_0_0_1.5px_oklch(0.7_0.17_55)]",
+              )}
+            >
+              {d.practised ? <Check className="size-3.5" strokeWidth={3} /> : null}
+            </span>
+            <span className={cn("h-3.5 text-[11px] font-medium uppercase", d.today ? "text-foreground" : "text-text-tertiary")}>
+              {d.label}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-5 border-t border-black/[0.05] pt-4 dark:border-white/[0.06]">
+        <div className="flex items-baseline justify-between">
+          <span className="text-foreground text-[14px] font-medium">{t("hero.todayLabel")}</span>
+          <span className="text-text-secondary text-[13px] tabular-nums">{t("todayMinutes", { done: Math.round(produced), target })}</span>
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/[0.05] dark:bg-white/10">
+          <div
+            className="h-full origin-left rounded-full bg-[var(--brand)] motion-safe:animate-[bar-grow_900ms_var(--ease-entrance)_both]"
+            style={{ width: `${share * 100}%`, animationDelay: "420ms" }}
+          />
+        </div>
       </div>
     </section>
   );
 }
 
-/** Today's minutes against the session target, as a small ring. */
-function MinutesRing({ share }: { share: number }) {
-  const r = 18;
-  const c = 2 * Math.PI * r;
+/** Talkeo on the page itself, with the three things people ask it first. */
+function Ask({ t, onAsk, onOpen }: { t: T; onAsk: (text: string) => void; onOpen: () => void }) {
   return (
-    <svg viewBox="0 0 44 44" className="size-11 -rotate-90" aria-hidden>
-      <circle cx="22" cy="22" r={r} fill="none" stroke="var(--surface-secondary)" strokeWidth="5" />
-      <circle
-        cx="22"
-        cy="22"
-        r={r}
-        fill="none"
-        stroke="var(--brand)"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeDasharray={c}
-        strokeDashoffset={c * (1 - share)}
-        className="motion-safe:animate-[ring-fill_1200ms_var(--ease-entrance)_both]"
-        style={{ "--ring-from": `${c}`, animationDelay: "420ms" } as React.CSSProperties}
-      />
-    </svg>
-  );
-}
-
-/** The account ask: on the page, never in the way (onboarding v2, step 7). */
-function SaveBar({ t }: { t: T }) {
-  const [gone, setGone] = useState(false);
-  const [closing, setClosing] = useState(false);
-  if (gone) return null;
-  return (
-    <section
-      className={cn(
-        "relative flex items-center gap-3 rounded-[24px] p-4 pr-10",
-        GLASS,
-        ARRIVE,
-        closing && "pointer-events-none !animate-[view-out_260ms_var(--ease-standard)_both]",
-      )}
-      style={arrive(3)}
-      onAnimationEnd={() => closing && setGone(true)}
-    >
-      <div className="min-w-0 flex-1">
-        <h2 className="font-heading text-foreground text-[15px] font-semibold">{t("save.title")}</h2>
-        <p className="text-text-secondary mt-0.5 text-[13px] leading-snug">{t("save.body")}</p>
+    <section className={cn(CARD, "p-5", ARRIVE)} style={arrive(3)}>
+      <div className="flex items-center gap-3">
+        <Avatar className="size-10" />
+        <div className="min-w-0 flex-1">
+          <p className={CARD_TITLE}>{t("ask.title")}</p>
+          <p className="text-text-secondary text-[13px]">{t("ask.line")}</p>
+        </div>
       </div>
-      <Link
-        href="/login"
-        prefetch={false}
-        className="font-heading inline-flex h-9 shrink-0 items-center rounded-full bg-[var(--brand)] px-4 text-[14px] font-semibold text-white shadow-[0_8px_18px_-8px_rgb(40_90_170/0.7)] transition-colors hover:bg-[var(--brand-hover)]"
-      >
-        {t("save.cta")}
-      </Link>
+      <ul className="mt-4 flex flex-col gap-1">
+        {MOCK_TALKEO.suggestions.map((s) => (
+          <li key={s.ask}>
+            <button
+              type="button"
+              onClick={() => onAsk(s.ask)}
+              className="text-foreground group flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-left text-[14px] font-medium transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+            >
+              {s.ask}
+              <ArrowUpRight className="text-text-tertiary size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </button>
+          </li>
+        ))}
+      </ul>
       <button
         type="button"
-        aria-label={t("save.later")}
-        title={t("save.later")}
-        onClick={() => setClosing(true)}
-        className="text-text-tertiary hover:text-foreground absolute top-2.5 right-2.5 grid size-7 cursor-pointer place-items-center rounded-full transition-colors hover:bg-white/60"
+        onClick={onOpen}
+        className="text-text-secondary hover:text-foreground mt-2 w-full cursor-pointer px-3 text-left text-[13px] font-medium transition-colors"
       >
-        <X className="size-4" />
+        {t("ask.open")}
       </button>
     </section>
   );
 }
 
-function Road({ units, t }: { units: RoadUnit[]; t: T }) {
+/** The account ask: present, never in the way (onboarding v2, step 7). */
+function Save({ t }: { t: T }) {
+  const [gone, setGone] = useState(false);
+  const [closing, setClosing] = useState(false);
+  if (gone) return null;
   return (
-    <div className="flex flex-col gap-4 pb-4">
-      {units.map((unit, u) => {
-        const done = unit.nodes.filter((n) => n.state === "done").length;
-        return (
-          <article key={unit.id} className={cn(CARD, "p-5 sm:p-6", ARRIVE)} style={arrive(u + 1)}>
-            <header className="mb-5 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-text-tertiary text-[12px] font-semibold tracking-[0.06em] uppercase">
-                  {t("unit", { n: u + 1 })}
-                </p>
-                <h3 className="font-heading text-foreground mt-0.5 text-[20px] font-medium tracking-[-0.02em]">{unit.title}</h3>
-                <p className="text-text-secondary text-[13px]">{t("forGoal", { goal: unit.goal })}</p>
-              </div>
-              <span className="text-text-secondary bg-surface-secondary rounded-full px-2.5 py-1 text-[12px] font-medium tabular-nums">
-                {t("progress", { done, total: unit.nodes.length })}
-              </span>
-            </header>
+    <section
+      className={cn(CARD, "relative p-5", ARRIVE, closing && "pointer-events-none !animate-[view-out_240ms_var(--ease-standard)_both]")}
+      style={arrive(4)}
+      onAnimationEnd={() => closing && setGone(true)}
+    >
+      <button
+        type="button"
+        aria-label={t("save.later")}
+        title={t("save.later")}
+        onClick={() => setClosing(true)}
+        className="text-text-tertiary hover:text-foreground absolute top-3 right-3 grid size-8 cursor-pointer place-items-center rounded-full transition-colors hover:bg-black/[0.05]"
+      >
+        <X className="size-4" />
+      </button>
+      <p className={cn(CARD_TITLE, "pr-8")}>{t("save.title")}</p>
+      <p className="text-text-secondary mt-1 text-[14px] leading-snug">{t("save.body")}</p>
+      <Link href="/login" prefetch={false} className={cn(PRIMARY, "mt-4 h-10 w-full text-[14px]")}>
+        {t("save.cta")}
+      </Link>
+    </section>
+  );
+}
 
-            <ol>
-              {unit.nodes.map((node, i) => {
-                const last = i === unit.nodes.length - 1;
-                return (
-                  <li key={node.id} className="relative flex gap-4 pb-5 last:pb-0">
-                    {/* The line to the next stop, blue as far as you have got. */}
-                    {!last && (
-                      <span
-                        aria-hidden
-                        className={cn(
-                          "absolute top-10 bottom-0 left-[19px] w-0.5 rounded-full",
-                          node.state === "done" ? "bg-[var(--brand)]/70" : "bg-surface-tertiary",
-                        )}
-                      />
-                    )}
-                    <span className="relative grid size-10 shrink-0 place-items-center">
-                      {node.state === "today" && (
-                        <span
-                          aria-hidden
-                          className="absolute inset-0 rounded-full bg-[var(--brand)]/35 motion-safe:animate-[ring-pulse_2400ms_var(--ease-standard)_infinite]"
-                        />
-                      )}
-                      <span
-                        className={cn(
-                          "font-heading relative grid size-10 place-items-center rounded-full text-[14px] font-semibold",
-                          node.state === "done" && "bg-[var(--brand)] text-white",
-                          node.state === "today" &&
-                            cn(BRAND_FILL, "text-white shadow-[0_0_0_4px_var(--card),0_8px_18px_-6px_rgb(40_90_170/0.7)]"),
-                          node.state === "next" && "bg-surface-secondary text-text-tertiary",
-                        )}
-                      >
-                        {node.state === "done" ? <Check className="size-[18px]" strokeWidth={3} /> : i + 1}
-                      </span>
+/** The fixed path: the unit you are in, step by step, and what comes after. */
+function Road({ units, t }: { units: RoadUnit[]; t: T }) {
+  const [current, ...after] = units;
+  if (!current) return null;
+  const done = current.nodes.filter((n) => n.state === "done").length;
+
+  return (
+    <section className={cn(CARD, "p-6 sm:p-8", ARRIVE)} style={arrive(3)}>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className={LABEL}>{t("road")}</p>
+          <h2 className="font-heading text-foreground mt-1 text-[22px] font-semibold tracking-[-0.02em]">{current.title}</h2>
+          <p className="text-text-secondary text-[14px]">
+            {t("unit", { n: 1 })} · {t("forGoal", { goal: current.goal })}
+          </p>
+        </div>
+        <span className="text-text-secondary text-[13px] font-medium tabular-nums">
+          {t("progress", { done, total: current.nodes.length })}
+        </span>
+      </div>
+
+      <ol className="relative mt-6">
+        {current.nodes.map((node, i) => {
+          const last = i === current.nodes.length - 1;
+          return (
+            <li key={node.id} className="relative flex gap-4 pb-5 last:pb-0">
+              {/* The line between stops, solid where you have been. */}
+              {!last && (
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute top-9 bottom-1 left-[17px] w-0.5 rounded-full",
+                    node.state === "done" ? "bg-foreground" : "bg-black/[0.08] dark:bg-white/10",
+                  )}
+                />
+              )}
+              <span className="relative grid size-9 shrink-0 place-items-center">
+                {node.state === "today" && (
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 rounded-full bg-[var(--brand)]/30 motion-safe:animate-[ring-pulse_2.4s_var(--ease-standard)_infinite]"
+                  />
+                )}
+                <span
+                  className={cn(
+                    "relative grid size-9 place-items-center rounded-full text-[13px] font-semibold",
+                    node.state === "done" && "bg-foreground text-background",
+                    node.state === "today" && "bg-[var(--brand)] text-white shadow-[0_6px_16px_-6px_var(--brand)]",
+                    node.state === "next" && "bg-card text-text-tertiary shadow-[inset_0_0_0_1.5px_rgb(16_24_40/0.12)]",
+                  )}
+                >
+                  {node.state === "done" ? <Check className="size-4" strokeWidth={3} /> : i + 1}
+                </span>
+              </span>
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-3 pt-1.5">
+                <p
+                  className={cn(
+                    "truncate text-[15px]",
+                    node.state === "next" ? "text-text-secondary" : "text-foreground",
+                    node.state === "today" && "font-semibold",
+                  )}
+                >
+                  {node.title}
+                  {node.state === "today" && (
+                    <span className="ml-2 rounded-full bg-[var(--brand-soft)] px-2 py-0.5 align-middle text-[11px] font-semibold text-[var(--brand-text)]">
+                      {t("today")}
                     </span>
-                    <div className="flex min-w-0 flex-1 items-center justify-between gap-3 pt-1.5">
-                      <div className="min-w-0">
-                        <p className={cn("truncate text-[15px]", node.state === "next" ? "text-text-secondary" : "text-foreground font-medium")}>
-                          {node.title}
-                        </p>
-                        <p className="text-text-tertiary text-[12px] tabular-nums">{t("minutes", { minutes: node.minutes })}</p>
-                      </div>
-                      {node.state === "today" && (
-                        <span className="font-heading shrink-0 rounded-full bg-[var(--brand-soft)] px-3 py-1 text-[12px] font-semibold text-[var(--brand-text)]">
-                          {t("today")}
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </article>
-        );
-      })}
-    </div>
+                  )}
+                </p>
+                <span className="text-text-tertiary shrink-0 text-[13px] tabular-nums">{t("minutes", { minutes: node.minutes })}</span>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+
+      {after.map((unit, u) => (
+        <div key={unit.id} className="mt-6 flex items-center gap-4 rounded-2xl bg-black/[0.03] px-4 py-3.5 dark:bg-white/[0.04]">
+          <span className="text-text-tertiary grid size-9 shrink-0 place-items-center rounded-full bg-black/[0.05] dark:bg-white/10">
+            <Lock className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-foreground text-[15px] font-medium">{unit.title}</p>
+            <p className="text-text-tertiary text-[13px]">
+              {t("unit", { n: u + 2 })} · {t("lessons", { n: unit.nodes.length })}
+            </p>
+          </div>
+        </div>
+      ))}
+    </section>
   );
 }
