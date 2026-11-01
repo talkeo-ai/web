@@ -491,6 +491,51 @@
       ]
     }
   },
+  "home": {
+    "greeting": "Hi, {name}",
+    "lead": "Today you keep going with {goal}.",
+    "today": "Today",
+    "progress": "{done} of {total}",
+    "start": "Start",
+    "continue": "Continue",
+    "minutes": "{minutes} min",
+    "kind": {
+      "speak": "Speak",
+      "write": "Write",
+      "listen": "Listen",
+      "read": "Read",
+      "review": "Review"
+    },
+    "week": "Your week",
+    "streak": "{days, plural, one {# day in a row} other {# days in a row}}",
+    "todayMinutes": "{done} of {target} min today",
+    "level": "Your level by area",
+    "levelNote": "The grey part is not measured yet.",
+    "measure": "Measure",
+    "unmeasured": "Not measured",
+    "area": {
+      "conversation": "Conversation",
+      "pronunciation": "Pronunciation",
+      "vocabulary": "Vocabulary",
+      "grammar": "Grammar",
+      "listening": "Listening",
+      "reading": "Reading",
+      "writing": "Writing"
+    },
+    "goals": "Your goals",
+    "cells": "{used} of {total} things you will need",
+    "open": "Open goal, no fixed end",
+    "road": "Your path",
+    "unit": "Unit {n}",
+    "forGoal": "For {goal}",
+    "save": {
+      "title": "Save your progress",
+      "body": "With your email you keep what we already measured. Always free.",
+      "cta": "Save",
+      "later": "Later"
+    },
+    "account": "Your account"
+  },
   "inside": {
     "nav": "Sections",
     "collapse": "Hide the menu",

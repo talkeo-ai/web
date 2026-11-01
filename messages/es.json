@@ -104,6 +104,51 @@
     "language": "Idioma del sitio",
     "rights": "© {year} Talkeo"
   },
+  "home": {
+    "greeting": "Hola, {name}",
+    "lead": "Hoy seguís con {goal}.",
+    "today": "Hoy",
+    "progress": "{done} de {total}",
+    "start": "Empezar",
+    "continue": "Seguir",
+    "minutes": "{minutes} min",
+    "kind": {
+      "speak": "Hablar",
+      "write": "Escribir",
+      "listen": "Escuchar",
+      "read": "Leer",
+      "review": "Repasar"
+    },
+    "week": "Tu semana",
+    "streak": "{days, plural, one {# día seguido} other {# días seguidos}}",
+    "todayMinutes": "{done} de {target} min hoy",
+    "level": "Tu nivel por área",
+    "levelNote": "Lo gris todavía no lo medimos.",
+    "measure": "Medir",
+    "unmeasured": "Sin medir",
+    "area": {
+      "conversation": "Conversación",
+      "pronunciation": "Pronunciación",
+      "vocabulary": "Vocabulario",
+      "grammar": "Gramática",
+      "listening": "Escucha",
+      "reading": "Lectura",
+      "writing": "Escritura"
+    },
+    "goals": "Tus metas",
+    "cells": "{used} de {total} cosas que vas a necesitar",
+    "open": "Meta abierta, sin final fijo",
+    "road": "Tu camino",
+    "unit": "Unidad {n}",
+    "forGoal": "Para {goal}",
+    "save": {
+      "title": "Guardá tu progreso",
+      "body": "Con tu email no perdés lo que ya medimos. Siempre gratis.",
+      "cta": "Guardar",
+      "later": "Más adelante"
+    },
+    "account": "Tu cuenta"
+  },
   "inside": {
     "nav": "Secciones",
     "collapse": "Ocultar el menú",

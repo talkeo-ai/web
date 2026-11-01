@@ -104,6 +104,51 @@
     "language": "Idioma do site",
     "rights": "© {year} Talkeo"
   },
+  "home": {
+    "greeting": "Oi, {name}",
+    "lead": "Hoje você continua com {goal}.",
+    "today": "Hoje",
+    "progress": "{done} de {total}",
+    "start": "Começar",
+    "continue": "Continuar",
+    "minutes": "{minutes} min",
+    "kind": {
+      "speak": "Falar",
+      "write": "Escrever",
+      "listen": "Ouvir",
+      "read": "Ler",
+      "review": "Revisar"
+    },
+    "week": "Sua semana",
+    "streak": "{days, plural, one {# dia seguido} other {# dias seguidos}}",
+    "todayMinutes": "{done} de {target} min hoje",
+    "level": "Seu nível por área",
+    "levelNote": "O cinza ainda não foi medido.",
+    "measure": "Medir",
+    "unmeasured": "Sem medir",
+    "area": {
+      "conversation": "Conversação",
+      "pronunciation": "Pronúncia",
+      "vocabulary": "Vocabulário",
+      "grammar": "Gramática",
+      "listening": "Escuta",
+      "reading": "Leitura",
+      "writing": "Escrita"
+    },
+    "goals": "Suas metas",
+    "cells": "{used} de {total} coisas que você vai precisar",
+    "open": "Meta aberta, sem fim fixo",
+    "road": "Seu caminho",
+    "unit": "Unidade {n}",
+    "forGoal": "Para {goal}",
+    "save": {
+      "title": "Salve seu progresso",
+      "body": "Com seu email você não perde o que já medimos. Sempre grátis.",
+      "cta": "Salvar",
+      "later": "Mais tarde"
+    },
+    "account": "Sua conta"
+  },
   "inside": {
     "nav": "Seções",
     "collapse": "Ocultar o menu",
