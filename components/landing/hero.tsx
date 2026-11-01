@@ -61,10 +61,9 @@ export async function Hero() {
                   two, and the size sits just under that ceiling
                   (`hero-headline.spec.ts`). On desktop it is a large display.
 
-                  The face is the serif display, at its one weight: the
-                  geometric sans at 600 is what every template sets, and next
-                  to the background it read as the dated half of the page. */}
-              <h1 className="text-foreground font-display text-[clamp(26px,9.6cqw,52px)] leading-[1.06] font-normal tracking-[-0.015em] text-balance lg:text-[clamp(52px,12.4cqw,78px)] lg:leading-[0.98] lg:tracking-[-0.025em]">
+                  Outfit at 500 rather than 600, set tight: the heavier cut
+                  read as a template next to the background (1/nov). */}
+              <h1 className="text-foreground font-heading text-[clamp(22px,7.4cqw,42px)] leading-[1.1] font-medium tracking-[-0.03em] text-balance lg:text-[clamp(48px,10cqw,64px)] lg:leading-[1.02] lg:tracking-[-0.04em]">
                 {t("headline")}
               </h1>
               {/* Not on the phone: there the deck sits right under the headline

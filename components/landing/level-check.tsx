@@ -287,7 +287,7 @@ export function LevelCheck({
             taking room, so the deck's own move is the only one. */}
         <h2
           className={cn(
-            "font-display text-foreground absolute bottom-full mb-8 text-[34px] leading-none font-normal tracking-[-0.015em] whitespace-nowrap",
+            "font-heading text-foreground absolute bottom-full mb-8 text-[26px] leading-none font-medium tracking-[-0.03em] whitespace-nowrap",
             "transition-[opacity,filter] ease-(--ease-entrance)",
             staged ? "opacity-100 blur-none" : "pointer-events-none opacity-0 blur-[6px]",
           )}
@@ -601,7 +601,7 @@ function Result({ answers }: { answers: Answer[] }) {
         className="absolute inset-0 -z-10 bg-[radial-gradient(closest-side,rgb(255_255_255/0.75),transparent)] dark:bg-[radial-gradient(closest-side,var(--surface-secondary),transparent)]"
       />
       <p className="text-text-tertiary -mb-2 text-[13px]">{t("resultSubtitle")}</p>
-      <p className="font-display text-foreground text-[96px] leading-none font-normal tracking-[-0.02em]">
+      <p className="font-heading text-foreground text-[88px] leading-none font-medium tracking-[-0.045em]">
         {result.band}
       </p>
       <div className="grid w-full max-w-[240px] grid-cols-6 gap-1" aria-hidden>

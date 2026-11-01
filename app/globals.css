@@ -74,8 +74,6 @@
      so pointing displays at a different face later is one line, not a sweep
      through every heading in the project. */
   --font-heading: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
-  /* The landing display (headline, stage title, the level). See the layout. */
-  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
 
   /* Motion. Press sinks fast and comes back slow — that is what makes a
      button feel physical instead of flat. A highlight that follows the pointer

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
-import { Geist_Mono, Instrument_Serif, Inter, Outfit } from "next/font/google";
+import { Geist_Mono, Inter, Outfit } from "next/font/google";
 import { locale as localeParam } from "next/root-params";
 
 import { FocusModality } from "@/components/focus-modality";
@@ -34,17 +34,6 @@ const inter = Inter({
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
-  display: "swap",
-});
-
-// The landing's display: the headline, the stage's title and the level it
-// gives back. A high-contrast serif set tight is what separates a first screen
-// from the run of geometric-sans pages it was compared against (1/nov); the
-// interface around it, buttons included, stays on the two faces above.
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
-  subsets: ["latin"],
-  weight: "400",
   display: "swap",
 });
 
@@ -89,7 +78,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${inter.variable} ${outfit.variable} ${instrumentSerif.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${outfit.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {/* Plain inline script, first thing in the body: the parser runs it
