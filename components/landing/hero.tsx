@@ -1,14 +1,11 @@
 import { getTranslations } from "next-intl/server";
-import Image from "next/image";
 
 import { EnterOnboarding } from "@/components/onboarding/enter-onboarding";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/i18n/navigation";
 
+import { HeroBackdrop } from "./hero-backdrop";
 import { LevelCheck } from "./level-check";
-
-/** What the deck stands on: a generated painting, swapped by changing this path. */
-const BACKDROP = "/hero/painted.webp";
 
 /**
  * This is the largest contentful paint, so it sits outside every Suspense
@@ -27,6 +24,9 @@ export async function Hero() {
     // While the level check is on stage this layer rises over the site
     // header, because the stage lives inside it (`LevelCheck`).
     <section className="relative z-10 flex flex-1 flex-col overflow-x-clip in-data-level-stage:z-60">
+      {/* The first screen's background, full bleed and under the header too.
+          While the deck is on stage the stage's own background covers it. */}
+      <HeroBackdrop />
       {/* 1. Header compensator — the floating header is out of the flow and
          cannot push anything down, so the space it covers is reserved here. */}
       <div className="h-28 shrink-0 lg:h-20" aria-hidden />
@@ -105,28 +105,8 @@ export async function Hero() {
               sign-up gave it +20% daily active users. What is played is a
               rough level from swiped words, which is the promise in the
               headline kept on the spot. */}
-          {/* The deck stands on a painting, the way the product window does
-              on the pages this was measured against (1/nov): the card is the
-              same white object, but now it is set somewhere instead of floating
-              on nothing. The image is its own clipped layer behind the deck,
-              not a box around it, so a card thrown off the deck is never cut
-              at the panel's edge. While the deck is on stage the stage's
-              background covers this like the rest of the hero. */}
-          <div className="relative order-2 my-2 flex min-h-0 flex-1 items-center justify-center py-5 lg:order-none lg:my-0 lg:flex-initial lg:py-14">
-            <div
-              aria-hidden
-              className="absolute inset-0 overflow-hidden rounded-[24px] shadow-[0_0_0_1px_rgb(28_25_23/0.06)] lg:rounded-[28px]"
-            >
-              <Image
-                src={BACKDROP}
-                alt=""
-                fill
-                priority
-                sizes="(min-width: 1024px) 560px, 100vw"
-                className="object-cover"
-              />
-            </div>
-            <LevelCheck className="relative mx-auto w-full max-w-[420px]" />
+          <div className="order-2 flex min-h-0 flex-1 items-center justify-center py-6 lg:order-none lg:flex-initial lg:py-0">
+            <LevelCheck className="mx-auto w-full max-w-[420px] lg:mr-0 lg:ml-auto" />
           </div>
         </div>
       </div>
