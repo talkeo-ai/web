@@ -56,33 +56,41 @@ const HINGE = "50% 115%";
  * (Joaquin: a quick damped rocking read as nervous, the rebound as cheap).
  * Little travel and more turn, so it is felt at the top edge.
  *
- * The curve is one sine cycle under a sine envelope, so it leaves rest and
- * returns to it with no speed at either end and no corner anywhere in
- * between; a slow decay makes the second lean the smaller one.
+ * Three legs, each eased in and out like a pendulum stopping at the top of
+ * its swing, and each timed by the distance it covers, so the speed reads
+ * the same all the way through and the last leg settles rather than snaps
+ * (Joaquin: a final leg quicker than the middle looked wrong).
  *
  * The foot does not react: the labels changing under a card that is only
  * being shown read as noise, so the sway moves the card and nothing else.
  */
 const HINT = {
   /** From the card's mount; the entrance takes IN_MS, then a short beat. */
-  delayMs: 600,
-  /** The whole sway, rest to rest. Leans peak near a third and two thirds. */
-  durationMs: 1900,
-  /** Gives leans of about 11px right and 8px left. */
-  amplitude: 18,
-  /** Shrinks the left lean against the right one. */
-  decayMs: 2600,
-  /** Extra degrees per pixel, on top of the drag's own tilt (about 2.3° at the right lean). */
+  delayMs: 520,
+  /** Where each leg ends (px) and how long it takes. */
+  legs: [
+    { to: 11, ms: 380 },
+    { to: -7, ms: 540 },
+    { to: 0, ms: 380 },
+  ],
+  /** Extra degrees per pixel, on top of the drag's own tilt (about 1.8° at the right lean). */
   turn: 0.16,
 } as const;
+const HINT_END = HINT.delayMs + HINT.legs.reduce((sum, leg) => sum + leg.ms, 0);
 
 function hintAt(ms: number): number {
-  const t = ms - HINT.delayMs;
-  if (t <= 0 || t >= HINT.durationMs) return 0;
-  const p = t / HINT.durationMs;
-  return (
-    HINT.amplitude * Math.sin(2 * Math.PI * p) * Math.sin(Math.PI * p) * Math.exp(-t / HINT.decayMs)
-  );
+  let t = ms - HINT.delayMs;
+  if (t <= 0) return 0;
+  let from = 0;
+  for (const leg of HINT.legs) {
+    if (t < leg.ms) {
+      const eased = (1 - Math.cos((Math.PI * t) / leg.ms)) / 2;
+      return from + (leg.to - from) * eased;
+    }
+    t -= leg.ms;
+    from = leg.to;
+  }
+  return 0;
 }
 /** Where the measurement lives as a page of its own. */
 const STAGE_PATH = "/level";
@@ -465,7 +473,7 @@ function Card({
     if (!hint || reducedMotion()) return;
     let frame = 0;
     const start = performance.now();
-    const end = HINT.durationMs;
+    const end = HINT_END;
     const tick = (now: number) => {
       const ms = now - start;
       setHintDx(ms >= end ? 0 : hintAt(ms));
