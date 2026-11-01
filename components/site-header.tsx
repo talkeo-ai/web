@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 
 import { LocaleSelector } from "@/components/locale-selector";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { DARK_MODE_ENABLED } from "@/lib/theme";
 import { Link, usePathname } from "@/lib/i18n/navigation";
 import { scrollBehavior } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -66,19 +67,19 @@ export function SiteHeader() {
             event.preventDefault();
             window.scrollTo({ top: 0, behavior: scrollBehavior() });
           }}
-          className="text-foreground font-heading flex items-center gap-1.5 text-base font-semibold sm:gap-2 sm:text-lg"
+          className="text-foreground font-heading flex items-center gap-2 text-[19px] font-semibold tracking-[-0.025em] sm:gap-2.5 sm:text-[21px]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt="Talkeo"
-            className="size-6 rounded-full sm:size-7"
+            className="size-7 rounded-full shadow-[0_2px_8px_-2px_rgb(30_70_160/0.35)] sm:size-8"
           />
           Talkeo
         </Link>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <ThemeToggle />
+          {DARK_MODE_ENABLED && <ThemeToggle />}
           <LocaleSelector />
         </div>
       </nav>
