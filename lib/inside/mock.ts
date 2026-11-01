@@ -71,6 +71,42 @@ export type Goal = {
 export type RoadNode = { id: string; title: string; state: "done" | "today" | "next"; minutes: number };
 export type RoadUnit = { id: string; title: string; goal: string; nodes: RoadNode[] };
 
+/**
+ * `get_state_map` → `areas[]` (the Core answers 501 today, so mocked): the
+ * band range the area sits in, floor to ceiling, and how much of it is
+ * measured. The width of the range is the uncertainty.
+ */
+export type AreaState = {
+  area: Area;
+  floor: Band;
+  ceiling: Band;
+  measured_pct: number;
+};
+
+export type StateMap = {
+  /** `headline`: one estimate with its confidence, beside the areas, never instead of them. */
+  headline: { level_estimate: Band; confidence_pct: number };
+  areas: AreaState[];
+};
+
+export type SurfaceGroup = "speak" | "write" | "listen" | "play" | "tools" | "people";
+
+/**
+ * One way to practise. A catalog the Core does not serve yet: the names are
+ * the landing's (`components/landing/surfaces.ts`) plus the games and tools
+ * Joaquin listed (1/nov). `soon` is what is not built.
+ */
+export type SurfaceItem = {
+  id: string;
+  group: SurfaceGroup;
+  title: string;
+  line: string;
+  minutes: number | null;
+  soon?: boolean;
+  /** Where it opens today, when it does. */
+  href?: string;
+};
+
 export type Home = {
   name: string;
   /** Which of the last seven days, oldest first, had practice. Mocked. */
@@ -81,6 +117,38 @@ export type Home = {
   road: RoadUnit[];
   /** No account yet: the ask stays on the page without blocking it. */
   saved: boolean;
+  state: StateMap;
+  /** Minutes produced per day, the last 28, oldest first. Mocked. */
+  activity: number[];
+  surfaces: SurfaceItem[];
+};
+
+/**
+ * Talkeo's side of the chat, scripted until the chat is wired to the
+ * conversation service: the opening line, three suggestions and their answers,
+ * and what it says to anything else. Spanish only, like the rest of the mock.
+ */
+export const MOCK_TALKEO = {
+  greeting: (home: Home) =>
+    `Hola, ${home.name}. Hoy toca "${home.plan.title}" para tu ${home.plan.goal.toLowerCase()}. Cuando quieras arrancamos, o preguntame lo que necesites.`,
+  suggestions: [
+    {
+      ask: "Empezar la clase",
+      answer:
+        "Dale. Ya hiciste el repaso y la escucha; sigue contar quién sos y qué hacés, en voz alta. Son 4 minutos: tocá Seguir cuando estés.",
+    },
+    {
+      ask: "¿Por qué esto hoy?",
+      answer:
+        "Porque en una entrevista lo primero que te piden es presentarte, y ayer dudaste justo ahí: los tiempos verbales al contar tu experiencia.",
+    },
+    {
+      ask: "¿Cómo voy?",
+      answer:
+        "Llevás 14 de 44 de lo que vas a necesitar para la entrevista. Vocabulario es tu fuerte (B1); pronunciación y escritura todavía no las medimos.",
+    },
+  ],
+  fallback: "Anotado. (Respuesta de prueba: cuando conectemos el chat, acá te contesto de verdad.)",
 };
 
 export const MOCK_HOME: Home = {
@@ -146,4 +214,40 @@ export const MOCK_HOME: Home = {
     },
   ],
   saved: false,
+  state: {
+    headline: { level_estimate: "B1", confidence_pct: 62 },
+    areas: [
+      { area: "conversation", floor: "A2", ceiling: "B1", measured_pct: 42 },
+      { area: "vocabulary", floor: "B1", ceiling: "B1", measured_pct: 71 },
+      { area: "grammar", floor: "A2", ceiling: "B1", measured_pct: 38 },
+      { area: "listening", floor: "B1", ceiling: "B2", measured_pct: 55 },
+      { area: "reading", floor: "A2", ceiling: "B2", measured_pct: 24 },
+      { area: "pronunciation", floor: "A1", ceiling: "B2", measured_pct: 0 },
+      { area: "writing", floor: "A1", ceiling: "B2", measured_pct: 0 },
+    ],
+  },
+  activity: [0, 8, 12, 0, 15, 9, 0, 0, 14, 16, 11, 0, 7, 0, 12, 18, 0, 10, 15, 13, 0, 6, 0, 12, 14, 0, 16, 4],
+  surfaces: [
+    { id: "call", group: "speak", title: "Llamada con Talkeo", line: "Hablá en voz alta sobre lo que te importa", minutes: 10 },
+    { id: "roleplay", group: "speak", title: "Role-play", line: "Una entrevista, una reunión, un café: lo ensayás antes", minutes: 8 },
+    { id: "pronunciation", group: "speak", title: "Pronunciación", line: "Los sonidos que te cuestan, uno por uno", minutes: 5 },
+    { id: "shadowing", group: "speak", title: "Shadowing", line: "Repetí detrás de un nativo, al mismo ritmo", minutes: 5 },
+    { id: "readAloud", group: "speak", title: "Leer en voz alta", line: "Un texto tuyo, leído y corregido", minutes: 5 },
+    { id: "chat", group: "write", title: "Chat escrito", line: "La misma charla, escribiendo", minutes: 8 },
+    { id: "writeAndFix", group: "write", title: "Escribir y corregir", line: "Un mail o un mensaje, con cada arreglo explicado", minutes: 6 },
+    { id: "fillTheGap", group: "write", title: "Completar el hueco", line: "Frases tuyas con la palabra justa", minutes: 4 },
+    { id: "dictation", group: "listen", title: "Dictado", line: "Escuchás, escribís, ves qué se te escapó", minutes: 5 },
+    { id: "yourContent", group: "listen", title: "Tu contenido", line: "Series, videos o podcasts que ya mirás", minutes: 10 },
+    { id: "podcast", group: "listen", title: "Escucha guiada", line: "Audios cortos a tu nivel, con preguntas", minutes: 6 },
+    { id: "swipe", group: "play", title: "Deslizar palabras", line: "¿La conocés o no? Cada respuesta afina tu nivel", minutes: 2, href: "/level" },
+    { id: "order", group: "play", title: "Ordenar la frase", line: "Las palabras mezcladas, armalas", minutes: 3 },
+    { id: "pairs", group: "play", title: "Pares", line: "Palabra y significado, contra el reloj", minutes: 3 },
+    { id: "review", group: "play", title: "Repaso", line: "Lo que estás por olvidar, justo a tiempo", minutes: 4 },
+    { id: "liveTranscribe", group: "tools", title: "Transcripción en vivo", line: "Lo que se dice en una llamada, escrito al instante", minutes: null, soon: true },
+    { id: "subtitles", group: "tools", title: "Subtítulos", line: "Subtítulos en inglés sobre cualquier video", minutes: null, soon: true },
+    { id: "translate", group: "tools", title: "Traducir y mejorar", line: "Un texto tuyo, mejor dicho, en cualquier app", minutes: null, soon: true },
+    { id: "agents", group: "tools", title: "Agentes", line: "Talkeo hace un trámite en inglés con vos", minutes: null, soon: true },
+    { id: "realPeople", group: "people", title: "Con gente real", line: "Una charla con otra persona que aprende", minutes: 15, soon: true },
+    { id: "tutor", group: "people", title: "Con un profesor", line: "Una clase con alguien que ya ve tu progreso", minutes: 30, soon: true },
+  ],
 };

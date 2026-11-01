@@ -147,7 +147,70 @@
       "cta": "Guardar",
       "later": "Más adelante"
     },
-    "account": "Tu cuenta"
+    "account": "Tu cuenta",
+    "nav": {
+      "today": "Hoy",
+      "practice": "Practicar",
+      "progress": "Progreso",
+      "settings": "Ajustes"
+    },
+    "views": {
+      "class": "Clase del día",
+      "road": "Camino"
+    },
+    "talkeo": {
+      "open": "Hablar con Talkeo",
+      "close": "Ocultar a Talkeo",
+      "status": "Siempre a mano",
+      "placeholder": "Preguntale algo a Talkeo",
+      "send": "Enviar",
+      "typing": "Talkeo está escribiendo",
+      "mic": "Hablarle en voz alta"
+    },
+    "practice": {
+      "title": "Practicar",
+      "lead": "Todo lo que podés hacer, cuando quieras.",
+      "all": "Todo",
+      "group": {
+        "speak": "Hablar",
+        "write": "Escribir",
+        "listen": "Escuchar",
+        "play": "Juegos",
+        "tools": "Herramientas",
+        "people": "Con personas"
+      },
+      "soon": "Pronto"
+    },
+    "progressView": {
+      "title": "Tu progreso",
+      "estimate": "Nivel estimado",
+      "confidence": "{pct}% de seguridad",
+      "estimateNote": "Es un promedio: abajo está lo que sabés en cada área.",
+      "areas": "Por área",
+      "range": "Entre {floor} y {ceiling}",
+      "exact": "{band}",
+      "measured": "{pct}% medido",
+      "activity": "Las últimas 4 semanas",
+      "minutesTotal": "{minutes} min hablando o escribiendo",
+      "daysActive": "{days} días con práctica"
+    },
+    "settings": {
+      "title": "Ajustes",
+      "profile": "Perfil",
+      "name": "Nombre",
+      "email": "Email",
+      "emailEmpty": "Sin guardar todavía",
+      "practice": "Práctica",
+      "daily": "Minutos por día",
+      "reminder": "Recordatorio diario",
+      "talkeo": "Talkeo",
+      "voice": "Que Talkeo hable en voz alta",
+      "autoOpen": "Abrir el chat al entrar",
+      "language": "Idioma de la app",
+      "account": "Cuenta",
+      "signOut": "Cerrar sesión",
+      "deleteData": "Borrar mis datos"
+    }
   },
   "inside": {
     "nav": "Secciones",

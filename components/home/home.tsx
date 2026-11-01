@@ -1,141 +1,194 @@
 "use client";
 
-import {
-  ArrowRight,
-  BookOpen,
-  Check,
-  Flame,
-  Headphones,
-  House,
-  Mic,
-  PenLine,
-  RotateCcw,
-  TrendingUp,
-  User,
-  type LucideIcon,
-} from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-import { useState, useSyncExternalStore } from "react";
+import { Flame, House, Mic, Settings as SettingsIcon, TrendingUp, type LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { HeroBackdrop } from "@/components/landing/hero-backdrop";
 import { Link } from "@/lib/i18n/navigation";
-import type { AreaBar, Goal, Home as HomeData, PlanBlock, RoadUnit } from "@/lib/inside/mock";
+import type { Home as HomeData } from "@/lib/inside/mock";
 import { cn } from "@/lib/utils";
 
-type T = ReturnType<typeof useTranslations<"home">>;
+import { Practice } from "./practice";
+import { Progress } from "./progress";
+import { Segmented } from "./segmented";
+import { Settings } from "./settings";
+import { TalkeoChat } from "./talkeo-chat";
+import { Today } from "./today";
+import { BRAND_FILL, GLASS, SMOOTH, type T } from "./ui";
 
-const KIND_ICON: Record<PlanBlock["kind"], LucideIcon> = {
-  speak: Mic,
-  write: PenLine,
-  listen: Headphones,
-  read: BookOpen,
-  review: RotateCcw,
+type Section = "today" | "practice" | "progress" | "settings";
+
+const NAV: { key: Section; Icon: LucideIcon }[] = [
+  { key: "today", Icon: House },
+  { key: "practice", Icon: Mic },
+  { key: "progress", Icon: TrendingUp },
+  { key: "settings", Icon: SettingsIcon },
+];
+
+const CHAT_W = "w-[380px]";
+
+const desktopQuery = "(min-width: 1024px)";
+const subscribeDesktop = (notify: () => void) => {
+  const list = window.matchMedia(desktopQuery);
+  list.addEventListener("change", notify);
+  return () => list.removeEventListener("change", notify);
 };
 
 /**
- * The cards: the word deck's white card and long blue shadow, the one
- * vocabulary the landing, the measurement and the interview already share.
- * `--sky-card-shadow` lives with the other sky styles in `globals.css`.
- */
-const CARD = "bg-card rounded-[24px] shadow-[var(--sky-card-shadow)]";
-
-/** The brand blue running into the sky's own blue, for the one card that leads. */
-const LEAD_FILL =
-  "bg-[linear-gradient(135deg,oklch(0.5_0.18_256)_0%,oklch(0.56_0.17_250)_45%,oklch(0.7_0.12_230)_100%)]";
-
-/** Each block arrives a beat after the one above it, rising a little. */
-function arrive(order: number): React.CSSProperties {
-  return { animationDelay: `${80 + order * 70}ms` };
-}
-const ARRIVE = "motion-safe:animate-[home-in_720ms_var(--ease-entrance)_both]";
-
-/**
- * The inside's home (Joaquin, 1/nov: a complete redesign, on the landing's
- * look). It stands on the same sky as the landing, the measurement and the
- * interview, so arriving here from the conversation is one more step in the
- * same place.
+ * The inside, as one screen that never scrolls as a page (Joaquin, 1/nov: a
+ * single page app, everything at hand, nothing to scroll past): the bar on
+ * top, the section in the middle, scrolling inside itself only when it has
+ * to, and Talkeo beside it, open or put away. Switching sections is state, not
+ * a navigation, so nothing reloads and the chat keeps its conversation.
  *
- * What it puts first follows the product's own order for the home: "el
- * siguiente paso listo, lo gris con su acción para desbloquearlo, el pedido de
- * cuenta vivo sin bloquear" (`producto/onboarding/v2/INDEX.md`), and nothing
- * the spec rules out: no points, gems, leagues, lives or a streak that
- * threatens. The level is per area and never one letter (v5, D44); a general
- * goal has no bar, because a bar without a declared denominator is the lie the
- * product does not tell (v5).
+ * It stands on the landing's sky with the same white cards, so arriving from
+ * the interview is one more step in the same place. On a phone the sections
+ * move to a bar under the thumb and Talkeo opens as a sheet over the page.
  *
- * The data is `MOCK_HOME`, shaped like the Core's own responses; what of it is
- * real and what is mocked is written at the top of `lib/inside/mock.ts`.
+ * Data: `MOCK_HOME`, shaped like the Core's responses; what is real and what
+ * is mocked is written at the top of `lib/inside/mock.ts`.
  */
 export function Home({ home }: { home: HomeData }) {
   const t = useTranslations("home");
-  const sections = useTranslations("inside.sections");
+  const [section, setSection] = useState<Section>("today");
+  const [autoOpen, setAutoOpen] = useState(true);
+  const [deskOpen, setDeskOpen] = useState(true);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(desktopQuery).matches, () => true);
+  const chatOpen = desktop ? deskOpen : sheetOpen;
+
+  const toggleChat = () => (desktop ? setDeskOpen((o) => !o) : setSheetOpen((o) => !o));
+  const closeChat = () => (desktop ? setDeskOpen(false) : setSheetOpen(false));
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSheetOpen(false);
+      // ⌘J / Ctrl+J, the chat-panel toggle of the editors this audience
+      // already knows.
+      if (event.key.toLowerCase() === "j" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        toggleChat();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   return (
-    <div data-sky data-slot="home" className="relative isolate min-h-dvh pb-28 lg:pb-16">
-      {/* Fixed, so the page scrolls over a sky that stays put instead of
-          stretching one picture down the whole length of it. */}
-      <div aria-hidden className="fixed inset-0 -z-10">
+    <div data-sky data-slot="inside" className="relative isolate flex h-dvh flex-col overflow-hidden">
+      <div aria-hidden className="absolute inset-0 -z-10">
         <HeroBackdrop />
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgb(255_255_255/0.18),rgb(255_255_255/0.42)_45%,rgb(255_255_255/0.62))] dark:bg-black/45" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgb(255_255_255/0.2),rgb(255_255_255/0.45)_50%,rgb(255_255_255/0.6))] dark:bg-black/45" />
       </div>
 
-      <TopBar t={t} sections={sections} home={home} />
+      <TopBar
+        t={t}
+        home={home}
+        section={section}
+        onSection={setSection}
+        chatOpen={chatOpen}
+        onChat={toggleChat}
+      />
 
-      <main className="mx-auto w-full max-w-[1120px] px-4 pt-4 sm:px-6 lg:pt-10">
-        <header className={cn("mb-6 lg:mb-8", ARRIVE)} style={arrive(0)}>
-          <h1 className="font-heading text-foreground text-[34px] leading-[1.05] font-medium tracking-[-0.035em] lg:text-[48px]">
-            {t("greeting", { name: home.name })}
-          </h1>
-          <p className="text-foreground/65 mt-2 text-[16px] lg:text-[18px]">
-            {t("lead", { goal: home.plan.goal })}
-          </p>
-        </header>
-
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6">
-          <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
-            <TodayCard home={home} t={t} order={1} />
-            <Road units={home.road} t={t} order={3} />
+      <div className="flex min-h-0 flex-1 px-3 pb-3 sm:px-5 sm:pb-5">
+        <main className="relative min-w-0 flex-1">
+          {/* Only this scrolls, and only when a section is taller than the
+              window. Its edges fade so content slides under the bar instead of
+              being cut by it. */}
+          <div
+            key={section}
+            className={cn(
+              "scroll-quiet h-full overflow-y-auto px-1 pt-3 pb-28 sm:px-3 lg:pt-6 lg:pb-6",
+              "[mask-image:linear-gradient(to_bottom,transparent,black_20px,black_calc(100%-20px),transparent)]",
+            )}
+          >
+            {section === "today" && <Today home={home} t={t} />}
+            {section === "practice" && <Practice home={home} t={t} />}
+            {section === "progress" && <Progress home={home} t={t} />}
+            {section === "settings" && (
+              <Settings home={home} t={t} autoOpen={autoOpen} onAutoOpen={setAutoOpen} />
+            )}
           </div>
-          <aside className="flex min-w-0 flex-col gap-5 lg:gap-6">
-            <WeekCard home={home} t={t} order={2} />
-            {!home.saved && <SaveCard t={t} order={3} />}
-            <LevelCard bars={home.plan.bar} t={t} order={4} />
-            <GoalsCard goals={home.goals} t={t} order={5} />
-          </aside>
-        </div>
-      </main>
+        </main>
 
-      <BottomNav sections={sections} />
+        {/* Docked: the width opens and closes, the panel inside keeps its own
+            so nothing rewraps on the way, and fades as it goes. */}
+        <aside
+          aria-label="Talkeo"
+          aria-hidden={!deskOpen}
+          inert={!deskOpen}
+          className={cn(
+            "hidden shrink-0 overflow-hidden lg:block",
+            "transition-[width,margin] duration-[460ms]",
+            SMOOTH,
+            deskOpen ? cn(CHAT_W, "ml-4") : "ml-0 w-0",
+          )}
+        >
+          <div
+            className={cn(
+              "h-full rounded-[28px]",
+              CHAT_W,
+              "bg-white/62 shadow-[0_0_0_1px_rgb(255_255_255/0.7),0_24px_60px_-28px_rgb(40_90_170/0.45)] backdrop-blur-2xl dark:bg-black/30",
+              "transition-[opacity,translate] duration-[460ms]",
+              SMOOTH,
+              deskOpen ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0",
+            )}
+          >
+            <TalkeoChat home={home} t={t} onClose={() => setDeskOpen(false)} />
+          </div>
+        </aside>
+      </div>
+
+      {/* The phone: Talkeo as a sheet over the page. */}
+      <div
+        aria-hidden
+        onClick={closeChat}
+        className={cn(
+          "fixed inset-0 z-40 bg-[rgb(20_40_80/0.18)] backdrop-blur-[2px] transition-opacity duration-300 lg:hidden",
+          sheetOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      />
+      <aside
+        aria-label="Talkeo"
+        aria-hidden={!sheetOpen}
+        inert={!sheetOpen}
+        className={cn(
+          "fixed inset-x-2 top-16 bottom-2 z-50 rounded-[28px] lg:hidden",
+          "bg-white/85 shadow-[0_0_0_1px_rgb(255_255_255/0.8),0_-20px_60px_-20px_rgb(20_40_80/0.4)] backdrop-blur-2xl",
+          "transition-[translate,opacity] duration-[460ms] ease-(--ease-entrance)",
+          sheetOpen ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-[105%] opacity-0",
+        )}
+      >
+        <TalkeoChat home={home} t={t} onClose={() => setSheetOpen(false)} />
+      </aside>
+
+      <BottomNav t={t} section={section} onSection={setSection} />
     </div>
   );
 }
 
-const NAV: { key: "home" | "practice" | "progress" | "profile"; Icon: LucideIcon }[] = [
-  { key: "home", Icon: House },
-  { key: "practice", Icon: Mic },
-  { key: "progress", Icon: TrendingUp },
-  { key: "profile", Icon: User },
-];
-
-/** The glass every floating control on the sky is made of. */
-const GLASS =
-  "bg-white/55 shadow-[0_0_0_1px_rgb(255_255_255/0.65),0_8px_24px_-12px_rgb(40_90_170/0.35)] backdrop-blur-xl dark:bg-white/10 dark:shadow-none";
-
 function TopBar({
   t,
-  sections,
   home,
+  section,
+  onSection,
+  chatOpen,
+  onChat,
 }: {
   t: T;
-  sections: ReturnType<typeof useTranslations<"inside.sections">>;
   home: HomeData;
+  section: Section;
+  onSection: (s: Section) => void;
+  chatOpen: boolean;
+  onChat: () => void;
 }) {
   return (
-    <div className="sticky top-0 z-30 px-4 pt-3 sm:px-6">
-      <nav className="mx-auto flex h-14 w-full max-w-[1120px] items-center justify-between gap-3">
+    <div className="relative z-30 shrink-0 px-3 pt-3 sm:px-5">
+      <nav className="flex h-14 items-center justify-between gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr]">
         <Link
           href="/home"
-          className="text-foreground font-heading flex items-center gap-2.5 text-[19px] font-semibold tracking-[-0.02em]"
+          className="text-foreground font-heading flex w-fit items-center gap-2.5 text-[19px] font-semibold tracking-[-0.02em]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -146,29 +199,16 @@ function TopBar({
           <span className="hidden sm:inline">Talkeo</span>
         </Link>
 
-        {/* Sections, as one glass segment in the middle on a wide screen; on
-            the phone they move to the bottom, under the thumb. */}
-        <div className={cn("hidden items-center gap-1 rounded-full p-1 lg:flex", GLASS)}>
-          {NAV.slice(0, 3).map(({ key, Icon }) => (
-            <button
-              key={key}
-              type="button"
-              aria-current={key === "home" ? "page" : undefined}
-              className={cn(
-                "font-heading flex h-9 cursor-pointer items-center gap-2 rounded-full px-4 text-[14px] font-medium",
-                "transition-[background-color,color,box-shadow] duration-(--duration-control) ease-(--ease-standard)",
-                key === "home"
-                  ? "bg-card text-foreground shadow-[0_1px_2px_rgb(28_25_23/0.06),0_4px_12px_-6px_rgb(40_90_170/0.3)]"
-                  : "text-foreground/60 hover:text-foreground",
-              )}
-            >
-              <Icon className="size-4" strokeWidth={2} />
-              {sections(key)}
-            </button>
-          ))}
+        <div className="hidden lg:block">
+          <Segmented
+            value={section === "settings" ? ("today" as Section) : section}
+            onChange={onSection}
+            options={NAV.slice(0, 3).map(({ key, Icon }) => ({ value: key, label: t(`nav.${key}`), Icon }))}
+            className={cn(section === "settings" && "[&_[role=tab]]:text-foreground/55 [&>span]:opacity-0")}
+          />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2">
           <div
             className={cn("font-heading flex h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold", GLASS)}
             aria-label={t("streak", { days: home.dose.streak_days })}
@@ -177,10 +217,35 @@ function TopBar({
             <Flame className="size-4 text-[oklch(0.7_0.17_55)]" strokeWidth={2.25} />
             <span className="text-foreground tabular-nums">{home.dose.streak_days}</span>
           </div>
+
           <button
             type="button"
-            aria-label={t("account")}
-            className="font-heading grid size-9 cursor-pointer place-items-center rounded-full bg-[linear-gradient(135deg,var(--brand),oklch(0.7_0.12_230))] text-[14px] font-semibold text-white shadow-[0_0_0_2px_rgb(255_255_255),0_6px_16px_-6px_rgb(40_90_170/0.55)]"
+            onClick={onChat}
+            aria-pressed={chatOpen}
+            aria-label={chatOpen ? t("talkeo.close") : t("talkeo.open")}
+            title={`${chatOpen ? t("talkeo.close") : t("talkeo.open")} (⌘J)`}
+            className={cn(
+              "font-heading flex h-9 cursor-pointer items-center gap-2 rounded-full pr-3.5 pl-1 text-[14px] font-semibold",
+              "transition-[background-color,color,box-shadow] duration-300 ease-(--ease-standard)",
+              chatOpen ? cn(BRAND_FILL, "text-white shadow-[0_8px_18px_-8px_rgb(40_90_170/0.7)]") : cn(GLASS, "text-foreground"),
+            )}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" className="size-7 rounded-full shadow-[0_0_0_1.5px_rgb(255_255_255)]" />
+            Talkeo
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onSection("settings")}
+            aria-label={t("nav.settings")}
+            title={t("nav.settings")}
+            className={cn(
+              "font-heading hidden size-9 cursor-pointer place-items-center rounded-full text-[14px] font-semibold text-white sm:grid",
+              BRAND_FILL,
+              "shadow-[0_0_0_2px_rgb(255_255_255),0_6px_16px_-6px_rgb(40_90_170/0.55)] transition-transform duration-200 active:scale-95",
+              section === "settings" && "shadow-[0_0_0_2px_rgb(255_255_255),0_0_0_4px_var(--brand)]",
+            )}
           >
             {home.name.slice(0, 1)}
           </button>
@@ -190,406 +255,15 @@ function TopBar({
   );
 }
 
-function BottomNav({ sections }: { sections: ReturnType<typeof useTranslations<"inside.sections">> }) {
+function BottomNav({ t, section, onSection }: { t: T; section: Section; onSection: (s: Section) => void }) {
   return (
-    <nav className="fixed inset-x-4 bottom-4 z-30 lg:hidden">
-      <div className={cn("mx-auto flex max-w-md items-center justify-between rounded-full p-1.5", GLASS)}>
-        {NAV.map(({ key, Icon }) => (
-          <button
-            key={key}
-            type="button"
-            aria-current={key === "home" ? "page" : undefined}
-            className={cn(
-              "flex h-12 flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-medium",
-              key === "home" ? "bg-card text-foreground shadow-[0_1px_2px_rgb(28_25_23/0.06)]" : "text-foreground/55",
-            )}
-          >
-            <Icon className="size-[18px]" strokeWidth={2} />
-            {sections(key)}
-          </button>
-        ))}
-      </div>
-    </nav>
-  );
-}
-
-function TodayCard({ home, t, order }: { home: HomeData; t: T; order: number }) {
-  const { blocks } = home.plan;
-  const done = blocks.filter((b) => b.done).length;
-  const current = blocks.find((b) => !b.done);
-  const total = blocks.reduce((sum, b) => sum + b.minutes, 0);
-
-  return (
-    <section
-      aria-label={t("today")}
-      className={cn(
-        "relative isolate overflow-hidden rounded-[28px] p-6 text-white sm:p-8",
-        "shadow-[0_1px_2px_rgb(28_25_23/0.08),0_30px_60px_-24px_rgb(30_80_180/0.6)]",
-        LEAD_FILL,
-        ARRIVE,
-      )}
-      style={arrive(order)}
-    >
-      {/* Light on the card, so the fill reads as a lit surface rather than a
-          flat swatch: a soft bloom in the corner and a fine top edge. */}
-      <div aria-hidden className="pointer-events-none absolute -top-24 -right-16 -z-10 size-[340px] rounded-full bg-white/25 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 -z-10 size-[300px] rounded-full bg-[oklch(0.8_0.1_220)]/40 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-[28px] shadow-[inset_0_1px_0_rgb(255_255_255/0.35)]" />
-
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-7 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-8">
-        <div className="flex min-w-0 flex-col">
-          <span className="font-heading inline-flex w-fit items-center gap-2 rounded-full bg-white/18 px-3 py-1 text-[13px] font-medium ring-1 ring-white/25 backdrop-blur">
-            {t("today")}
-            <span className="size-1 rounded-full bg-white/70" />
-            {t("minutes", { minutes: total })}
-          </span>
-          <h2 className="font-heading mt-4 text-[30px] leading-[1.05] font-medium tracking-[-0.03em] sm:text-[36px]">
-            {home.plan.title}
-          </h2>
-          <p className="mt-2 text-[15px] text-white/80">{t("forGoal", { goal: home.plan.goal })}</p>
-
-          <div className="mt-auto pt-7">
-            <div className="mb-2.5 flex items-center justify-between text-[13px] text-white/80">
-              <span className="tabular-nums">{t("progress", { done, total: blocks.length })}</span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-white/22">
-              <div
-                className="h-full origin-left rounded-full bg-white motion-safe:animate-[bar-grow_1100ms_var(--ease-entrance)_both]"
-                style={{ width: `${(done / blocks.length) * 100}%`, animationDelay: "420ms" }}
-              />
-            </div>
-            <button
-              type="button"
-              className={cn(
-                "font-heading group mt-5 inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-6 text-[16px] font-semibold text-[var(--brand-text)] sm:w-auto",
-                "shadow-[0_10px_24px_-10px_rgb(10_30_90/0.55)]",
-                "transition-transform duration-(--duration-press-out) ease-(--ease-standard) active:scale-[0.97] active:duration-(--duration-press-in)",
-              )}
-            >
-              {done === 0 ? t("start") : t("continue")}
-              <ArrowRight className="size-[18px] transition-transform duration-300 ease-(--ease-entrance) group-hover:translate-x-0.5" />
-            </button>
-          </div>
-        </div>
-
-        <ol className="flex flex-col gap-1.5">
-          {blocks.map((block) => {
-            const Icon = block.done ? Check : KIND_ICON[block.kind];
-            const now = block === current;
-            return (
-              <li
-                key={block.index}
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors",
-                  now ? "bg-white text-foreground shadow-[0_8px_20px_-10px_rgb(10_30_90/0.5)]" : "bg-white/[0.08]",
-                )}
-              >
-                <span
-                  className={cn(
-                    "grid size-9 shrink-0 place-items-center rounded-full",
-                    block.done && "bg-white/90 text-[var(--brand)]",
-                    now && "bg-[var(--brand)] text-white",
-                    !block.done && !now && "bg-white/15 text-white",
-                  )}
-                >
-                  <Icon className="size-[17px]" strokeWidth={block.done ? 2.75 : 2} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className={cn("block text-[12px] font-medium", now ? "text-[var(--brand-text)]" : "text-white/65")}>
-                    {t(`kind.${block.kind}`)}
-                  </span>
-                  <span className={cn("block truncate text-[15px] leading-snug", block.done && "text-white/70")}>
-                    {block.objective}
-                  </span>
-                </span>
-                <span className={cn("shrink-0 text-[13px] tabular-nums", now ? "text-text-secondary" : "text-white/60")}>
-                  {t("minutes", { minutes: block.minutes })}
-                </span>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
-    </section>
-  );
-}
-
-function WeekCard({ home, t, order }: { home: HomeData; t: T; order: number }) {
-  const locale = useLocale();
-  // Today is read only in the browser: read while prerendering, it would be
-  // frozen at whatever day the page was built. A day string, so the snapshot
-  // stays the same value between renders.
-  const day = useSyncExternalStore(
-    noSubscribe,
-    () => new Date().toDateString(),
-    () => null,
-  );
-  const today = day ? new Date(day) : null;
-  const narrow = new Intl.DateTimeFormat(locale, { weekday: "narrow" });
-  const days = home.week.map((practised, i) => {
-    let label = "";
-    if (today) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - (home.week.length - 1 - i));
-      label = narrow.format(date);
-    }
-    return { practised, label, today: i === home.week.length - 1 };
-  });
-  const { produced_minutes_today: produced, target_session_minutes: target } = home.dose;
-  const share = Math.min(produced / target, 1);
-
-  return (
-    <section className={cn(CARD, "p-5", ARRIVE)} style={arrive(order)}>
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-text-secondary text-[13px] font-medium">{t("week")}</h2>
-          <p className="font-heading text-foreground mt-1 flex items-center gap-2 text-[22px] font-medium tracking-[-0.02em]">
-            <Flame className="size-5 text-[oklch(0.7_0.17_55)]" strokeWidth={2.25} />
-            {t("streak", { days: home.dose.streak_days })}
-          </p>
-        </div>
-        <MinutesRing share={share} />
-      </div>
-
-      <ol className="mt-5 grid grid-cols-7 gap-1.5">
-        {days.map((day, i) => (
-          <li key={i} className="flex flex-col items-center gap-1.5">
-            <span
-              className={cn(
-                "grid size-9 place-items-center rounded-full",
-                day.practised
-                  ? "bg-[linear-gradient(135deg,var(--brand),oklch(0.7_0.12_230))] text-white shadow-[0_4px_10px_-4px_rgb(40_90_170/0.6)]"
-                  : "bg-surface-secondary text-text-tertiary",
-                day.today && !day.practised && "ring-2 ring-[var(--brand)]/45 ring-offset-2 ring-offset-[var(--card)]",
-              )}
-            >
-              {day.practised ? <Check className="size-4" strokeWidth={3} /> : null}
-            </span>
-            <span className={cn("text-[12px] font-medium uppercase", day.today ? "text-foreground" : "text-text-tertiary")}>
-              {day.label}
-            </span>
-          </li>
-        ))}
-      </ol>
-
-      <p className="text-text-secondary mt-4 text-[13px] tabular-nums">
-        {t("todayMinutes", { done: Math.round(produced), target })}
-      </p>
-    </section>
-  );
-}
-
-const noSubscribe = () => () => {};
-
-/** Today's minutes against the session target, as a small ring. */
-function MinutesRing({ share }: { share: number }) {
-  const r = 18;
-  const c = 2 * Math.PI * r;
-  return (
-    <svg viewBox="0 0 44 44" className="size-11 -rotate-90" aria-hidden>
-      <circle cx="22" cy="22" r={r} fill="none" stroke="var(--surface-secondary)" strokeWidth="5" />
-      <circle
-        cx="22"
-        cy="22"
-        r={r}
-        fill="none"
-        stroke="var(--brand)"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeDasharray={c}
-        strokeDashoffset={c * (1 - share)}
-        className="motion-safe:animate-[ring-fill_1200ms_var(--ease-entrance)_both]"
-        style={{ "--ring-from": `${c}`, animationDelay: "500ms" } as React.CSSProperties}
+    <nav className="fixed inset-x-3 bottom-3 z-30 lg:hidden">
+      <Segmented
+        value={section}
+        onChange={onSection}
+        className="mx-auto w-full max-w-md justify-between [&_[role=tab]]:h-12 [&_[role=tab]]:flex-1 [&_[role=tab]]:flex-col [&_[role=tab]]:gap-0.5 [&_[role=tab]]:px-1 [&_[role=tab]]:text-[11px]"
+        options={NAV.map(({ key, Icon }) => ({ value: key, label: t(`nav.${key}`), Icon }))}
       />
-    </svg>
-  );
-}
-
-function SaveCard({ t, order }: { t: T; order: number }) {
-  const [later, setLater] = useState(false);
-  if (later) return null;
-  return (
-    <section
-      className={cn(
-        "rounded-[24px] p-5",
-        "bg-[linear-gradient(160deg,rgb(255_255_255/0.85),rgb(255_255_255/0.6))] shadow-[0_0_0_1px_rgb(255_255_255/0.8),var(--sky-card-shadow)] backdrop-blur-xl",
-        ARRIVE,
-      )}
-      style={arrive(order)}
-    >
-      <h2 className="font-heading text-foreground text-[17px] font-semibold tracking-[-0.01em]">{t("save.title")}</h2>
-      <p className="text-text-secondary mt-1 text-[14px] leading-relaxed">{t("save.body")}</p>
-      <div className="mt-4 flex items-center gap-2">
-        <Link
-          href="/login"
-          prefetch={false}
-          className="font-heading inline-flex h-10 items-center rounded-full bg-[var(--brand)] px-5 text-[14px] font-semibold text-white shadow-[0_8px_18px_-8px_rgb(40_90_170/0.7)] transition-colors hover:bg-[var(--brand-hover)]"
-        >
-          {t("save.cta")}
-        </Link>
-        <button
-          type="button"
-          onClick={() => setLater(true)}
-          className="text-text-secondary hover:text-foreground h-10 cursor-pointer rounded-full px-4 text-[14px] font-medium transition-colors"
-        >
-          {t("save.later")}
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function LevelCard({ bars, t, order }: { bars: AreaBar[]; t: T; order: number }) {
-  return (
-    <section className={cn(CARD, "p-5", ARRIVE)} style={arrive(order)}>
-      <h2 className="font-heading text-foreground text-[17px] font-semibold tracking-[-0.01em]">{t("level")}</h2>
-      <p className="text-text-secondary mt-0.5 text-[13px]">{t("levelNote")}</p>
-      <ul className="mt-4 flex flex-col gap-3.5">
-        {bars.map((bar, i) => (
-          <li key={bar.area}>
-            <div className="mb-1.5 flex items-center justify-between gap-2">
-              <span className="text-foreground text-[14px]">{t(`area.${bar.area}`)}</span>
-              {bar.band ? (
-                <span className="font-heading rounded-md bg-[var(--brand-soft)] px-1.5 py-0.5 text-[12px] font-semibold text-[var(--brand-text)]">
-                  {bar.band}
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  className="font-heading cursor-pointer rounded-full px-2 py-0.5 text-[12px] font-semibold text-[var(--brand-text)] ring-1 ring-[var(--brand)]/30 transition-colors hover:bg-[var(--brand-soft)]"
-                >
-                  {t("measure")}
-                </button>
-              )}
-            </div>
-            {/* Measured in blue; the rest hatched grey, so what is not known
-                yet reads as not known rather than as zero. */}
-            <div className="flex h-2 overflow-hidden rounded-full bg-[repeating-linear-gradient(135deg,var(--surface-secondary)_0_4px,var(--surface-tertiary)_4px_8px)]">
-              <div
-                className="h-full origin-left rounded-full bg-[linear-gradient(90deg,var(--brand),oklch(0.7_0.12_230))] motion-safe:animate-[bar-grow_1000ms_var(--ease-entrance)_both]"
-                style={{ width: `${bar.measured_share * 100}%`, animationDelay: `${520 + i * 60}ms` }}
-              />
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function GoalsCard({ goals, t, order }: { goals: Goal[]; t: T; order: number }) {
-  return (
-    <section className={cn(CARD, "p-5", ARRIVE)} style={arrive(order)}>
-      <h2 className="font-heading text-foreground text-[17px] font-semibold tracking-[-0.01em]">{t("goals")}</h2>
-      <ul className="mt-3 flex flex-col">
-        {goals.map((goal, i) => (
-          <li key={goal.goal_id} className={cn("py-3", i > 0 && "border-t border-black/[0.05] dark:border-white/[0.06]")}>
-            <p className="text-foreground text-[15px] font-medium">{goal.name}</p>
-            {goal.focus ? <p className="text-text-secondary text-[13px]">{goal.focus}</p> : null}
-            {goal.cells ? (
-              <>
-                <div className="bg-surface-secondary mt-2.5 h-1.5 overflow-hidden rounded-full">
-                  <div
-                    className="h-full origin-left rounded-full bg-[var(--brand)] motion-safe:animate-[bar-grow_1000ms_var(--ease-entrance)_both]"
-                    style={{ width: `${(goal.cells.used / goal.cells.total) * 100}%`, animationDelay: `${640 + i * 80}ms` }}
-                  />
-                </div>
-                <p className="text-text-tertiary mt-1.5 text-[12px] tabular-nums">
-                  {t("cells", { used: goal.cells.used, total: goal.cells.total })}
-                </p>
-              </>
-            ) : (
-              <p className="text-text-tertiary mt-1.5 text-[12px]">{t("open")}</p>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function Road({ units, t, order }: { units: RoadUnit[]; t: T; order: number }) {
-  return (
-    <section className={cn("flex flex-col gap-4", ARRIVE)} style={arrive(order)}>
-      <h2 className="font-heading text-foreground px-1 text-[22px] font-medium tracking-[-0.02em]">{t("road")}</h2>
-      {units.map((unit, u) => {
-        const done = unit.nodes.filter((n) => n.state === "done").length;
-        return (
-          <article key={unit.id} className={cn(CARD, "p-5 sm:p-6")}>
-            <header className="mb-5 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-text-tertiary text-[12px] font-semibold tracking-[0.06em] uppercase">
-                  {t("unit", { n: u + 1 })}
-                </p>
-                <h3 className="font-heading text-foreground mt-0.5 text-[20px] font-medium tracking-[-0.02em]">
-                  {unit.title}
-                </h3>
-                <p className="text-text-secondary text-[13px]">{t("forGoal", { goal: unit.goal })}</p>
-              </div>
-              <span className="text-text-secondary bg-surface-secondary rounded-full px-2.5 py-1 text-[12px] font-medium tabular-nums">
-                {t("progress", { done, total: unit.nodes.length })}
-              </span>
-            </header>
-
-            <ol className="relative">
-              {unit.nodes.map((node, i) => {
-                const last = i === unit.nodes.length - 1;
-                return (
-                  <li key={node.id} className="relative flex gap-4 pb-5 last:pb-0">
-                    {/* The line to the next stop, blue as far as you have got. */}
-                    {!last && (
-                      <span
-                        aria-hidden
-                        className={cn(
-                          "absolute top-10 bottom-0 left-[19px] w-0.5 rounded-full",
-                          node.state === "done" ? "bg-[var(--brand)]/70" : "bg-surface-tertiary",
-                        )}
-                      />
-                    )}
-                    <span className="relative grid size-10 shrink-0 place-items-center">
-                      {node.state === "today" && (
-                        <span
-                          aria-hidden
-                          className="absolute inset-0 rounded-full bg-[var(--brand)]/35 motion-safe:animate-[ring-pulse_2400ms_var(--ease-standard)_infinite]"
-                        />
-                      )}
-                      <span
-                        className={cn(
-                          "font-heading relative grid size-10 place-items-center rounded-full text-[14px] font-semibold",
-                          node.state === "done" && "bg-[var(--brand)] text-white",
-                          node.state === "today" &&
-                            "bg-[linear-gradient(135deg,var(--brand),oklch(0.7_0.12_230))] text-white shadow-[0_0_0_4px_var(--card),0_8px_18px_-6px_rgb(40_90_170/0.7)]",
-                          node.state === "next" && "bg-surface-secondary text-text-tertiary",
-                        )}
-                      >
-                        {node.state === "done" ? <Check className="size-[18px]" strokeWidth={3} /> : i + 1}
-                      </span>
-                    </span>
-                    <div className="flex min-w-0 flex-1 items-center justify-between gap-3 pt-1.5">
-                      <div className="min-w-0">
-                        <p
-                          className={cn(
-                            "truncate text-[15px]",
-                            node.state === "next" ? "text-text-secondary" : "text-foreground font-medium",
-                          )}
-                        >
-                          {node.title}
-                        </p>
-                        <p className="text-text-tertiary text-[12px] tabular-nums">{t("minutes", { minutes: node.minutes })}</p>
-                      </div>
-                      {node.state === "today" && (
-                        <span className="font-heading shrink-0 rounded-full bg-[var(--brand-soft)] px-3 py-1 text-[12px] font-semibold text-[var(--brand-text)]">
-                          {t("today")}
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </article>
-        );
-      })}
-    </section>
+    </nav>
   );
 }

@@ -147,7 +147,70 @@
       "cta": "Salvar",
       "later": "Mais tarde"
     },
-    "account": "Sua conta"
+    "account": "Sua conta",
+    "nav": {
+      "today": "Hoje",
+      "practice": "Praticar",
+      "progress": "Progresso",
+      "settings": "Ajustes"
+    },
+    "views": {
+      "class": "Aula do dia",
+      "road": "Caminho"
+    },
+    "talkeo": {
+      "open": "Falar com o Talkeo",
+      "close": "Ocultar o Talkeo",
+      "status": "Sempre à mão",
+      "placeholder": "Pergunte algo ao Talkeo",
+      "send": "Enviar",
+      "typing": "Talkeo está escrevendo",
+      "mic": "Falar em voz alta"
+    },
+    "practice": {
+      "title": "Praticar",
+      "lead": "Tudo o que você pode fazer, quando quiser.",
+      "all": "Tudo",
+      "group": {
+        "speak": "Falar",
+        "write": "Escrever",
+        "listen": "Ouvir",
+        "play": "Jogos",
+        "tools": "Ferramentas",
+        "people": "Com pessoas"
+      },
+      "soon": "Em breve"
+    },
+    "progressView": {
+      "title": "Seu progresso",
+      "estimate": "Nível estimado",
+      "confidence": "{pct}% de confiança",
+      "estimateNote": "É uma média: abaixo está o que você sabe em cada área.",
+      "areas": "Por área",
+      "range": "Entre {floor} e {ceiling}",
+      "exact": "{band}",
+      "measured": "{pct}% medido",
+      "activity": "As últimas 4 semanas",
+      "minutesTotal": "{minutes} min falando ou escrevendo",
+      "daysActive": "{days} dias com prática"
+    },
+    "settings": {
+      "title": "Ajustes",
+      "profile": "Perfil",
+      "name": "Nome",
+      "email": "Email",
+      "emailEmpty": "Ainda não salvo",
+      "practice": "Prática",
+      "daily": "Minutos por dia",
+      "reminder": "Lembrete diário",
+      "talkeo": "Talkeo",
+      "voice": "Talkeo fala em voz alta",
+      "autoOpen": "Abrir o chat ao entrar",
+      "language": "Idioma do app",
+      "account": "Conta",
+      "signOut": "Sair",
+      "deleteData": "Apagar meus dados"
+    }
   },
   "inside": {
     "nav": "Seções",

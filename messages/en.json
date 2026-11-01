@@ -534,7 +534,70 @@
       "cta": "Save",
       "later": "Later"
     },
-    "account": "Your account"
+    "account": "Your account",
+    "nav": {
+      "today": "Today",
+      "practice": "Practice",
+      "progress": "Progress",
+      "settings": "Settings"
+    },
+    "views": {
+      "class": "Today's class",
+      "road": "Path"
+    },
+    "talkeo": {
+      "open": "Talk to Talkeo",
+      "close": "Hide Talkeo",
+      "status": "Always at hand",
+      "placeholder": "Ask Talkeo something",
+      "send": "Send",
+      "typing": "Talkeo is typing",
+      "mic": "Speak to it out loud"
+    },
+    "practice": {
+      "title": "Practice",
+      "lead": "Everything you can do, whenever you want.",
+      "all": "All",
+      "group": {
+        "speak": "Speak",
+        "write": "Write",
+        "listen": "Listen",
+        "play": "Games",
+        "tools": "Tools",
+        "people": "With people"
+      },
+      "soon": "Soon"
+    },
+    "progressView": {
+      "title": "Your progress",
+      "estimate": "Estimated level",
+      "confidence": "{pct}% confidence",
+      "estimateNote": "It is an average: below is what you know in each area.",
+      "areas": "By area",
+      "range": "Between {floor} and {ceiling}",
+      "exact": "{band}",
+      "measured": "{pct}% measured",
+      "activity": "The last 4 weeks",
+      "minutesTotal": "{minutes} min speaking or writing",
+      "daysActive": "{days} days with practice"
+    },
+    "settings": {
+      "title": "Settings",
+      "profile": "Profile",
+      "name": "Name",
+      "email": "Email",
+      "emailEmpty": "Not saved yet",
+      "practice": "Practice",
+      "daily": "Minutes per day",
+      "reminder": "Daily reminder",
+      "talkeo": "Talkeo",
+      "voice": "Talkeo speaks out loud",
+      "autoOpen": "Open the chat on arrival",
+      "language": "App language",
+      "account": "Account",
+      "signOut": "Sign out",
+      "deleteData": "Delete my data"
+    }
   },
   "inside": {
     "nav": "Sections",
