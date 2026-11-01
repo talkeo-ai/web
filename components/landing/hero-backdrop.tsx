@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+const noSubscribe = () => () => {};
 
 /**
  * The hero's full-bleed background: a generated image behind the whole first
@@ -22,12 +24,16 @@ type Pick = keyof typeof CANDIDATES;
 const DEFAULT: Pick = "3";
 
 export function HeroBackdrop() {
-  const [pick, setPick] = useState<Pick>(DEFAULT);
-
-  useEffect(() => {
-    const asked = new URLSearchParams(window.location.search).get("bg");
-    if (asked && asked in CANDIDATES) setPick(asked as Pick);
-  }, []);
+  // The query is read as an external store: the server renders the default,
+  // the client swaps in what the URL asks for after hydration.
+  const pick = useSyncExternalStore(
+    noSubscribe,
+    () => {
+      const asked = new URLSearchParams(window.location.search).get("bg");
+      return asked && asked in CANDIDATES ? (asked as Pick) : DEFAULT;
+    },
+    () => DEFAULT,
+  );
 
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
