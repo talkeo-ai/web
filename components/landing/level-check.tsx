@@ -46,38 +46,46 @@ const STAGE_MS = 720;
 const BEHIND = { scale: 0.92, y: 8 };
 /** Card and deck share one hinge, so a flying ghost tips the way the card did. */
 const HINGE = "50% 115%";
-/** The farther leg of the nudge. */
-const HINT_PEAK = 38;
-
 /**
  * The nudge the first card gives on its own, so the deck says it can be
  * swiped before anyone reads a word (Joaquin, 1/nov, after the dating apps'
- * first card). Right first, the way a "yes" reads, then left, then home; each
- * leg eases in and out so it reads as a hand testing the card, not a shake.
- * Times are from the card's arrival; the distance is about a third of the way
- * to an answer, so the answer under it shows through without being given.
+ * first card).
+ *
+ * It is a damped swing, not a scripted path: the card is given one push to
+ * the right and rocks right, left, right, smaller each time, until it rests —
+ * the motion of a real object on a hinge, which is what makes it read as
+ * physical rather than animated. Little travel and more turn (Joaquin: less
+ * sideways, a bit of rotation at the top): the hinge sits under the card, so
+ * the turn is felt at the top edge.
+ *
+ * It starts just after the card has landed, and the first swing is short.
  */
-const HINT: ReadonlyArray<readonly [ms: number, x: number]> = [
-  [0, 0],
-  [1300, 0],
-  [1760, HINT_PEAK],
-  [1900, HINT_PEAK],
-  [2520, -34],
-  [2660, -34],
-  [3160, 0],
-];
-
-const easeInOutCubic = (p: number) => (p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2);
+const HINT = {
+  /** From the card's mount; the entrance takes IN_MS. */
+  delayMs: 520,
+  /** Pixels of the undamped swing; the first peak lands near 13. */
+  amplitude: 21,
+  /** One full right-left-back cycle. */
+  periodMs: 640,
+  /** How fast it dies: each swing about half the one before (13, 6.5, 3 px). */
+  decayMs: 400,
+  /** Eases the push in, so it starts like a hand and not like a kick. */
+  pushMs: 70,
+  /** Extra degrees per pixel, on top of the drag's own tilt. */
+  turn: 0.16,
+  /** Long enough for the swing to fall under half a pixel. */
+  durationMs: 2000,
+} as const;
+/** The first swing's reach; the foot has fully become the answer at 60% of it, so the smaller swing back shows its answer too. */
+const HINT_PEAK = 12;
 
 function hintAt(ms: number): number {
-  for (let i = 1; i < HINT.length; i++) {
-    const [t1, x1] = HINT[i];
-    if (ms <= t1) {
-      const [t0, x0] = HINT[i - 1];
-      return x0 + (x1 - x0) * easeInOutCubic((ms - t0) / (t1 - t0));
-    }
-  }
-  return 0;
+  const t = ms - HINT.delayMs;
+  if (t <= 0) return 0;
+  const push = 1 - Math.exp(-t / HINT.pushMs);
+  return (
+    HINT.amplitude * push * Math.exp(-t / HINT.decayMs) * Math.sin((2 * Math.PI * t) / HINT.periodMs)
+  );
 }
 /** Where the measurement lives as a page of its own. */
 const STAGE_PATH = "/level";
@@ -460,7 +468,7 @@ function Card({
     if (!hint || reducedMotion()) return;
     let frame = 0;
     const start = performance.now();
-    const end = HINT[HINT.length - 1][0];
+    const end = HINT.durationMs;
     const tick = (now: number) => {
       const ms = now - start;
       setHintDx(ms >= end ? 0 : hintAt(ms));
@@ -479,7 +487,7 @@ function Card({
   // At the top of each leg the foot has fully turned into the answer that
   // side gives (the hand-over completes at half commitment), so the two
   // labels never sit on top of each other while the card holds still.
-  const commitment = hinting ? Math.min(Math.abs(hintDx) / HINT_PEAK, 1) / 2 : drag.commitment;
+  const commitment = hinting ? Math.min(Math.abs(hintDx) / (HINT_PEAK * 0.6), 1) / 2 : drag.commitment;
   const side: Side | null = dx === 0 ? null : dx < 0 ? "left" : "right";
   const onPointerDown = (event: React.PointerEvent<HTMLElement>) => {
     stopHint.current();
@@ -495,7 +503,7 @@ function Card({
       )}
       style={
         {
-          transform: `translate3d(${dx}px, 0, 0) rotate(${dx * TILT}deg)`,
+          transform: `translate3d(${dx}px, 0, 0) rotate(${dx * TILT + (hinting ? hintDx * HINT.turn : 0)}deg)`,
           transformOrigin: HINGE,
           // Nothing eases while held: the pointer is the animation. Let go
           // short, it settles back with the faintest overshoot.
