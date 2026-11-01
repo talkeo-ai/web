@@ -7,7 +7,7 @@ import { Link } from "@/lib/i18n/navigation";
 
 import { LevelCheck } from "./level-check";
 
-/** What the deck stands on. Three candidates live in `public/hero/`. */
+/** What the deck stands on: a generated painting, swapped by changing this path. */
 const BACKDROP = "/hero/painted.webp";
 
 /**
