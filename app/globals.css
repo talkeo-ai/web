@@ -589,9 +589,9 @@ body[data-scroll-locked] {
       rotate(var(--card-from-rotate, 0deg));
     opacity: 1;
   }
-  /* It stays solid most of the way and only thins at the end, so it reads as
-     thrown off rather than dissolving in place. */
-  60% {
+  /* Solid for the first stretch, so it reads as thrown off rather than
+     dissolving in place, then gone well before the end of a short flight. */
+  30% {
     opacity: 1;
   }
   to {

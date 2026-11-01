@@ -13,9 +13,12 @@ import { cn } from "@/lib/utils";
 /** Degrees per pixel of drag. The card hinges from below, so a little goes far. */
 const TILT = 1 / 22;
 /** How far an answered card flies, and how far it tips on the way. */
-const EXIT_PX = 600;
-const EXIT_DEG = 22;
-const OUT_MS = 420;
+// Short on purpose (Joaquin, 1/nov): a card that travelled 600px read as
+// wandering off, and on the right-hand column it ran past the window. It
+// goes about its own width and is gone by then.
+const EXIT_PX = 300;
+const EXIT_DEG = 16;
+const OUT_MS = 340;
 const IN_MS = 520;
 /**
  * The card waiting underneath: narrower and showing a strip below the top
