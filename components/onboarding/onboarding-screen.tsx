@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Volume2, VolumeX } from "lucide-react";
 
@@ -36,13 +36,15 @@ import { VoiceGlow } from "./voice-glow";
 export function OnboardingScreen({ opened }: { opened: OpenedInterview }) {
   const t = useTranslations("onboarding");
   const router = useRouter();
+  // Stable, so the end-of-interview timer is not restarted on every render.
+  const leave = useCallback(() => router.push("/home"), [router]);
 
   // Inside `MarkTargets` and not above it: the conversation drives playback, and
   // playback is what fires marks — so the hook that owns it has to be able to
   // reach the registry.
   return (
     <MarkTargets>
-      <Screen opened={opened} t={t} onLeave={() => router.push("/home")} />
+      <Screen opened={opened} t={t} onLeave={leave} />
     </MarkTargets>
   );
 }
@@ -76,6 +78,17 @@ function Screen({
   // Next keeps this page mounted and hidden when they navigate away, so
   // leaving is the cleanup and coming back finds it offered again.
   useEffect(() => () => setHintGone(false), []);
+
+  // The interview over: once its closing turn has been said in full, a beat
+  // to let it land, then the inside (Joaquin, 1/nov: finishing it led
+  // nowhere). Not while a surface still waits for an answer.
+  const ended = conversation.closed && run.saidThrough && !surface;
+  useEffect(() => {
+    if (!ended) return;
+    const go = window.setTimeout(onLeave, 1600);
+    return () => window.clearTimeout(go);
+  }, [ended, onLeave]);
+
   const [first] = conversation.thread;
   const hint =
     !hintGone &&
@@ -128,7 +141,7 @@ function Screen({
             two screens share one top bar: the way out on the left, the skip
             on the right, nothing else (Joaquin, 1/nov: the mute next to it
             broke the symmetry; it now sits by the field). */}
-        <Link href="/try" prefetch={false} data-slot="onboarding-skip" className={SKIP_PILL}>
+        <Link href="/home" prefetch={false} data-slot="onboarding-skip" className={SKIP_PILL}>
           {t("skip")}
         </Link>
         </div>
