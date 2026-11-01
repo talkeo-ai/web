@@ -46,6 +46,39 @@ const STAGE_MS = 720;
 const BEHIND = { scale: 0.92, y: 8 };
 /** Card and deck share one hinge, so a flying ghost tips the way the card did. */
 const HINGE = "50% 115%";
+/** The farther leg of the nudge. */
+const HINT_PEAK = 38;
+
+/**
+ * The nudge the first card gives on its own, so the deck says it can be
+ * swiped before anyone reads a word (Joaquin, 1/nov, after the dating apps'
+ * first card). Right first, the way a "yes" reads, then left, then home; each
+ * leg eases in and out so it reads as a hand testing the card, not a shake.
+ * Times are from the card's arrival; the distance is about a third of the way
+ * to an answer, so the answer under it shows through without being given.
+ */
+const HINT: ReadonlyArray<readonly [ms: number, x: number]> = [
+  [0, 0],
+  [1300, 0],
+  [1760, HINT_PEAK],
+  [1900, HINT_PEAK],
+  [2520, -34],
+  [2660, -34],
+  [3160, 0],
+];
+
+const easeInOutCubic = (p: number) => (p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2);
+
+function hintAt(ms: number): number {
+  for (let i = 1; i < HINT.length; i++) {
+    const [t1, x1] = HINT[i];
+    if (ms <= t1) {
+      const [t0, x0] = HINT[i - 1];
+      return x0 + (x1 - x0) * easeInOutCubic((ms - t0) / (t1 - t0));
+    }
+  }
+  return 0;
+}
 /** Where the measurement lives as a page of its own. */
 const STAGE_PATH = "/level";
 
@@ -321,7 +354,12 @@ export function LevelCheck({
                   }}
                 />
               )}
-              <Card key={`${round}-${answers.length}`} card={next} onAnswer={answer} />
+              <Card
+                key={`${round}-${answers.length}`}
+                card={next}
+                onAnswer={answer}
+                hint={round === 0 && answers.length === 0}
+              />
             </>
           )}
 
@@ -398,9 +436,12 @@ export function LevelCheck({
 function Card({
   card,
   onAnswer,
+  hint = false,
 }: {
   card: Next;
   onAnswer: (side: Side, fromX: number) => void;
+  /** Nudge right and left once on arrival, to show it can be swiped. */
+  hint?: boolean;
 }) {
   const [spent, setSpent] = useState(false);
   const play = (side: Side, fromX: number) => {
@@ -408,12 +449,46 @@ function Card({
     setSpent(true);
     onAnswer(side, fromX);
   };
-  const { dx, held, commitment, handleProps } = useCardDrag({ onCommit: play });
+  const drag = useCardDrag({ onCommit: play });
+  const { held, handleProps } = drag;
+
+  // The nudge runs on its own clock and gives way the moment a hand arrives:
+  // touching the card stops it where it is.
+  const [hintDx, setHintDx] = useState(0);
+  const stopHint = useRef<() => void>(() => {});
+  useEffect(() => {
+    if (!hint || reducedMotion()) return;
+    let frame = 0;
+    const start = performance.now();
+    const end = HINT[HINT.length - 1][0];
+    const tick = (now: number) => {
+      const ms = now - start;
+      setHintDx(ms >= end ? 0 : hintAt(ms));
+      if (ms < end) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    stopHint.current = () => {
+      cancelAnimationFrame(frame);
+      setHintDx(0);
+    };
+    return () => cancelAnimationFrame(frame);
+  }, [hint]);
+
+  const hinting = hintDx !== 0 && !held && drag.dx === 0;
+  const dx = hinting ? hintDx : drag.dx;
+  // At the top of each leg the foot has fully turned into the answer that
+  // side gives (the hand-over completes at half commitment), so the two
+  // labels never sit on top of each other while the card holds still.
+  const commitment = hinting ? Math.min(Math.abs(hintDx) / HINT_PEAK, 1) / 2 : drag.commitment;
   const side: Side | null = dx === 0 ? null : dx < 0 ? "left" : "right";
+  const onPointerDown = (event: React.PointerEvent<HTMLElement>) => {
+    stopHint.current();
+    handleProps.onPointerDown(event);
+  };
 
   return (
     <div
-      {...(spent ? {} : handleProps)}
+      {...(spent ? {} : { ...handleProps, onPointerDown })}
       className={cn(
         "absolute inset-0 z-10 touch-pan-y select-none",
         spent ? "pointer-events-none opacity-0" : held ? "cursor-grabbing" : "cursor-grab",
@@ -424,7 +499,8 @@ function Card({
           transformOrigin: HINGE,
           // Nothing eases while held: the pointer is the animation. Let go
           // short, it settles back with the faintest overshoot.
-          transition: held ? undefined : "transform 480ms cubic-bezier(0.2, 1.25, 0.35, 1)",
+          // The nudge is drawn frame by frame and must not be smoothed again.
+          transition: held || hinting ? undefined : "transform 480ms cubic-bezier(0.2, 1.25, 0.35, 1)",
         } as React.CSSProperties
       }
     >
