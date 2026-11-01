@@ -370,10 +370,10 @@ export function LevelCheck({
               <p
                 aria-live="polite"
                 aria-label={t("progress", { n: answers.length + 1, total })}
-                className="text-text-tertiary w-14 text-center text-[13px] font-medium tabular-nums"
+                className="text-text-secondary bg-card/90 min-w-14 rounded-full px-2.5 py-1 text-center text-[13px] font-medium tabular-nums shadow-[0_0_0_1px_rgb(28_25_23/0.06)] backdrop-blur"
               >
                 {answers.length + 1}
-                <span className="text-text-tertiary/60"> / {total}</span>
+                <span className="text-text-tertiary"> / {total}</span>
               </p>
               <Choice tone="yes" label={t("yes")} onClick={() => answer("right", 0)} />
             </div>
@@ -568,9 +568,10 @@ function Choice({
       className={cn(
         "focus-key:ring-ring flex size-14 cursor-pointer items-center justify-center rounded-full outline-none focus-key:ring-2 focus-key:ring-offset-2",
         "transition-[background-color,scale] duration-150 ease-out hover:scale-[1.06] active:scale-[0.92]",
-        tone === "yes"
-          ? "bg-brand-soft text-brand-text hover:bg-brand/[0.18]"
-          : "bg-destructive/[0.09] text-destructive hover:bg-destructive/[0.15] dark:bg-destructive/[0.16] dark:hover:bg-destructive/[0.24]",
+        // Solid white, ringed and lifted like the card: on the hero these
+        // sit on a painting, where a tinted wash disappears into the image.
+        "bg-card shadow-[0_0_0_1px_rgb(28_25_23/0.06),0_4px_12px_-2px_rgb(28_25_23/0.14)]",
+        tone === "yes" ? "text-brand-text" : "text-destructive",
       )}
     >
       <Icon className="size-6" strokeWidth={2.5} />

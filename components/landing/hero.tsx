@@ -1,10 +1,14 @@
 import { getTranslations } from "next-intl/server";
+import Image from "next/image";
 
 import { EnterOnboarding } from "@/components/onboarding/enter-onboarding";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/i18n/navigation";
 
 import { LevelCheck } from "./level-check";
+
+/** What the deck stands on. Three candidates live in `public/hero/`. */
+const BACKDROP = "/hero/painted.webp";
 
 /**
  * This is the largest contentful paint, so it sits outside every Suspense
@@ -74,17 +78,16 @@ export async function Hero() {
                 side by side under the copy, sized to their labels, on the same
                 left edge. */}
             <div className="order-3 mx-auto mt-8 flex w-full max-w-[371px] flex-col gap-[13.5px] pb-8 lg:mx-0 lg:mt-10 lg:max-w-none lg:flex-row lg:gap-3 lg:pb-0">
-              <Button size="lg" variant="raised" className="text-[18px]" asChild>
+              {/* Flat, and fully round. The lip under a button is the
+                  playful-app idiom (Duolingo is the one that still runs it);
+                  next to a display headline it is what dated the page. */}
+              <Button size="lg" variant="primary" className="rounded-full text-[17px]" asChild>
                 <EnterOnboarding>{t("cta")}</EnterOnboarding>
               </Button>
-              {/* The lip is applied here rather than carried by the variant:
-                  it belongs to this pair only, and its partner sitting flat
-                  beside a raised button would read as broken instead of as
-                  quieter. */}
               <Button
                 size="lg"
                 variant="secondary"
-                className="bg-card text-[18px] shadow-[0_2px_0_0_var(--cta-alt-lip)] active:translate-y-[2px] active:shadow-none"
+                className="bg-card rounded-full border-transparent text-[17px] shadow-[0_0_0_1px_rgb(28_25_23/0.1),0_1px_2px_rgb(28_25_23/0.06)]"
                 asChild
               >
                 <Link href="/login" prefetch={false}>
@@ -102,8 +105,28 @@ export async function Hero() {
               sign-up gave it +20% daily active users. What is played is a
               rough level from swiped words, which is the promise in the
               headline kept on the spot. */}
-          <div className="order-2 flex min-h-0 flex-1 items-center justify-center py-6 lg:order-none lg:flex-initial lg:py-0">
-            <LevelCheck className="mx-auto w-full max-w-[420px] lg:mr-0 lg:ml-auto" />
+          {/* The deck stands on a painting, the way the product window does
+              on the pages this was measured against (1/nov): the card is the
+              same white object, but now it is set somewhere instead of floating
+              on nothing. The image is its own clipped layer behind the deck,
+              not a box around it, so a card thrown off the deck is never cut
+              at the panel's edge. While the deck is on stage the stage's
+              background covers this like the rest of the hero. */}
+          <div className="relative order-2 my-2 flex min-h-0 flex-1 items-center justify-center py-5 lg:order-none lg:my-0 lg:flex-initial lg:py-14">
+            <div
+              aria-hidden
+              className="absolute inset-0 overflow-hidden rounded-[24px] shadow-[0_0_0_1px_rgb(28_25_23/0.06)] lg:rounded-[28px]"
+            >
+              <Image
+                src={BACKDROP}
+                alt=""
+                fill
+                priority
+                sizes="(min-width: 1024px) 560px, 100vw"
+                className="object-cover"
+              />
+            </div>
+            <LevelCheck className="relative mx-auto w-full max-w-[420px]" />
           </div>
         </div>
       </div>
