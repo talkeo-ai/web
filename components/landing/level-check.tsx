@@ -388,6 +388,7 @@ export function LevelCheck({
               style={
                 {
                   transformOrigin: HINGE,
+                  willChange: "transform, opacity",
                   "--card-from-x": `${f.fromX}px`,
                   "--card-from-rotate": `${f.fromX * TILT}deg`,
                   "--card-to-x": `${f.side === "left" ? -EXIT_PX : EXIT_PX}px`,
