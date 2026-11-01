@@ -51,40 +51,37 @@ const HINGE = "50% 115%";
  * swiped before anyone reads a word (Joaquin, 1/nov, after the dating apps'
  * first card).
  *
- * It is a damped swing, not a scripted path: the card is given one push to
- * the right and rocks right, left, right, smaller each time, until it rests —
- * the motion of a real object on a hinge, which is what makes it read as
- * physical rather than animated. Little travel and more turn (Joaquin: less
- * sideways, a bit of rotation at the top): the hinge sits under the card, so
- * the turn is felt at the top edge.
+ * One unhurried sway on the card's hinge: it leans right, crosses to lean a
+ * little less to the left, and comes to rest — no bounce at the end
+ * (Joaquin: a quick damped rocking read as nervous, the rebound as cheap).
+ * Little travel and more turn, so it is felt at the top edge.
  *
- * It starts just after the card has landed, and the first swing is short.
+ * The curve is one sine cycle under a sine envelope, so it leaves rest and
+ * returns to it with no speed at either end and no corner anywhere in
+ * between; a slow decay makes the second lean the smaller one.
+ *
+ * The foot does not react: the labels changing under a card that is only
+ * being shown read as noise, so the sway moves the card and nothing else.
  */
 const HINT = {
-  /** From the card's mount; the entrance takes IN_MS. */
-  delayMs: 520,
-  /** Pixels of the undamped swing; the first peak lands near 13. */
-  amplitude: 21,
-  /** One full right-left-back cycle. */
-  periodMs: 640,
-  /** How fast it dies: each swing about half the one before (13, 6.5, 3 px). */
-  decayMs: 400,
-  /** Eases the push in, so it starts like a hand and not like a kick. */
-  pushMs: 70,
-  /** Extra degrees per pixel, on top of the drag's own tilt. */
+  /** From the card's mount; the entrance takes IN_MS, then a short beat. */
+  delayMs: 600,
+  /** The whole sway, rest to rest. Leans peak near a third and two thirds. */
+  durationMs: 1900,
+  /** Gives leans of about 11px right and 8px left. */
+  amplitude: 18,
+  /** Shrinks the left lean against the right one. */
+  decayMs: 2600,
+  /** Extra degrees per pixel, on top of the drag's own tilt (about 2.3° at the right lean). */
   turn: 0.16,
-  /** Long enough for the swing to fall under half a pixel. */
-  durationMs: 2000,
 } as const;
-/** The first swing's reach; the foot has fully become the answer at 60% of it, so the smaller swing back shows its answer too. */
-const HINT_PEAK = 12;
 
 function hintAt(ms: number): number {
   const t = ms - HINT.delayMs;
-  if (t <= 0) return 0;
-  const push = 1 - Math.exp(-t / HINT.pushMs);
+  if (t <= 0 || t >= HINT.durationMs) return 0;
+  const p = t / HINT.durationMs;
   return (
-    HINT.amplitude * push * Math.exp(-t / HINT.decayMs) * Math.sin((2 * Math.PI * t) / HINT.periodMs)
+    HINT.amplitude * Math.sin(2 * Math.PI * p) * Math.sin(Math.PI * p) * Math.exp(-t / HINT.decayMs)
   );
 }
 /** Where the measurement lives as a page of its own. */
@@ -484,11 +481,10 @@ function Card({
 
   const hinting = hintDx !== 0 && !held && drag.dx === 0;
   const dx = hinting ? hintDx : drag.dx;
-  // At the top of each leg the foot has fully turned into the answer that
-  // side gives (the hand-over completes at half commitment), so the two
-  // labels never sit on top of each other while the card holds still.
-  const commitment = hinting ? Math.min(Math.abs(hintDx) / (HINT_PEAK * 0.6), 1) / 2 : drag.commitment;
-  const side: Side | null = dx === 0 ? null : dx < 0 ? "left" : "right";
+  // While it sways the face stays as it is: "swipe to answer" holds and no
+  // tint comes up. Only a hand turns the foot into an answer.
+  const commitment = hinting ? 0 : drag.commitment;
+  const side: Side | null = hinting || dx === 0 ? null : dx < 0 ? "left" : "right";
   const onPointerDown = (event: React.PointerEvent<HTMLElement>) => {
     stopHint.current();
     handleProps.onPointerDown(event);
