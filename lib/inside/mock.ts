@@ -13,6 +13,7 @@
  *   plan's own bar note; a general goal has no bar at all, so it stays null.
  * - `week`: which of the last seven days had practice. Only `streak_days`.
  * - `road`: the units ahead. No endpoint (#109, open).
+ * - `words`: the word store summed up and a sample cell by cell. No endpoint.
  * Every title and number below is made up.
  */
 
@@ -38,16 +39,32 @@ export type Dose = {
   weekly_blocks: number;
 };
 
-/** `get_day_plan` → `PlanBlock`, plus the mocked `done`. */
+/**
+ * `get_day_plan` → `PlanBlock`, plus the mocked `done`. `surface` stands for
+ * the Core's `surface_id`, but points into the catalog below (`surfaces[].id`):
+ * the Core's ids (`roleplay`, `write_and_correct`, …) and the catalog's names
+ * are not mapped to each other yet.
+ */
 export type PlanBlock = {
   index: number;
   kind: "speak" | "write" | "listen" | "read" | "review";
   area: Area;
+  surface: string;
   objective: string;
   minutes: number;
   is_warmup: boolean;
   done: boolean;
 };
+
+/**
+ * One cell of a word: 0 not measured, 1 known, 2 not known, 3 partly
+ * (ARQUITECTURA-V5 §5 bis). A word has 18: three blocks (form, meaning, use),
+ * three aspects each, recognising and producing.
+ */
+export type Cell = 0 | 1 | 2 | 3;
+export type WordState = { word: string; band: Band; cells: Cell[] };
+/** Words per CEFR band by their overall state. Mocked: no endpoint serves this. */
+export type WordBand = { band: Band; known: number; partly: number; unknown: number; unmeasured: number };
 
 /** `get_day_plan` → `bar.by_area[]`. Shares are 0..1; gray is what is unmeasured. */
 export type AreaBar = {
@@ -121,7 +138,12 @@ export type Home = {
   /** Minutes produced per day, the last 28, oldest first. Mocked. */
   activity: number[];
   surfaces: SurfaceItem[];
+  /** The word store, summed up: every band, and a sample of words cell by cell. Mocked. */
+  words: { bands: WordBand[]; sample: WordState[] };
 };
+
+/** "131111113100131100" → the 18 cells, in the order of `CELL_COLUMNS`. */
+const cells = (s: string) => s.split("").map(Number) as Cell[];
 
 /**
  * Talkeo's side of the chat, scripted until the chat is wired to the
@@ -167,11 +189,11 @@ export const MOCK_HOME: Home = {
     title: "Contá qué hacés",
     goal: "Entrevista de trabajo",
     blocks: [
-      { index: 0, kind: "review", area: "vocabulary", objective: "Repasá las palabras de ayer", minutes: 2, is_warmup: true, done: true },
-      { index: 1, kind: "listen", area: "listening", objective: "Escuchá cómo se presenta alguien", minutes: 3, is_warmup: false, done: true },
-      { index: 2, kind: "speak", area: "conversation", objective: "Contá quién sos y qué hacés", minutes: 4, is_warmup: false, done: false },
-      { index: 3, kind: "write", area: "writing", objective: "Escribí tu presentación en tres frases", minutes: 3, is_warmup: false, done: false },
-      { index: 4, kind: "speak", area: "pronunciation", objective: "Decí tu puesto como un nativo", minutes: 3, is_warmup: false, done: false },
+      { index: 0, kind: "review", area: "vocabulary", surface: "review", objective: "Repasá las palabras de ayer", minutes: 2, is_warmup: true, done: true },
+      { index: 1, kind: "listen", area: "listening", surface: "podcast", objective: "Escuchá cómo se presenta alguien", minutes: 3, is_warmup: false, done: true },
+      { index: 2, kind: "speak", area: "conversation", surface: "roleplay", objective: "Contá quién sos y qué hacés", minutes: 4, is_warmup: false, done: false },
+      { index: 3, kind: "write", area: "writing", surface: "writeAndFix", objective: "Escribí tu presentación en tres frases", minutes: 3, is_warmup: false, done: false },
+      { index: 4, kind: "speak", area: "pronunciation", surface: "pronunciation", objective: "Decí tu puesto como un nativo", minutes: 3, is_warmup: false, done: false },
     ],
     bar: [
       { area: "conversation", band: "B1", measured_share: 0.42, gray_share: 0.58 },
@@ -250,4 +272,28 @@ export const MOCK_HOME: Home = {
     { id: "realPeople", group: "people", title: "Con gente real", line: "Una charla con otra persona que aprende", minutes: 15, soon: true },
     { id: "tutor", group: "people", title: "Con un profesor", line: "Una clase con alguien que ya ve tu progreso", minutes: 30, soon: true },
   ],
+  words: {
+    bands: [
+      { band: "A1", known: 640, partly: 120, unknown: 20, unmeasured: 40 },
+      { band: "A2", known: 610, partly: 260, unknown: 70, unmeasured: 160 },
+      { band: "B1", known: 380, partly: 420, unknown: 180, unmeasured: 520 },
+      { band: "B2", known: 140, partly: 310, unknown: 230, unmeasured: 1020 },
+      { band: "C1", known: 30, partly: 90, unknown: 120, unmeasured: 1160 },
+      { band: "C2", known: 0, partly: 20, unknown: 40, unmeasured: 1140 },
+    ],
+    sample: [
+      { word: "meeting", band: "A2", cells: cells("131111113100131100") },
+      { word: "decision", band: "A2", cells: cells("131111111300130300") },
+      { word: "schedule", band: "B1", cells: cells("321311133000330000") },
+      { word: "achieve", band: "B1", cells: cells("131311132000300000") },
+      { word: "issue", band: "B1", cells: cells("031111330300232000") },
+      { word: "though", band: "B1", cells: cells("232131320000230000") },
+      { word: "deploy", band: "B2", cells: cells("231111132000330000") },
+      { word: "concern", band: "B2", cells: cells("031331323000200000") },
+      { word: "rough", band: "B2", cells: cells("232312233000020000") },
+      { word: "leverage", band: "C1", cells: cells("220302220000000000") },
+      { word: "insight", band: "C1", cells: cells("020002300000000000") },
+      { word: "cumbersome", band: "C2", cells: cells("000000200000000000") },
+    ],
+  },
 };

@@ -123,13 +123,48 @@
     "streakDays": "{days, plural, one {dia seguido} other {dias seguidos}}",
     "lessons": "{n, plural, one {# lição} other {# lições}}",
     "noBar": "Sem barra: medida por área",
+    "roadLead": "Sua meta: {goal}. O que vem, passo a passo.",
+    "stepsTitle": "Os passos de hoje",
+    "stepsNote": "Nesta ordem",
+    "stepLabel": "Passo {n}",
+    "words": {
+      "title": "Suas palavras",
+      "line": "Cada palavra é medida em 18 coisas. É assim que você está nas {total} mais usadas do inglês.",
+      "known": "Você sabe",
+      "partly": "Mais ou menos",
+      "unknown": "Não sabe",
+      "unmeasured": "Sem medir",
+      "byWord": "Palavra por palavra",
+      "modes": "Em cada par: reconhecer · produzir",
+      "recognise": "reconhecer",
+      "produce": "produzir",
+      "all": "Ver as {total} palavras",
+      "block": {
+        "form": "Forma",
+        "meaning": "Significado",
+        "use": "Uso"
+      },
+      "aspect": {
+        "spoken": "como soa",
+        "written": "como se escreve",
+        "parts": "suas partes",
+        "meaning": "o que significa",
+        "concept": "a ideia",
+        "association": "com o que se associa",
+        "grammar": "gramática",
+        "collocation": "com que palavras vai",
+        "register": "quando se usa"
+      }
+    },
     "hero": {
       "label": "Aula de hoje",
       "now": "Agora",
       "steps": "{done} de {total}",
       "see": "Ver a aula",
       "hide": "Ocultar",
-      "todayLabel": "Hoje"
+      "todayLabel": "Hoje",
+      "next": "Próximo: {surface}",
+      "left": "faltam {minutes} min"
     },
     "ask": {
       "title": "Pergunte ao Talkeo",
@@ -169,7 +204,8 @@
       "practice": "Praticar",
       "progress": "Progresso",
       "settings": "Ajustes",
-      "talkeo": "Talkeo"
+      "talkeo": "Talkeo",
+      "road": "Caminho"
     },
     "views": {
       "class": "Aula do dia",
@@ -204,7 +240,13 @@
         "tools": "Ferramentas",
         "people": "Com pessoas"
       },
-      "soon": "Em breve"
+      "soon": "Em breve",
+      "picked": "Escolhido para você",
+      "pickedLine": "O que mais te aproxima de: {goal}",
+      "seeAll": "Ver tudo",
+      "seeLess": "Ver menos",
+      "prev": "Anteriores",
+      "next": "Próximos"
     },
     "progressView": {
       "title": "Seu progresso",
@@ -219,7 +261,11 @@
       "minutesTotal": "{minutes} min falando ou escrevendo",
       "daysActive": "{days} dias com prática",
       "minutesUnit": "min praticados",
-      "daysUnit": "dias com prática"
+      "daysUnit": "dias com prática",
+      "areasNote": "O listrado ainda não medimos",
+      "sure": "Medido",
+      "between": "Pode estar entre {floor} e {ceiling}",
+      "unknownYet": "Ainda não medimos"
     },
     "settings": {
       "title": "Ajustes",

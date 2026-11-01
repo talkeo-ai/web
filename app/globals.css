@@ -438,7 +438,8 @@
    scrolls the document at all, so there the reservation is just a dead strip
    down the right-hand edge — visible as a margin the panel does not have. */
 html:has([data-slot="chat-workspace"]),
-html:has([data-sky] [data-slot="onboarding"]) {
+html:has([data-sky] [data-slot="onboarding"]),
+html:has([data-slot="talkeo-view"]) {
   scrollbar-gutter: auto;
   overflow: hidden;
 }

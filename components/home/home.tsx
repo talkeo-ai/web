@@ -1,6 +1,6 @@
 "use client";
 
-import { Flame, House, MessageCircle, Mic, TrendingUp, type LucideIcon } from "lucide-react";
+import { Flame, House, LayoutGrid, MessageCircle, Route, TrendingUp, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
@@ -10,17 +10,19 @@ import { cn } from "@/lib/utils";
 
 import { Practice } from "./practice";
 import { Progress } from "./progress";
+import { Road } from "./road";
 import { Segmented } from "./segmented";
 import { Settings } from "./settings";
 import { TalkeoBubble, TalkeoView, TalkeoWindow, useTalkeo } from "./talkeo";
 import { Today } from "./today";
 import { GROUND, type T } from "./ui";
 
-export type Section = "today" | "practice" | "progress" | "talkeo" | "settings";
+export type Section = "today" | "road" | "practice" | "progress" | "talkeo" | "settings";
 
 const NAV: { key: Exclude<Section, "settings">; Icon: LucideIcon }[] = [
   { key: "today", Icon: House },
-  { key: "practice", Icon: Mic },
+  { key: "road", Icon: Route },
+  { key: "practice", Icon: LayoutGrid },
   { key: "progress", Icon: TrendingUp },
   { key: "talkeo", Icon: MessageCircle },
 ];
@@ -76,15 +78,24 @@ export function Home({ home }: { home: HomeData }) {
     <div data-slot="inside" className={cn("relative isolate min-h-dvh", GROUND)}>
       <TopBar t={t} home={home} section={section} onSection={go} />
 
-      <main className="mx-auto w-full max-w-[1120px] px-4 pt-6 pb-36 sm:px-6 lg:px-8 lg:pt-10 lg:pb-24">
-        <div key={section} className="motion-safe:animate-[view-in_420ms_var(--ease-entrance)_both]">
-          {section === "today" && <Today home={home} t={t} onAsk={ask} onSection={go} />}
-          {section === "practice" && <Practice home={home} t={t} />}
-          {section === "progress" && <Progress home={home} t={t} />}
-          {section === "talkeo" && <TalkeoView talkeo={talkeo} t={t} />}
-          {section === "settings" && <Settings home={home} t={t} />}
-        </div>
-      </main>
+      {/* Talkeo's own section sits outside the animated wrapper: its sky is
+          `fixed`, and a transformed ancestor would pin it to the wrapper
+          instead of the screen. */}
+      {section === "talkeo" ? (
+        <main>
+          <TalkeoView talkeo={talkeo} t={t} />
+        </main>
+      ) : (
+        <main className="mx-auto w-full max-w-[1120px] px-4 pt-6 pb-36 sm:px-6 lg:px-8 lg:pt-10 lg:pb-24">
+          <div key={section} className="motion-safe:animate-[view-in_420ms_var(--ease-entrance)_both]">
+            {section === "today" && <Today home={home} t={t} onAsk={ask} onSection={go} />}
+            {section === "road" && <Road home={home} t={t} />}
+            {section === "practice" && <Practice home={home} t={t} />}
+            {section === "progress" && <Progress home={home} t={t} />}
+            {section === "settings" && <Settings home={home} t={t} />}
+          </div>
+        </main>
+      )}
 
       {/* Talkeo's corner: the face, and the window it opens. Not in the
           Talkeo section, which is already the whole conversation. */}
@@ -135,20 +146,11 @@ function TopBar({
   section: Section;
   onSection: (s: Section) => void;
 }) {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 4);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
+  // A white bar with a hairline, the same at the top and scrolled (Joaquin,
+  // 1/nov: the grey ground showing through "no me convence"); the tabs keep
+  // their sliding pill, now dark on a light track.
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-30 transition-[background-color,box-shadow,backdrop-filter] duration-300",
-        scrolled ? "bg-[#F3F4F7]/80 shadow-[0_1px_0_rgb(16_24_40/0.06)] backdrop-blur-xl dark:bg-black/60" : "bg-transparent",
-      )}
-    >
+    <header className="bg-card/90 sticky top-0 z-30 shadow-[0_1px_0_rgb(16_24_40/0.07)] backdrop-blur-xl dark:bg-black/70 dark:shadow-[0_1px_0_rgb(255_255_255/0.08)]">
       <nav className="mx-auto flex h-16 w-full max-w-[1120px] items-center justify-between gap-3 px-4 sm:px-6 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:px-8">
         <Link
           href="/home"
@@ -163,6 +165,7 @@ function TopBar({
           <Segmented
             value={section === "settings" ? ("today" as Section) : section}
             onChange={onSection}
+            tone="ink"
             options={NAV.map(({ key, Icon }) => ({ value: key, label: t(`nav.${key}`), Icon }))}
             className={cn(section === "settings" && "[&_[role=tab]]:text-foreground/55 [&>span]:opacity-0")}
           />
@@ -170,12 +173,12 @@ function TopBar({
 
         <div className="flex items-center justify-end gap-2">
           <div
-            className="bg-card font-heading flex h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold shadow-[0_0_0_1px_rgb(16_24_40/0.06)]"
+            className="font-heading flex h-9 items-center gap-1.5 rounded-full bg-[oklch(0.97_0.035_65)] px-3 text-[14px] font-semibold text-[oklch(0.5_0.14_50)] dark:bg-white/10"
             aria-label={t("streak", { days: home.dose.streak_days })}
             title={t("streak", { days: home.dose.streak_days })}
           >
-            <Flame className="size-4 text-[oklch(0.7_0.17_55)]" strokeWidth={2.25} />
-            <span className="text-foreground tabular-nums">{home.dose.streak_days}</span>
+            <Flame className="size-4 fill-[oklch(0.75_0.16_60)] text-[oklch(0.68_0.18_50)]" strokeWidth={2} />
+            <span className="tabular-nums">{home.dose.streak_days}</span>
           </div>
           <button
             type="button"
@@ -183,7 +186,7 @@ function TopBar({
             aria-label={t("nav.settings")}
             title={t("nav.settings")}
             className={cn(
-              "font-heading grid size-9 cursor-pointer place-items-center rounded-full bg-[oklch(0.9_0.04_250)] text-[14px] font-semibold text-[oklch(0.35_0.12_256)]",
+              "font-heading grid size-9 cursor-pointer place-items-center rounded-full bg-[linear-gradient(140deg,oklch(0.7_0.14_245),oklch(0.5_0.17_262))] text-[14px] font-semibold text-white",
               "transition-[transform,box-shadow] duration-200 active:scale-95",
               section === "settings" && "shadow-[0_0_0_2px_var(--background),0_0_0_4px_var(--foreground)]",
             )}
@@ -214,7 +217,7 @@ function BottomNav({ t, section, onSection }: { t: T; section: Section; onSectio
               onClick={() => onSection(key)}
               className={cn(
                 "flex h-[52px] flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-semibold transition-colors duration-200",
-                on ? "text-foreground bg-black/[0.06] dark:bg-white/10" : "text-text-tertiary",
+                on ? "bg-foreground text-background" : "text-text-tertiary",
               )}
             >
               <Icon className="size-5" strokeWidth={on ? 2.25 : 1.9} />

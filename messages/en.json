@@ -510,13 +510,48 @@
     "streakDays": "{days, plural, one {day in a row} other {days in a row}}",
     "lessons": "{n, plural, one {# lesson} other {# lessons}}",
     "noBar": "No bar: measured by area",
+    "roadLead": "Your goal: {goal}. What comes next, step by step.",
+    "stepsTitle": "Today's steps",
+    "stepsNote": "In this order",
+    "stepLabel": "Step {n}",
+    "words": {
+      "title": "Your words",
+      "line": "Every word is measured on 18 things. This is where you stand on the {total} most used in English.",
+      "known": "You know",
+      "partly": "Partly",
+      "unknown": "You don't know",
+      "unmeasured": "Not measured",
+      "byWord": "Word by word",
+      "modes": "In each pair: recognise · produce",
+      "recognise": "recognise",
+      "produce": "produce",
+      "all": "See all {total} words",
+      "block": {
+        "form": "Form",
+        "meaning": "Meaning",
+        "use": "Use"
+      },
+      "aspect": {
+        "spoken": "how it sounds",
+        "written": "how it is spelled",
+        "parts": "its parts",
+        "meaning": "what it means",
+        "concept": "the idea",
+        "association": "what it goes with in your head",
+        "grammar": "grammar",
+        "collocation": "which words it goes with",
+        "register": "when to use it"
+      }
+    },
     "hero": {
       "label": "Today's class",
       "now": "Now",
       "steps": "{done} of {total}",
       "see": "See the class",
       "hide": "Hide",
-      "todayLabel": "Today"
+      "todayLabel": "Today",
+      "next": "Next: {surface}",
+      "left": "{minutes} min left"
     },
     "ask": {
       "title": "Ask Talkeo",
@@ -556,7 +591,8 @@
       "practice": "Practice",
       "progress": "Progress",
       "settings": "Settings",
-      "talkeo": "Talkeo"
+      "talkeo": "Talkeo",
+      "road": "Path"
     },
     "views": {
       "class": "Today's class",
@@ -591,7 +627,13 @@
         "tools": "Tools",
         "people": "With people"
       },
-      "soon": "Soon"
+      "soon": "Soon",
+      "picked": "Picked for you",
+      "pickedLine": "What gets you closest to: {goal}",
+      "seeAll": "See all",
+      "seeLess": "See less",
+      "prev": "Previous",
+      "next": "Next"
     },
     "progressView": {
       "title": "Your progress",
@@ -606,7 +648,11 @@
       "minutesTotal": "{minutes} min speaking or writing",
       "daysActive": "{days} days with practice",
       "minutesUnit": "min practised",
-      "daysUnit": "days with practice"
+      "daysUnit": "days with practice",
+      "areasNote": "Striped means not measured yet",
+      "sure": "Measured",
+      "between": "Somewhere between {floor} and {ceiling}",
+      "unknownYet": "Not measured yet"
     },
     "settings": {
       "title": "Settings",

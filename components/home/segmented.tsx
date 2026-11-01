@@ -17,12 +17,15 @@ export function Segmented<V extends string>({
   onChange,
   options,
   size = "md",
+  tone = "light",
   className,
 }: {
   value: V;
   onChange: (value: V) => void;
   options: { value: V; label: string; Icon?: LucideIcon }[];
   size?: "md" | "sm";
+  /** `ink`: the chosen option dark with light text, for the header on white. */
+  tone?: "light" | "ink";
   className?: string;
 }) {
   const track = useRef<HTMLDivElement>(null);
@@ -54,14 +57,20 @@ export function Segmented<V extends string>({
     <div
       ref={track}
       role="tablist"
-      className={cn("relative isolate flex items-center rounded-full bg-black/[0.05] p-1 dark:bg-white/10", className)}
+      className={cn(
+        "relative isolate flex items-center rounded-full p-1",
+        tone === "ink" ? "bg-[#F1F2F5] dark:bg-white/10" : "bg-black/[0.05] dark:bg-white/10",
+        className,
+      )}
     >
       <span
         ref={pill}
         aria-hidden
         className={cn(
-          "bg-card absolute top-1 bottom-1 left-0 -z-10 rounded-full",
-          "shadow-[0_1px_2px_rgb(16_24_40/0.08),0_2px_8px_-2px_rgb(16_24_40/0.08)]",
+          "absolute top-1 bottom-1 left-0 -z-10 rounded-full",
+          tone === "ink"
+            ? "bg-foreground shadow-[0_4px_12px_-4px_rgb(16_24_40/0.4)]"
+            : "bg-card shadow-[0_1px_2px_rgb(16_24_40/0.08),0_2px_8px_-2px_rgb(16_24_40/0.08)]",
           "transition-[transform,width] duration-[380ms] ease-(--ease-entrance) motion-reduce:transition-none",
         )}
       />
@@ -77,7 +86,11 @@ export function Segmented<V extends string>({
             "font-heading flex cursor-pointer items-center justify-center gap-2 rounded-full font-medium whitespace-nowrap",
             "transition-colors duration-200 ease-(--ease-standard)",
             size === "md" ? "h-9 px-4 text-[14px]" : "h-8 px-3 text-[13px]",
-            v === value ? "text-foreground" : "text-foreground/55 hover:text-foreground",
+            v === value
+              ? tone === "ink"
+                ? "text-background"
+                : "text-foreground"
+              : "text-foreground/55 hover:text-foreground",
           )}
         >
           {Icon ? <Icon className="size-4" strokeWidth={2} /> : null}

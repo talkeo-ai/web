@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowUp, AudioLines, Maximize2, MessageCircle, Mic, Phone, SquarePen, X } from "lucide-react";
+import { ArrowUp, AudioLines, Maximize2, Mic, SquarePen, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { HeroBackdrop } from "@/components/landing/hero-backdrop";
 import { MOCK_TALKEO, type Home } from "@/lib/inside/mock";
 import { cn } from "@/lib/utils";
 
@@ -173,111 +174,96 @@ export function TalkeoWindow({
 
 /**
  * Talkeo on its own, for talking only to the AI (Joaquin, 1/nov: "una
- * opción para hablar con la AI exclusivamente"). Before anything is said,
- * the two ways in side by side, the call first, since speaking is what the
- * product is for; once there is a conversation, it is the conversation.
+ * opción para hablar con la AI exclusivamente"), dressed like the
+ * onboarding's interview (1/nov: "no debe ser scrolleable y me gustaría que
+ * sea como el del onboarding"): the sky behind, one screen tall, the
+ * conversation in the middle and the field with the round mic at the bottom.
  */
 export function TalkeoView({ talkeo, t }: { talkeo: Talkeo; t: T }) {
   return (
-    <div className="mx-auto flex min-h-[calc(100dvh-170px)] w-full max-w-[720px] flex-col lg:min-h-[calc(100dvh-120px)]">
-      {talkeo.asked ? (
-        <div className="flex items-center justify-end">
-          <IconButton label={t("talkeo.newChat")} onClick={talkeo.reset}>
-            <SquarePen className="size-[17px]" />
-          </IconButton>
+    // `data-sky` borrows the onboarding's look from `globals.css`: white
+    // cards for Talkeo, your answer in blue, the field as a white pill. The
+    // page does not scroll here (the rule keyed on `talkeo-view`); only the
+    // conversation does, fading at its edges, as in the interview.
+    <div data-sky data-slot="talkeo-view">
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+        <HeroBackdrop />
+        <div className="absolute inset-0 bg-white/25 dark:bg-black/40" />
+      </div>
+
+      <div className="mx-auto flex h-[calc(100dvh-64px)] w-full max-w-[760px] flex-col px-4 pb-[96px] sm:px-6 lg:pb-6">
+        <Thread talkeo={talkeo} t={t} sky />
+
+        <div className="shrink-0 pt-2">
+          {talkeo.asked && (
+            <div className="mb-2 flex justify-center">
+              <button
+                type="button"
+                onClick={talkeo.reset}
+                className="text-foreground/70 hover:text-foreground inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-white/60 px-3 py-1.5 text-[13px] font-medium backdrop-blur-md transition-colors hover:bg-white/85 dark:bg-black/30"
+              >
+                <SquarePen className="size-3.5" />
+                {t("talkeo.newChat")}
+              </button>
+            </div>
+          )}
+          <Composer talkeo={talkeo} t={t} sky id="talkeo-field" />
         </div>
-      ) : (
-        <div className="flex flex-1 flex-col items-center justify-center pb-6 text-center">
-          <div className={cn("relative", ARRIVE)} style={arrive(0)}>
-            <span
-              aria-hidden
-              className="absolute -inset-6 rounded-full bg-[radial-gradient(closest-side,oklch(0.75_0.12_240/0.45),transparent)] motion-safe:animate-[glow-breathe_4s_ease-in-out_infinite]"
-            />
-            <Avatar className="relative size-20 shadow-[0_0_0_4px_rgb(255_255_255),0_16px_40px_-12px_rgb(20_60_140/0.5)]" />
-          </div>
-          <h1
-            className={cn("font-heading text-foreground mt-7 text-[30px] leading-tight font-semibold tracking-[-0.03em]", ARRIVE)}
-            style={arrive(1)}
-          >
-            {t("talkeo.ask")}
-          </h1>
-          <p className={cn("text-text-secondary mt-2 max-w-md text-[16px]", ARRIVE)} style={arrive(2)}>
-            {t("talkeo.askLine")}
-          </p>
-
-          <div className={cn("mt-9 grid w-full gap-3 sm:grid-cols-2", ARRIVE)} style={arrive(3)}>
-            <button
-              type="button"
-              className="group relative isolate flex cursor-pointer flex-col items-start overflow-hidden rounded-[24px] bg-[#0E1626] p-5 text-left text-white transition-transform duration-300 ease-(--ease-entrance) hover:-translate-y-0.5 active:scale-[0.99]"
-            >
-              <span
-                aria-hidden
-                className="absolute -top-16 -right-10 -z-10 size-48 rounded-full bg-[oklch(0.6_0.17_250/0.55)] blur-3xl transition-transform duration-700 group-hover:scale-110"
-              />
-              <span className="grid size-11 place-items-center rounded-full bg-white/12 ring-1 ring-white/20">
-                <Phone className="size-5" />
-              </span>
-              <span className="font-heading mt-8 text-[18px] font-semibold">{t("talkeo.call")}</span>
-              <span className="mt-1 text-[14px] text-white/65">{t("talkeo.callLine")}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => document.getElementById("talkeo-field")?.focus()}
-              className={cn(
-                CARD,
-                "flex cursor-pointer flex-col items-start p-5 text-left transition-transform duration-300 ease-(--ease-entrance) hover:-translate-y-0.5 active:scale-[0.99]",
-              )}
-            >
-              <span className="text-foreground grid size-11 place-items-center rounded-full bg-black/[0.05] dark:bg-white/10">
-                <MessageCircle className="size-5" />
-              </span>
-              <span className="font-heading text-foreground mt-8 text-[18px] font-semibold">{t("talkeo.chat")}</span>
-              <span className="text-text-secondary mt-1 text-[14px]">{t("talkeo.chatLine")}</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {talkeo.asked && <Thread talkeo={talkeo} t={t} roomy />}
-
-      {/* Pinned above the fold only once there is a thread to scroll;
-          before that it sits under the two ways in, covering nothing. */}
-      <div className={cn("pt-3", talkeo.asked && "sticky bottom-24 lg:bottom-6")}>
-        <Composer talkeo={talkeo} t={t} roomy id="talkeo-field" />
       </div>
     </div>
   );
 }
 
-function Thread({ talkeo, t, roomy = false }: { talkeo: Talkeo; t: T; roomy?: boolean }) {
+function Thread({ talkeo, t, sky = false }: { talkeo: Talkeo; t: T; sky?: boolean }) {
   const viewport = useRef<HTMLDivElement>(null);
-  const end = useRef<HTMLLIElement>(null);
   useEffect(() => {
-    // In the window the thread scrolls itself; in the section the page does.
-    if (roomy) end.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    else {
-      const el = viewport.current;
-      if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-    }
-  }, [talkeo.messages, talkeo.thinking, roomy]);
+    const el = viewport.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [talkeo.messages, talkeo.thinking]);
 
   return (
-    <div ref={viewport} className={cn(roomy ? "flex-1 py-4" : "scroll-quiet min-h-0 flex-1 overflow-y-auto px-4 py-3")}>
-      <ol className={cn("flex flex-col", roomy ? "gap-6" : "gap-4")}>
+    <div
+      ref={viewport}
+      className={cn("scroll-quiet min-h-0 flex-1 overflow-y-auto", sky ? "-mx-4 px-4 pt-8 pb-4 sm:-mx-8 sm:px-8" : "px-4 py-3")}
+    >
+      {sky && (
+        <div className="mb-8 flex flex-col items-center text-center">
+          <Avatar className={cn("size-16 shadow-[0_0_0_4px_rgb(255_255_255/0.8),0_16px_40px_-12px_rgb(20_60_140/0.45)]", ARRIVE)} />
+          <h1
+            className={cn("font-heading text-foreground mt-5 text-[28px] leading-tight font-semibold tracking-[-0.03em]", ARRIVE)}
+            style={arrive(1)}
+          >
+            {t("talkeo.ask")}
+          </h1>
+          <p className={cn("text-foreground/70 mt-1.5 max-w-md text-[16px]", ARRIVE)} style={arrive(2)}>
+            {t("talkeo.askLine")}
+          </p>
+        </div>
+      )}
+      <ol className={cn("flex flex-col", sky ? "gap-4" : "gap-4")}>
         {talkeo.messages.map((m) =>
-          m.from === "talkeo" ? (
+          sky ? (
+            <li
+              key={m.id}
+              data-slot="bubble"
+              data-from={m.from}
+              className={cn(
+                "max-w-[85%] px-5 py-3.5 text-[17px] leading-[1.6] motion-safe:animate-[bubble-in_360ms_var(--ease-entrance)_both]",
+                m.from === "you" ? "ml-auto w-fit text-white" : "text-foreground mr-auto",
+              )}
+            >
+              {m.text}
+              {m.from === "talkeo" && <span className="text-text-tertiary mt-1.5 block text-xs font-medium">Talkeo</span>}
+            </li>
+          ) : m.from === "talkeo" ? (
             <li key={m.id} className="flex gap-3 motion-safe:animate-[bubble-in_360ms_var(--ease-entrance)_both]">
               <Avatar className="mt-0.5 size-7 shrink-0" />
-              <p className={cn("text-foreground leading-[1.6]", roomy ? "text-[16px]" : "text-[14.5px]")}>{m.text}</p>
+              <p className="text-foreground text-[14.5px] leading-[1.6]">{m.text}</p>
             </li>
           ) : (
             <li
               key={m.id}
-              className={cn(
-                "text-foreground ml-auto max-w-[80%] rounded-[20px] bg-black/[0.05] px-4 py-2.5 leading-[1.5] dark:bg-white/10",
-                roomy ? "text-[16px]" : "text-[14.5px]",
-                "motion-safe:animate-[bubble-in_300ms_var(--ease-entrance)_both]",
-              )}
+              className="text-foreground ml-auto max-w-[80%] rounded-[20px] bg-black/[0.05] px-4 py-2.5 text-[14.5px] leading-[1.5] motion-safe:animate-[bubble-in_300ms_var(--ease-entrance)_both] dark:bg-white/10"
             >
               {m.text}
             </li>
@@ -297,24 +283,26 @@ function Thread({ talkeo, t, roomy = false }: { talkeo: Talkeo; t: T; roomy?: bo
             </span>
           </li>
         )}
-        <li ref={end} aria-hidden />
       </ol>
     </div>
   );
 }
 
-function Composer({ talkeo, t, roomy = false, id }: { talkeo: Talkeo; t: T; roomy?: boolean; id?: string }) {
+function Composer({ talkeo, t, sky = false, id }: { talkeo: Talkeo; t: T; sky?: boolean; id?: string }) {
   const [draft, setDraft] = useState("");
   return (
     <div>
       {!talkeo.asked && (
-        <div className={cn("mb-3 flex flex-wrap gap-2", roomy && "justify-center")}>
+        <div className={cn("mb-3 flex flex-wrap gap-2", sky && "justify-center")}>
           {MOCK_TALKEO.suggestions.map((s, i) => (
             <button
               key={s.ask}
               type="button"
               onClick={() => talkeo.say(s.ask)}
-              className="bg-card text-foreground cursor-pointer rounded-full px-3.5 py-2 text-[13px] font-medium shadow-[0_0_0_1px_rgb(16_24_40/0.1)] transition-colors hover:bg-black/[0.03] motion-safe:animate-[bubble-in_360ms_var(--ease-entrance)_both]"
+              className={cn(
+                "bg-card text-foreground cursor-pointer rounded-full px-3.5 py-2 text-[13px] font-medium transition-[background-color,transform] duration-200 hover:bg-black/[0.03] active:scale-[0.97] motion-safe:animate-[bubble-in_360ms_var(--ease-entrance)_both]",
+                sky ? "px-4 text-[14px] shadow-[var(--sky-card-shadow)]" : "shadow-[0_0_0_1px_rgb(16_24_40/0.1)]",
+              )}
               style={{ animationDelay: `${160 + i * 50}ms` }}
             >
               {s.ask}
@@ -322,16 +310,18 @@ function Composer({ talkeo, t, roomy = false, id }: { talkeo: Talkeo; t: T; room
           ))}
         </div>
       )}
+      <div className="flex items-center gap-2.5">
       <form
+        data-slot={sky ? "composer" : undefined}
         onSubmit={(event) => {
           event.preventDefault();
           talkeo.say(draft);
           setDraft("");
         }}
         className={cn(
-          "bg-card flex items-center gap-1 rounded-full pr-1.5 pl-5",
+          "bg-card flex min-w-0 flex-1 items-center gap-1 rounded-full pr-1.5 pl-5",
           "shadow-[0_0_0_1px_rgb(16_24_40/0.1)] transition-shadow duration-200 focus-within:shadow-[0_0_0_1px_rgb(16_24_40/0.2),0_0_0_5px_rgb(16_24_40/0.04)]",
-          roomy ? "h-14 shadow-[0_0_0_1px_rgb(16_24_40/0.08),0_12px_32px_-12px_rgb(16_24_40/0.2)]" : "h-12",
+          sky ? "h-14" : "h-12",
         )}
       >
         <input
@@ -339,12 +329,24 @@ function Composer({ talkeo, t, roomy = false, id }: { talkeo: Talkeo; t: T; room
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder={t("talkeo.placeholder")}
-          className={cn("text-foreground placeholder:text-text-tertiary min-w-0 flex-1 bg-transparent outline-none", roomy ? "text-[16px]" : "text-[14.5px]")}
+          className={cn("text-foreground placeholder:text-text-tertiary min-w-0 flex-1 bg-transparent outline-none", sky ? "text-[17px]" : "text-[14.5px]")}
         />
-        <IconButton label={t("talkeo.mic")}>
-          <Mic className="size-[18px]" />
-        </IconButton>
-        {draft.trim() ? (
+        {!sky && (
+          <IconButton label={t("talkeo.mic")}>
+            <Mic className="size-[18px]" />
+          </IconButton>
+        )}
+        {sky ? (
+          draft.trim() ? (
+            <button
+              type="submit"
+              aria-label={t("talkeo.send")}
+              className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full bg-[var(--brand)] text-white transition-transform duration-200 active:scale-95"
+            >
+              <ArrowUp className="size-[18px]" strokeWidth={2.5} />
+            </button>
+          ) : null
+        ) : draft.trim() ? (
           <button
             type="submit"
             aria-label={t("talkeo.send")}
@@ -365,6 +367,19 @@ function Composer({ talkeo, t, roomy = false, id }: { talkeo: Talkeo; t: T; room
           </button>
         )}
       </form>
+      {/* The interview's round mic, beside the field: speaking is the
+          first way in, so it is the biggest thing here. */}
+      {sky && (
+        <button
+          type="button"
+          aria-label={t("talkeo.mic")}
+          title={t("talkeo.mic")}
+          className="grid size-14 shrink-0 cursor-pointer place-items-center rounded-full bg-[var(--brand)] text-white shadow-[0_14px_30px_-12px_var(--brand)] transition-transform duration-200 hover:scale-105 active:scale-95"
+        >
+          <Mic className="size-6" />
+        </button>
+      )}
+      </div>
     </div>
   );
 }
