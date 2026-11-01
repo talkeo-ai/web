@@ -73,7 +73,9 @@ export function SiteHeader() {
           <img
             src="/logo.png"
             alt="Talkeo"
-            className="size-7 rounded-full shadow-[0_2px_8px_-2px_rgb(30_70_160/0.35)] sm:size-8"
+            // A white ring around the orb: its blues are the sky's blues, and
+            // without an edge it dissolved into the background (1/nov).
+            className="size-7 rounded-full shadow-[0_0_0_2px_rgb(255_255_255),0_4px_12px_-2px_rgb(30_70_160/0.35)] sm:size-8"
           />
           Talkeo
         </Link>
