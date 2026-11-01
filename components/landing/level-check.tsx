@@ -22,7 +22,7 @@ const IN_MS = 520;
  * one, blank. Scaled from its bottom edge so the strip is the same at any
  * card size.
  */
-const BEHIND = { scale: 0.9, y: 14 };
+const BEHIND = { scale: 0.92, y: 8 };
 /** Card and deck share one hinge, so a flying ghost tips the way the card did. */
 const HINGE = "50% 115%";
 
@@ -96,17 +96,11 @@ export function LevelCheck({ className }: { className?: string }) {
       }}
       className={cn("flex w-full flex-col items-center", className)}
     >
-      {/* The header: what this is, and where you are in it. */}
-      <header className="flex flex-col items-center gap-0.5 text-center">
-        <h2 className="text-foreground text-[15px] font-semibold">{t("title")}</h2>
-        <p className="text-text-tertiary text-[12px] tabular-nums" aria-live="polite">
-          {finished ? t("resultSubtitle") : t("progress", { n: index + 1, total })}
-        </p>
-      </header>
-
       {/* The deck: one size for every state, so finishing does not move the
-          page. Width steps with the breakpoint and the height follows it. */}
-      <div className="relative isolate mt-5 aspect-[5/7] w-[284px] sm:w-[300px] lg:w-[320px]">
+          page. Width steps with the breakpoint and the height follows it. No
+          header over it (Joaquin, 1/nov): a title competed with the hero's,
+          and where you are reads from the row underneath. */}
+      <div className="relative isolate aspect-[4/5] w-[284px] sm:w-[300px] lg:w-[320px]">
         {finished ? (
           <Result key={round} cards={cards} knows={knows} />
         ) : (
@@ -152,11 +146,11 @@ export function LevelCheck({ className }: { className?: string }) {
 
       {/* One row for both states, the same height, so nothing under the deck
           jumps when it ends. */}
-      <div className="mt-7 flex h-[78px] items-start justify-center gap-10">
+      <div className="mt-7 flex h-14 items-center justify-center">
         {finished ? (
           <div
             key={round}
-            className="flex items-center gap-3 pt-2"
+            className="flex items-center gap-3"
             style={{ animation: `blur-in ${IN_MS}ms var(--ease-entrance) 120ms backwards` }}
           >
             <Button size="lg" variant="raised" className="text-[15px]" asChild>
@@ -168,10 +162,20 @@ export function LevelCheck({ className }: { className?: string }) {
             </Button>
           </div>
         ) : (
-          <>
+          <div className="flex items-center gap-7">
             <Choice tone="no" label={t("no")} onClick={() => answer("left", 0)} />
+            {/* Where you are, between the two answers, so the row weighs as
+                much on each side as the card above it. */}
+            <p
+              aria-live="polite"
+              aria-label={t("progress", { n: index + 1, total })}
+              className="text-text-tertiary w-12 text-center text-[13px] font-medium tabular-nums"
+            >
+              {index + 1}
+              <span className="text-text-tertiary/60"> / {total}</span>
+            </p>
             <Choice tone="yes" label={t("yes")} onClick={() => answer("right", 0)} />
-          </>
+          </div>
         )}
       </div>
     </section>
@@ -327,7 +331,12 @@ function Face({
   );
 }
 
-/** A round answer button with its word under it, in the side's colour. */
+/**
+ * A round answer: the side's colour as a soft fill rather than as an outline,
+ * so it is found without drawing a ring around itself. No word under it — the
+ * card already asks the question and the marks are the answer; the word is
+ * still there for a screen reader and on hover.
+ */
 function Choice({
   label,
   tone,
@@ -342,21 +351,17 @@ function Choice({
     <button
       type="button"
       onClick={onClick}
-      className="group focus-key:ring-ring flex w-24 cursor-pointer flex-col items-center gap-2 rounded-xl outline-none focus-key:ring-2"
+      aria-label={label}
+      title={label}
+      className={cn(
+        "focus-key:ring-ring flex size-14 cursor-pointer items-center justify-center rounded-full outline-none focus-key:ring-2 focus-key:ring-offset-2",
+        "transition-[background-color,scale] duration-150 ease-out hover:scale-[1.06] active:scale-[0.92]",
+        tone === "yes"
+          ? "bg-accent-500/[0.14] text-accent-700 hover:bg-accent-500/[0.22] dark:bg-accent-400/[0.16] dark:text-accent-300 dark:hover:bg-accent-400/[0.24]"
+          : "bg-destructive/[0.09] text-destructive hover:bg-destructive/[0.15] dark:bg-destructive/[0.16] dark:hover:bg-destructive/[0.24]",
+      )}
     >
-      <span
-        className={cn(
-          "bg-background flex size-[52px] items-center justify-center rounded-full border",
-          "shadow-[0_2px_0_0_var(--cta-alt-lip)] transition-[translate,box-shadow,background-color] duration-100",
-          "group-active:translate-y-[2px] group-active:shadow-none",
-          tone === "yes"
-            ? "border-accent-300 text-accent-700 group-hover:bg-accent-50 dark:border-accent-800 dark:text-accent-400 dark:group-hover:bg-accent-950"
-            : "text-destructive group-hover:bg-destructive/[0.06] border-[color-mix(in_oklch,var(--destructive)_35%,transparent)]",
-        )}
-      >
-        <Icon className="size-[22px]" strokeWidth={2.75} />
-      </span>
-      <span className="text-text-secondary text-[12px] font-medium">{label}</span>
+      <Icon className="size-6" strokeWidth={2.5} />
     </button>
   );
 }
@@ -381,6 +386,7 @@ function Result({ cards, knows }: { cards: LevelCard[]; knows: boolean[] }) {
         aria-hidden
         className="absolute inset-0 -z-10 bg-[radial-gradient(closest-side,var(--surface-secondary),transparent)]"
       />
+      <p className="text-text-tertiary -mb-2 text-[13px]">{t("resultSubtitle")}</p>
       <p className="font-heading text-foreground text-[80px] leading-none font-semibold tracking-[-0.03em]">
         {result.band}
       </p>
