@@ -8,9 +8,47 @@
     "theme": "Cambiar tema"
   },
   "hero": {
-    "headline": "Descubrí tu nivel de inglés y mejorá lo que te falta",
+    "headline": "Descubrí tu nivel de inglés y practicá lo que necesitás",
     "cta": "Comenzar ahora",
     "signIn": "Ya tengo una cuenta"
+  },
+  "try": {
+    "eyebrow": "Probalo ahora, sin registrarte",
+    "title": "Traducí esta frase",
+    "progress": "Frase {n} de {total}",
+    "answer": "Tu respuesta",
+    "bank": "Palabras",
+    "check": "Comprobar",
+    "continue": "Continuar",
+    "correct": "¡Bien!",
+    "wrong": "Casi. Se dice:",
+    "doneTitle": "Tu primera práctica",
+    "doneBody": "Acertaste {right} de {total}. En Talkeo cada práctica sale de lo que te cuesta a vos.",
+    "measure": "Medí tu nivel",
+    "again": "Otra vez",
+    "home": "Ir a mi inicio",
+    "interview": "Volver a la charla",
+    "close": "Salir",
+    "items": [
+      {
+        "prompt": "Tengo 25 años.",
+        "answer": ["I", "am", "25", "years", "old"],
+        "bank": ["have", "years", "I", "old", "25", "am"],
+        "tip": "La edad va con «am», no con «have»."
+      },
+      {
+        "prompt": "Trabajo en una empresa de software.",
+        "answer": ["I", "work", "at", "a", "software", "company"],
+        "bank": ["company", "a", "I", "enterprise", "software", "make", "work", "at"],
+        "tip": "«Empresa» es «company». «Enterprise» suena a una corporación enorme."
+      },
+      {
+        "prompt": "¿Me lo podés repetir?",
+        "answer": ["Can", "you", "repeat", "that?"],
+        "bank": ["me", "repeat", "Can", "it", "that?", "you"],
+        "tip": "En inglés no va «me»: se pide así, sin más."
+      }
+    ]
   },
   "surfaces": {
     "conversation": "Conversación con IA",
@@ -40,21 +78,6 @@
     "contact": "Contacto",
     "language": "Idioma del sitio",
     "rights": "© {year} Talkeo"
-  },
-  "nervousActivity": {
-    "levelDetected": "Nivel detectado",
-    "levelValue": "Hablando: A2 · Escribiendo: B1",
-    "goalAssigned": "Meta asignada",
-    "goalInterview": "Entrevista de trabajo",
-    "goalTravel": "Viaje a Londres en marzo",
-    "gapDetected": "Falta detectada",
-    "gapInterview": "Responder preguntas en vivo",
-    "gapTravel": "Frases para el aeropuerto",
-    "exerciseCreated": "Ejercicio creado",
-    "exerciseInterview": "Role-play: entrevista técnica",
-    "exerciseTravel": "Conversación: en el aeropuerto",
-    "errorLogged": "Error registrado",
-    "errorAge": "\"I have 25 years\" → \"I am 25\""
   },
   "inside": {
     "nav": "Secciones",
@@ -128,6 +151,7 @@
         "unavailable": "Las llamadas no están disponibles ahora."
       }
     },
+    "skip": "Saltar y probar",
     "exit": {
       "leave": "Salir",
       "title": "¿Seguro que querés salir?",

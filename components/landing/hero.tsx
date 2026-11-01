@@ -4,8 +4,7 @@ import { EnterOnboarding } from "@/components/onboarding/enter-onboarding";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/i18n/navigation";
 
-import { NervousActivity } from "./nervous-activity";
-import { OrbWidget } from "./orb-widget";
+import { HeroTry } from "./hero-try";
 
 /**
  * This is the largest contentful paint, so it sits outside every Suspense
@@ -123,33 +122,14 @@ export async function Hero() {
             </div>
           </div>
 
-          {/* Orb — centered in the space the headline and buttons leave on
-              mobile, right column on desktop */}
-          <div className="order-2 flex min-h-0 flex-1 items-center justify-center lg:order-none lg:flex-initial">
-            <div className="relative mx-auto flex aspect-square w-full max-w-[320px] items-center justify-center sm:max-w-[380px] lg:mr-[-2%] lg:ml-auto lg:max-w-[400px]">
-              <NervousActivity />
-
-              <div className="relative z-20 h-[60%] w-[60%] sm:h-[55%] sm:w-[55%]">
-                {/* A link, not a decorated div. Attaching a click listener to
-                    a bare element gives a mouse-only affordance: nothing to
-                    tab to, nothing to announce, and no keyboard equivalent.
-                    Labelled explicitly because its contents are a canvas. */}
-                <EnterOnboarding
-                  label={t("cta")}
-                  className="bg-surface-secondary border-border focus-key:ring-ring focus-key:ring-offset-background shadow-raised relative block h-full w-full overflow-hidden rounded-full border focus-key:ring-2 focus-key:ring-offset-4 focus-visible:outline-none"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/logo.png"
-                    alt=""
-                    className="absolute inset-[4.5%] h-[91%] w-[91%] rounded-full object-cover"
-                  />
-                  <div className="relative h-full w-full">
-                    <OrbWidget />
-                  </div>
-                </EnterOnboarding>
-              </div>
-            </div>
+          {/* The practice you can play before anything else — headline, then
+              this, then the ask on the phone, as the orb was; right column on
+              desktop. It replaced the orb (Joaquin, 1/nov): only Duolingo
+              among the four top-earning language apps lets you do a real
+              exercise before asking for anything, and moving its lesson ahead
+              of sign-up gave it +20% daily active users. */}
+          <div className="order-2 flex min-h-0 flex-1 items-center justify-center py-6 lg:order-none lg:flex-initial lg:py-0">
+            <HeroTry className="mx-auto w-full max-w-[420px] lg:mr-0 lg:ml-auto" />
           </div>
         </div>
       </div>

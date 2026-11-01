@@ -8,9 +8,47 @@
     "theme": "Switch theme"
   },
   "hero": {
-    "headline": "Discover your English level and improve what you're missing",
+    "headline": "Find your English level and practice what you need",
     "cta": "Start now",
     "signIn": "I already have an account"
+  },
+  "try": {
+    "eyebrow": "Try it now, no sign-up",
+    "title": "Translate this sentence",
+    "progress": "Sentence {n} of {total}",
+    "answer": "Your answer",
+    "bank": "Words",
+    "check": "Check",
+    "continue": "Continue",
+    "correct": "Nice!",
+    "wrong": "Almost. It's:",
+    "doneTitle": "Your first practice",
+    "doneBody": "You got {right} of {total}. In Talkeo every practice comes from what you find hard.",
+    "measure": "Find your level",
+    "again": "Again",
+    "home": "Go to my home",
+    "interview": "Back to the chat",
+    "close": "Leave",
+    "items": [
+      {
+        "prompt": "Tengo 25 años.",
+        "answer": ["I", "am", "25", "years", "old"],
+        "bank": ["have", "years", "I", "old", "25", "am"],
+        "tip": "Age goes with “am”, not “have”."
+      },
+      {
+        "prompt": "Trabajo en una empresa de software.",
+        "answer": ["I", "work", "at", "a", "software", "company"],
+        "bank": ["company", "a", "I", "enterprise", "software", "make", "work", "at"],
+        "tip": "“Empresa” is “company”. “Enterprise” sounds like a huge corporation."
+      },
+      {
+        "prompt": "¿Me lo podés repetir?",
+        "answer": ["Can", "you", "repeat", "that?"],
+        "bank": ["me", "repeat", "Can", "it", "that?", "you"],
+        "tip": "No “me” in English: you just ask it this way."
+      }
+    ]
   },
   "surfaces": {
     "conversation": "AI conversation",
@@ -428,21 +466,6 @@
       ]
     }
   },
-  "nervousActivity": {
-    "levelDetected": "Level detected",
-    "levelValue": "Speaking: A2 · Writing: B1",
-    "goalAssigned": "Goal assigned",
-    "goalInterview": "Job interview",
-    "goalTravel": "Trip to London in March",
-    "gapDetected": "Gap detected",
-    "gapInterview": "Answering questions live",
-    "gapTravel": "Airport phrases",
-    "exerciseCreated": "Exercise created",
-    "exerciseInterview": "Role-play: tech interview",
-    "exerciseTravel": "Conversation: at the airport",
-    "errorLogged": "Error logged",
-    "errorAge": "\"I have 25 years\" → \"I am 25\""
-  },
   "inside": {
     "nav": "Sections",
     "collapse": "Hide the menu",
@@ -515,6 +538,7 @@
         "unavailable": "Calls are not available right now."
       }
     },
+    "skip": "Skip and try it",
     "exit": {
       "leave": "Leave",
       "title": "Are you sure you want to leave?",

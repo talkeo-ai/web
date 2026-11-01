@@ -9,10 +9,16 @@ export const THEME_STORAGE_KEY = "talkeo-theme";
  * later — an effect, a deferred script — lands after the wrong one is on
  * screen. Reading `localStorage` throws under some privacy settings; falling
  * through leaves the prerendered theme.
+ *
+ * Light unless the person chose dark, whatever the system says: dark text on a
+ * light ground reads better at every age and more so at small sizes
+ * (Piepenbrock et al., Ergonomics 2013; Human Factors 2014), and the four
+ * top-earning language apps all open light (Joaquin, 1/nov). Dark stays one
+ * click away and is remembered.
  */
-export const themeBootstrapScript = `try{var t=localStorage.getItem(${JSON.stringify(
+export const themeBootstrapScript = `try{document.documentElement.classList.toggle("dark",localStorage.getItem(${JSON.stringify(
   THEME_STORAGE_KEY,
-)});document.documentElement.classList.toggle("dark",t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches)}catch(e){}`;
+)})==="dark")}catch(e){}`;
 
 export function readTheme(): Theme {
   return document.documentElement.classList.contains("dark") ? "dark" : "light";

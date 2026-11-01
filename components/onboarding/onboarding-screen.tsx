@@ -12,7 +12,7 @@ import { useFollowingScroll } from "@/lib/onboarding/use-following-scroll";
 import { surfaceKey } from "@/lib/onboarding/machine";
 import { useInterview } from "@/lib/onboarding/use-interview";
 import { heardSoFar } from "@/lib/onboarding/conversation";
-import { useRouter } from "@/lib/i18n/navigation";
+import { Link, useRouter } from "@/lib/i18n/navigation";
 
 import { Composer } from "./composer";
 import { ExitDialog } from "./exit-dialog";
@@ -119,6 +119,20 @@ function Screen({
             total: conversation.stagesTotal,
           })}
         />
+        {/* Skipping says so in words: the "X" alone reads as leaving, not as
+            skipping (NN/g, "Cancel vs Close", 2019), and nothing told you
+            you could play without finishing the chat (Joaquin, 1/nov). It
+            leads to a practice, not out; the chat keeps what was said. */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-text-secondary hover:text-foreground h-9 shrink-0 px-3 text-[14px]"
+          asChild
+        >
+          <Link href="/try" prefetch={false} data-slot="onboarding-skip">
+            {t("skip")}
+          </Link>
+        </Button>
         <Button
           variant="ghost"
           size="sm"

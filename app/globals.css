@@ -181,7 +181,7 @@
   --cta-alt-lip: oklch(0.82 0 0);
   /* The outlined button's label. A step darker than body secondary, because
      next to a near-black solid button the same grey reads as disabled. */
-  --cta-alt-text: oklch(0.371 0 0);
+  --cta-alt-text: oklch(0.269 0 0);
 
   /* The map. These three are the product, so they are tokens and not
      decoration: what you know, where you break, and what we have not
@@ -273,7 +273,9 @@
   --cta-lip: #a3a3a3;
   --cta-alt-border: #404040;
   --cta-alt-lip: #2a2a2a;
-  --cta-alt-text: #737373;
+  /* Light enough to read as a live control next to the near-white solid one:
+     at #737373 it read as disabled (Jessi, 28/oct). */
+  --cta-alt-text: #d4d4d4;
 
   --map-known: var(--color-accent-400);
   --map-breaking: #ff6467;
@@ -624,18 +626,6 @@ body[data-scroll-locked] {
   }
 }
 
-/* Hard steps, never a fade: a caret that eases is a pulsing dot, and a caret
-   is what makes arriving text read as text being written instead of a glitch. */
-@keyframes caret-blink {
-  0%,
-  49% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0;
-  }
-}
 
 /* A dialog fades in from a touch smaller, and on the way out only fades, and
    quicker: leaving it is done, so it does not linger. Scale is animated as
