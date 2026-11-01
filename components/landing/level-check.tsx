@@ -13,12 +13,14 @@ import { cn } from "@/lib/utils";
 /** Degrees per pixel of drag. The card hinges from below, so a little goes far. */
 const TILT = 1 / 22;
 /** How far an answered card flies, and how far it tips on the way. */
-// Short on purpose (Joaquin, 1/nov): a card that travelled 600px read as
-// wandering off, and on the right-hand column it ran past the window. It
-// goes about its own width and is gone by then.
-const EXIT_PX = 300;
-const EXIT_DEG = 16;
-const OUT_MS = 340;
+// A throw that glides out (Joaquin, 1/nov): 600px solid read as wandering
+// off, 300px with a late fade read as stopping and vanishing. The answer is
+// the curve, not the distance: fast off the hand, then a long deceleration
+// while it fades and softens, so it is gone as it slows instead of after.
+const EXIT_PX = 440;
+const EXIT_DEG = 18;
+const OUT_MS = 560;
+const OUT_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 const IN_MS = 520;
 /**
  * The card waiting underneath: narrower and showing a strip below the top
@@ -138,7 +140,7 @@ export function LevelCheck({ className }: { className?: string }) {
                 "--card-from-rotate": `${f.fromX * TILT}deg`,
                 "--card-to-x": `${f.side === "left" ? -EXIT_PX : EXIT_PX}px`,
                 "--card-to-rotate": `${f.side === "left" ? -EXIT_DEG : EXIT_DEG}deg`,
-                animation: `card-out ${OUT_MS}ms cubic-bezier(0.3, 0.6, 0.4, 1) both`,
+                animation: `card-out ${OUT_MS}ms ${OUT_EASE} both`,
               } as React.CSSProperties
             }
           >

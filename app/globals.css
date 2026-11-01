@@ -588,16 +588,17 @@ body[data-scroll-locked] {
     transform: translate3d(var(--card-from-x, 0), 0, 0)
       rotate(var(--card-from-rotate, 0deg));
     opacity: 1;
+    filter: none;
   }
-  /* Solid for the first stretch, so it reads as thrown off rather than
-     dissolving in place, then gone well before the end of a short flight. */
-  30% {
-    opacity: 1;
-  }
+  /* Fading with the distance rather than after it: on a decelerating curve
+     most of the travel happens early, so the card thins as it goes and is
+     gone as it slows. The blur and the slight shrink are what make it recede
+     instead of just turning transparent. */
   to {
     transform: translate3d(var(--card-to-x), 0, 0)
-      rotate(var(--card-to-rotate));
+      rotate(var(--card-to-rotate)) scale(0.94);
     opacity: 0;
+    filter: blur(4px);
   }
 }
 
