@@ -51,14 +51,17 @@ const STAGE_PATH = "/level";
 
 /**
  * The card's surface. The proportions are the reference's (Joaquin, 1/nov),
- * measured off the recording: corners about 6% of the width, a hairline edge,
- * and a shadow that is mostly spread with very little darkness.
+ * measured off the recording: corners about 6% of the width.
+ *
+ * White on the page's warm paper, edged by a ring drawn as a shadow rather
+ * than a border (a border adds to the box and greys the corner), then three
+ * layers that each do one job: contact, lift, and a long soft fall tinted
+ * toward the brand so the shadow belongs to the page instead of being grey.
  */
 const SURFACE = cn(
-  "bg-background rounded-[20px] border",
-  "border-black/[0.05] dark:border-white/[0.08]",
-  "shadow-[0_1px_3px_rgb(0_0_0/0.04),0_14px_36px_-10px_rgb(0_0_0/0.12)]",
-  "dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_14px_36px_-10px_rgb(0_0_0/0.55)]",
+  "bg-card rounded-[20px]",
+  "shadow-[0_0_0_1px_rgb(28_25_23/0.06),0_1px_2px_rgb(28_25_23/0.05),0_6px_14px_-4px_rgb(28_25_23/0.07),0_28px_56px_-16px_rgb(30_70_160/0.2)]",
+  "dark:shadow-[0_0_0_1px_rgb(255_255_255/0.08),0_1px_3px_rgb(0_0_0/0.3),0_14px_36px_-10px_rgb(0_0_0/0.55)]",
 );
 
 type Flying = { key: string; card: Next; side: Side; fromX: number };
@@ -472,7 +475,7 @@ function Face({
         aria-hidden
         className={cn(
           "pointer-events-none absolute inset-0",
-          side === "right" && "bg-accent-500/[0.045]",
+          side === "right" && "bg-brand/[0.05]",
           side === "left" && "bg-destructive/[0.035]",
         )}
         style={{ opacity: commitment }}
@@ -487,7 +490,7 @@ function Face({
         }
       >
         <div className="flex items-center justify-between gap-2">
-          <span className="bg-accent-50 text-accent-700 dark:bg-accent-950 dark:text-accent-300 rounded-[6px] px-2 py-[3px] text-[12px] font-medium">
+          <span className="bg-brand-soft text-brand-text rounded-[6px] px-2 py-[3px] text-[12px] font-medium">
             {t(`pos.${word.pos}`)}
           </span>
           {/* An invented word wears the band it was served at, so it cannot
@@ -520,7 +523,7 @@ function Face({
           </span>
           <span
             aria-hidden
-            className="text-accent-700 dark:text-accent-400 flex items-center gap-1.5 font-medium [grid-area:1/1]"
+            className="text-brand-text flex items-center gap-1.5 font-medium [grid-area:1/1]"
             style={{ opacity: yes }}
           >
             <Check className="size-3.5" strokeWidth={2.75} />
@@ -566,7 +569,7 @@ function Choice({
         "focus-key:ring-ring flex size-14 cursor-pointer items-center justify-center rounded-full outline-none focus-key:ring-2 focus-key:ring-offset-2",
         "transition-[background-color,scale] duration-150 ease-out hover:scale-[1.06] active:scale-[0.92]",
         tone === "yes"
-          ? "bg-accent-500/[0.14] text-accent-700 hover:bg-accent-500/[0.22] dark:bg-accent-400/[0.16] dark:text-accent-300 dark:hover:bg-accent-400/[0.24]"
+          ? "bg-brand-soft text-brand-text hover:bg-brand/[0.18]"
           : "bg-destructive/[0.09] text-destructive hover:bg-destructive/[0.15] dark:bg-destructive/[0.16] dark:hover:bg-destructive/[0.24]",
       )}
     >
@@ -605,7 +608,7 @@ function Result({ answers }: { answers: Answer[] }) {
             <span
               className={cn(
                 "h-1 w-full rounded-full",
-                i <= at ? "bg-accent-500" : "bg-foreground/[0.08]",
+                i <= at ? "bg-brand" : "bg-foreground/[0.08]",
               )}
             />
             <span

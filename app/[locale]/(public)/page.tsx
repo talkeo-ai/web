@@ -10,18 +10,18 @@ import { SurfacesBar } from "@/components/landing/surfaces-bar";
 export default function LandingPage() {
   return (
     <main>
-      {/* The first screen is the hero and the row together, not the hero
-          alone: the row is what tells you the page continues, so it has to be
-          visible without scrolling for it to do that job.
+      {/* The first screen is the hero alone: a headline, one thing to do and
+          the deck. The row of practice types used to share it, to say the
+          page continues, but it was a second message competing with the
+          first, and the deck is now what invites you in (1/nov).
 
           `min-h-dvh` and not `h-screen`, because on mobile `100vh` counts the
-          browser's address bar and the row would sit just under the fold.
-          `min-h-` rather than `h-`, so a short viewport scrolls instead of
-          crushing the hero. */}
+          browser's address bar. `min-h-` rather than `h-`, so a short
+          viewport scrolls instead of crushing the hero. */}
       <div className="flex min-h-dvh flex-col">
         <Hero />
-        <SurfacesBar />
       </div>
+      <SurfacesBar />
     </main>
   );
 }

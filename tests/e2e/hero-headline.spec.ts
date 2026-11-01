@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * The headline is set to break in exactly two lines, in every locale, at every
- * width. That is not a property the CSS can assert about itself: it depends on
+ * The headline is set to break in exactly two lines on phones and tablets, and
+ * in two or three as the desktop display, in every locale. That is not a property the CSS can assert about itself: it depends on
  * the copy, on the font's real metrics and on how wide the column ends up
  * being, so the only place it can be checked is a rendered page.
  *
@@ -16,7 +16,7 @@ import { expect, test } from "@playwright/test";
 const WIDTHS = [360, 375, 414, 640, 768, 834, 1024, 1152, 1280, 1440, 1920];
 const LOCALES = ["es", "en", "pt"];
 
-test("the headline breaks in two lines in every locale, at every width", async ({
+test("the headline keeps its line count in every locale, at every width", async ({
   page,
 }) => {
   const wrong: string[] = [];
@@ -33,7 +33,10 @@ test("the headline breaks in two lines in every locale, at every width", async (
               parseFloat(getComputedStyle(el).lineHeight),
           ),
         );
-      if (lines !== 2) wrong.push(`${locale} at ${width}px: ${lines} lines`);
+      // From `lg` the headline is a left-aligned display beside the deck,
+      // and it is set large enough to take a third line (1/nov).
+      const allowed = width >= 1024 ? [2, 3] : [2];
+      if (!allowed.includes(lines)) wrong.push(`${locale} at ${width}px: ${lines} lines`);
     }
   }
 

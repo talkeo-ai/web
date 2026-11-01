@@ -29,83 +29,51 @@ export async function Hero() {
 
       {/* 2. Hero + orb — grows to fill remaining space */}
       <div className="flex min-h-0 flex-1 flex-col px-6 lg:flex-row lg:items-center lg:px-8">
-        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col lg:grid lg:flex-initial lg:grid-cols-2 lg:items-center lg:gap-16">
-          {/* Copy — centred at every size, inside its own column rather than
-              across the page. Left-aligning it would put the headline's ragged
-              edge and the buttons' fixed edge on the same axis, and the two
-              never line up.
+        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col lg:grid lg:flex-initial lg:grid-cols-[1.15fr_1fr] lg:items-center lg:gap-16">
+          {/* Copy — centred on the phone, left-aligned on desktop.
 
-              On the phone the order is headline → orb → buttons: the orb is
+              On desktop it is a column of its own with a hard left edge that
+              the headline, the line under it and the buttons all share: one
+              axis reads as one statement, and it is how every page this was
+              measured against sets its first screen (1/nov). On the phone the
+              copy spans the screen above the deck, and there centring is what
+              keeps it from reading as lopsided.
+
+              On the phone the order is headline → deck → buttons: the deck is
               the demonstration, so it plays before the ask, and the ask lands
               in thumb reach at the bottom. `display: contents` is what makes
               one markup serve both layouts — the wrapper dissolves on mobile
               so its children join the flex flow as orderable siblings, and
               becomes the copy column again at `lg`, where block layout
-              ignores `order` and the desktop stays exactly as it was. */}
-          <div className="contents lg:mx-auto lg:block lg:w-full lg:max-w-lg lg:text-center">
-            {/* A container, so the headline can size itself against the width
-                it actually gets rather than against the viewport. The two come
-                apart exactly at `lg`, where the grid opens and this column
-                drops to roughly 440px while the window only gets wider — which
-                is why a viewport-stepped size cannot hold a line count across
-                it.
-
-                `w-full` is load-bearing, not decoration: containing the inline
-                size is exactly what stops the contents from deciding the width,
-                so without a width of its own this box collapses against its
-                own auto margins. */}
-            <div className="@container order-1 mx-auto w-full max-w-lg text-center">
-              {/* Tight leading and a hair of negative tracking: a display set
-                  loose reads as a poster and set close reads as a statement,
-                  and the two numbers do the same job — moving one without the
-                  other leaves the block either cramped or unglued.
-
-                  600, and the same 600 every other display on the site runs at.
-                  Light text on a dark surface blooms, so the stroke gains
-                  weight the reference never had and the instinct to reach for
-                  700 is worth resisting; below this the face reads thin at
-                  display size, which is the failure mode it was chosen against.
-
-                  The size is two lines expressed as arithmetic: the longest
-                  headline needs some multiple of its own font size in width to
-                  break in two, and the size sits just under that ceiling.
-                  Change the copy or the face and the multiple moves with it —
-                  `hero-headline.spec.ts` is what says so, and a rendered page is
-                  the only place it can be checked, because it depends on the
-                  font's real metrics.
-
-                  The ceiling carries some slack on purpose, and
-                  the difference buys the break: the English copy joins "and" to
-                  the word after it with a non-breaking space, so the
-                  conjunction cannot be left hanging at the end of a line.
-                  Starting line two with "and improve" makes that line the long
-                  one, and the whole headline has to be set small enough to fit.
-
-                  The floor is typographic, not a fitting one: below about 20px
-                  this stops reading as a display face at all. It binds under
-                  ~300px of container, where two lines are no longer possible at
-                  any size worth setting. */}
-              <h1 className="text-foreground font-heading text-[clamp(20px,6.7cqw,38px)] leading-[1.18] font-semibold tracking-[-0.02em] text-balance">
+              ignores `order`. */}
+          <div className="contents lg:block lg:w-full lg:max-w-[600px]">
+            {/* A container, so the headline sizes itself against the width it
+                actually gets rather than against the viewport. `w-full` is
+                load-bearing: containing the inline size is what stops the
+                contents from deciding the width. */}
+            <div className="@container order-1 mx-auto w-full max-w-lg text-center lg:mx-0 lg:max-w-none lg:text-left">
+              {/* On the phone, two lines expressed as arithmetic: the longest
+                  headline needs some multiple of its own font size to break in
+                  two, and the size sits just under that ceiling
+                  (`hero-headline.spec.ts`). On desktop it is set as a display
+                  — large, tight, three lines — because a headline at body
+                  proportions is what made the page read as a sketch. */}
+              <h1 className="text-foreground font-heading text-[clamp(20px,6.7cqw,38px)] leading-[1.18] font-semibold tracking-[-0.02em] text-balance lg:text-[clamp(44px,9.4cqw,60px)] lg:leading-[1.04] lg:tracking-[-0.035em]">
                 {t("headline")}
               </h1>
+              {/* Not on the phone: there the deck sits right under the headline
+                  and says the same thing by being played, and the two lines
+                  would push the buttons under the fold. */}
+              <p className="text-text-secondary mx-auto mt-3 hidden max-w-[34ch] sm:block text-[15px] leading-[1.5] text-balance lg:mx-0 lg:mt-6 lg:max-w-[30em] lg:text-[19px]">
+                {t("subtitle")}
+              </p>
             </div>
 
-            {/* Both actions share one width rather than sizing to their own
-                labels: stacked controls of different widths read as a list of
-                links, and a fixed column reads as a decision with two answers.
-                `mt-8` and a tight gap — the pair belongs to what precedes it
-                (the orb on mobile, the headline on desktop), and to each other
-                more than to it. `pb-8` keeps the pair off the row below on
-                mobile; the centered desktop grid never reaches it.
-
-                The pair reads small next to the headline it answers, so it is
-                scaled — and scaled as one object. Every number here is the
-                shape it already had times 1.125: the column, the gap, and the
-                label, which carries the control's own height, padding and
-                radius with it because `lg` states them in `em`. Nothing is
-                re-proportioned, so the pair cannot end up stretched or
-                flattened; it is the same drawing, larger. */}
-            <div className="order-3 mx-auto mt-8 flex w-full max-w-[371px] flex-col gap-[13.5px] pb-8 lg:pb-0">
+            {/* On the phone both actions share one width: stacked controls of
+                different widths read as a list of links. On desktop they sit
+                side by side under the copy, sized to their labels, on the same
+                left edge. */}
+            <div className="order-3 mx-auto mt-8 flex w-full max-w-[371px] flex-col gap-[13.5px] pb-8 lg:mx-0 lg:mt-10 lg:max-w-none lg:flex-row lg:gap-3 lg:pb-0">
               <Button size="lg" variant="raised" className="text-[18px]" asChild>
                 <EnterOnboarding>{t("cta")}</EnterOnboarding>
               </Button>
@@ -116,7 +84,7 @@ export async function Hero() {
               <Button
                 size="lg"
                 variant="secondary"
-                className="text-[18px] shadow-[0_2px_0_0_var(--cta-alt-lip)] active:translate-y-[2px] active:shadow-none"
+                className="bg-card text-[18px] shadow-[0_2px_0_0_var(--cta-alt-lip)] active:translate-y-[2px] active:shadow-none"
                 asChild
               >
                 <Link href="/login" prefetch={false}>

@@ -33,18 +33,16 @@ export function LocaleSelector() {
 
   return (
     <DropdownMenu>
-      {/* Label and value in one line, so the control says what it does before
-          it is opened — an unlabelled flag asks you to guess. */}
       {/* Explicit name: the visible label collapses to just a flag on small
           screens, so the accessible name cannot be left to the contents. */}
       <DropdownMenuTrigger
         aria-label={t("language")}
-        className="group text-text-secondary hover:text-foreground gap-1.5 text-[13px] font-semibold tracking-wider uppercase"
+        className="group text-text-secondary hover:text-foreground gap-1.5 text-[14px] font-medium"
       >
-        <span className="hidden sm:inline">{t("language")}:</span>
-        {/* Sized explicitly rather than off the label: the trigger's type is
-            13px, and a flag set to match reads as a smudge. */}
-        <LocaleFlag locale={currentLocale} className="size-4 sm:hidden" />
+        {/* Flag and the language's own name, in sentence case. A spaced,
+            uppercase "LANGUAGE: SPANISH" was the loudest text in the header
+            and read as a form field; the flag already says what this is. */}
+        <LocaleFlag locale={currentLocale} className="size-4" />
         <span className="hidden sm:inline">{current.native}</span>
         <ChevronDownIcon
           className="size-4 transition-transform duration-(--duration-control) ease-(--ease-standard) group-data-[state=open]:rotate-180"

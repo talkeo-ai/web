@@ -110,10 +110,14 @@
 :root {
   color-scheme: light;
 
-  /* Surfaces. Light climbs white → 97 → 92 → 87. */
-  --background: oklch(1 0 0);
-  --surface-secondary: oklch(0.973 0 0);
-  --surface-tertiary: oklch(0.922 0 0);
+  /* Surfaces. The page is not white: it is a warm paper a step under it, so
+     a white card on it reads as an object resting on something rather than
+     as a box drawn on nothing. Pure white is reserved for what floats (cards,
+     popovers). The tint is faint on purpose — at more chroma the page reads
+     as beige, at none the card has nothing to stand out from. */
+  --background: oklch(0.983 0.004 85);
+  --surface-secondary: oklch(0.962 0.005 85);
+  --surface-tertiary: oklch(0.915 0.006 85);
   --surface-quaternary: oklch(0.87 0 0);
   /* The one step *below* the page, for a surface that is set into it rather
      than resting on it — a panel of work held inside the app. The rest of the
@@ -150,7 +154,7 @@
   --border: oklch(0.922 0 0);
   --border-strong: oklch(0.87 0 0);
   --input: oklch(0.922 0 0);
-  --ring: var(--color-accent-600);
+  --ring: var(--brand);
 
   /* The line that divides one band of the page from the next — the header
      from what scrolls under it, the footer from the page above it.
@@ -168,15 +172,26 @@
   /* Accent as *text* needs a darker step than accent as a fill: 6.2:1 here. */
   --accent-text: var(--color-accent-800);
 
+  /* The brand: the logo's blue, and the one colour the page owns. It goes
+     only where the page asks for something — the primary control, the
+     progress you are filling, the "yes" — so it reads as the action and never
+     as decoration. A hair toward cyan from the generic product blue, because
+     that is where the logo sits and the generic one is every other page. */
+  --brand: oklch(0.55 0.175 252);
+  --brand-hover: oklch(0.5 0.17 254);
+  --brand-lip: oklch(0.41 0.15 256);
+  --brand-text: oklch(0.48 0.17 256);
+  --brand-soft: oklch(0.55 0.175 252 / 0.11);
+
   /* See the dark block for what the lip is and why it is opaque. */
-  --cta-face: oklch(0.205 0 0);
-  --cta-face-text: oklch(0.985 0 0);
+  --cta-face: var(--brand);
+  --cta-face-text: oklch(0.99 0 0);
   /* Hover moves the face one step of the neutral ramp, and which way depends
      on the theme: a near-black face on a white page lightens, a near-white
      face on a dark page darkens. A brightness filter cannot express that —
      one direction is right in one theme and invisible in the other. */
-  --cta-face-hover: oklch(0.269 0 0);
-  --cta-lip: oklch(0.08 0 0);
+  --cta-face-hover: var(--brand-hover);
+  --cta-lip: var(--brand-lip);
   --cta-alt-border: oklch(0.87 0 0);
   --cta-alt-lip: oklch(0.82 0 0);
   /* The outlined button's label. A step darker than body secondary, because
@@ -254,7 +269,7 @@
   --border: #404040;
   --border-strong: #525252;
   --input: #262626;
-  --ring: var(--color-accent-400);
+  --ring: var(--brand);
 
   /* Softer than the resting border, because here a divider has the whole
      dark page behind it and a full-strength hairline would draw a box. This
@@ -267,10 +282,16 @@
   /* The lip under a control: the same face a few steps down in lightness, so
      it reads as the side of a solid object rather than as a cast shadow. It is
      never translucent — a real edge does not let the page through. */
-  --cta-face: #fafafa;
-  --cta-face-text: #121212;
-  --cta-face-hover: #e5e5e5;
-  --cta-lip: #a3a3a3;
+  --brand: oklch(0.62 0.16 248);
+  --brand-hover: oklch(0.67 0.155 246);
+  --brand-lip: oklch(0.45 0.14 254);
+  --brand-text: oklch(0.74 0.13 244);
+  --brand-soft: oklch(0.7 0.15 246 / 0.16);
+
+  --cta-face: var(--brand);
+  --cta-face-text: oklch(0.99 0 0);
+  --cta-face-hover: var(--brand-hover);
+  --cta-lip: var(--brand-lip);
   --cta-alt-border: #404040;
   --cta-alt-lip: #2a2a2a;
   /* Light enough to read as a live control next to the near-white solid one:
@@ -365,6 +386,10 @@
 
   --color-on-accent: var(--on-accent);
   --color-accent-text: var(--accent-text);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-text: var(--brand-text);
+  --color-brand-soft: var(--brand-soft);
   --color-cta-face: var(--cta-face);
   --color-cta-face-text: var(--cta-face-text);
   --color-cta-face-hover: var(--cta-face-hover);
