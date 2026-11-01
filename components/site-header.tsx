@@ -18,8 +18,11 @@ export function SiteHeader() {
   const isHome = pathname === "/";
 
   return (
-    <div className="fixed top-4 right-0 left-0 z-50 flex justify-center px-6">
-      <nav className="bg-background/90 border-separator flex w-full max-w-6xl items-center justify-between rounded-2xl border px-3 py-2.5 shadow-sm backdrop-blur-xl sm:px-4 sm:py-3">
+    // Leaves with the rest of the hero while the level check is on stage.
+    <div className="fixed top-4 right-0 left-0 z-50 flex justify-center px-6 transition-opacity duration-500 in-data-level-stage:pointer-events-none in-data-level-stage:opacity-0">
+      {/* Glass rather than a white bar: over the hero's background a solid
+          bar with a border reads as a separate strip pasted on top. */}
+      <nav className="bg-background/55 flex w-full max-w-6xl items-center justify-between rounded-2xl px-3 py-2.5 shadow-[0_0_0_1px_rgb(255_255_255/0.6),0_1px_2px_rgb(28_25_23/0.05),0_8px_24px_-12px_rgb(28_25_23/0.12)] backdrop-blur-xl backdrop-saturate-150 sm:px-4 sm:py-3 dark:shadow-[0_0_0_1px_rgb(255_255_255/0.08)]">
         {/* A real link, so it is the way back from anywhere. On the home page
             there is nowhere to go, so it scrolls to the top instead — which is
             what it did everywhere before, and why deeper pages had to carry

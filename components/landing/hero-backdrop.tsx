@@ -9,7 +9,7 @@ const noSubscribe = () => () => {};
  * screen, header included, fading into the page at the bottom so the section
  * below starts on plain ground.
  *
- * TEMPORARY while one is picked (1/nov): `?bg=1..4` switches between the four
+ * TEMPORARY while one is picked (1/nov): `?bg=1..8` switches between the eight
  * candidates in `public/hero/`. Read on the client so the landing stays a
  * static page; once one is chosen this becomes a plain image and the query
  * goes away.
@@ -19,6 +19,10 @@ const CANDIDATES = {
   "2": "/hero/bg2-sky.webp",
   "3": "/hero/bg3-aurora.webp",
   "4": "/hero/bg4-glass.webp",
+  "5": "/hero/bg5-above.webp",
+  "6": "/hero/bg6-dawn.webp",
+  "7": "/hero/bg7-skyaurora.webp",
+  "8": "/hero/bg8-silk.webp",
 } as const;
 type Pick = keyof typeof CANDIDATES;
 const DEFAULT: Pick = "3";

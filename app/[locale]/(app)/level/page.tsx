@@ -1,3 +1,4 @@
+import { HeroBackdrop } from "@/components/landing/hero-backdrop";
 import { LevelCheck } from "@/components/landing/level-check";
 
 /**
@@ -8,7 +9,8 @@ import { LevelCheck } from "@/components/landing/level-check";
  */
 export default function LevelPage() {
   return (
-    <main className="flex min-h-dvh flex-1">
+    <main className="relative flex min-h-dvh flex-1">
+      <HeroBackdrop />
       <LevelCheck standalone />
     </main>
   );

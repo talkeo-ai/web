@@ -55,20 +55,22 @@ export async function Hero() {
                 actually gets rather than against the viewport. `w-full` is
                 load-bearing: containing the inline size is what stops the
                 contents from deciding the width. */}
-            <div className="@container order-1 mx-auto w-full max-w-lg text-center lg:mx-0 lg:max-w-none lg:text-left">
+            <div className="@container order-1 mx-auto w-full max-w-lg text-center lg:mx-0 lg:max-w-none lg:text-left transition-[opacity,filter] duration-500 ease-(--ease-standard) in-data-level-stage:pointer-events-none in-data-level-stage:opacity-0 in-data-level-stage:blur-[6px]">
               {/* On the phone, two lines expressed as arithmetic: the longest
                   headline needs some multiple of its own font size to break in
                   two, and the size sits just under that ceiling
-                  (`hero-headline.spec.ts`). On desktop it is set as a display
-                  — large, tight, three lines — because a headline at body
-                  proportions is what made the page read as a sketch. */}
-              <h1 className="text-foreground font-heading text-[clamp(20px,6.7cqw,38px)] leading-[1.18] font-semibold tracking-[-0.02em] text-balance lg:text-[clamp(44px,9.4cqw,60px)] lg:leading-[1.04] lg:tracking-[-0.035em]">
+                  (`hero-headline.spec.ts`). On desktop it is a large display.
+
+                  The face is the serif display, at its one weight: the
+                  geometric sans at 600 is what every template sets, and next
+                  to the background it read as the dated half of the page. */}
+              <h1 className="text-foreground font-display text-[clamp(26px,9.6cqw,52px)] leading-[1.06] font-normal tracking-[-0.015em] text-balance lg:text-[clamp(52px,12.4cqw,78px)] lg:leading-[0.98] lg:tracking-[-0.025em]">
                 {t("headline")}
               </h1>
               {/* Not on the phone: there the deck sits right under the headline
                   and says the same thing by being played, and the two lines
                   would push the buttons under the fold. */}
-              <p className="text-text-secondary mx-auto mt-3 hidden max-w-[34ch] sm:block text-[15px] leading-[1.5] text-balance lg:mx-0 lg:mt-6 lg:max-w-[30em] lg:text-[19px]">
+              <p className="text-foreground/70 mx-auto mt-3 hidden max-w-[34ch] text-[15px] leading-[1.5] text-balance sm:block lg:mx-0 lg:mt-6 lg:max-w-[30em] lg:text-[19px]">
                 {t("subtitle")}
               </p>
             </div>
@@ -77,7 +79,7 @@ export async function Hero() {
                 different widths read as a list of links. On desktop they sit
                 side by side under the copy, sized to their labels, on the same
                 left edge. */}
-            <div className="order-3 mx-auto mt-8 flex w-full max-w-[371px] flex-col gap-[13.5px] pb-8 lg:mx-0 lg:mt-10 lg:max-w-none lg:flex-row lg:gap-3 lg:pb-0">
+            <div className="order-3 mx-auto mt-8 flex w-full max-w-[371px] flex-col gap-[13.5px] pb-8 lg:mx-0 lg:mt-10 lg:max-w-none lg:flex-row lg:gap-3 lg:pb-0 transition-[opacity,filter] duration-500 ease-(--ease-standard) in-data-level-stage:pointer-events-none in-data-level-stage:opacity-0 in-data-level-stage:blur-[6px]">
               {/* Flat, and fully round. The lip under a button is the
                   playful-app idiom (Duolingo is the one that still runs it);
                   next to a display headline it is what dated the page. */}

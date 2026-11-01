@@ -206,13 +206,14 @@ export function LevelCheck({
 
   return (
     <div className={cn("w-full", className)} style={{ height: staged && !standalone ? slot : undefined }}>
-      {/* The plain background the stage stands on: the onboarding's. It
-          fades over the hero rather than the hero fading out piece by piece,
-          so everything under it leaves at once and nothing reflows. */}
+      {/* A frosted veil over the hero's background, so the stage keeps the
+          same sky the first screen had instead of cutting to a blank page.
+          The hero's copy fades out under it on its own (`hero.tsx`), so
+          nothing reflows. */}
       <div
         aria-hidden
         className={cn(
-          "bg-background fixed inset-0 z-10 transition-opacity ease-(--ease-standard)",
+          "bg-background/35 fixed inset-0 z-10 backdrop-blur-2xl transition-opacity ease-(--ease-standard)",
           staged ? "opacity-100" : "pointer-events-none opacity-0",
         )}
         style={{ transitionDuration: standalone ? "0ms" : `${STAGE_MS * 0.6}ms` }}
@@ -286,7 +287,7 @@ export function LevelCheck({
             taking room, so the deck's own move is the only one. */}
         <h2
           className={cn(
-            "font-heading text-foreground absolute bottom-full mb-9 text-[22px] font-semibold tracking-[-0.01em] whitespace-nowrap",
+            "font-display text-foreground absolute bottom-full mb-8 text-[34px] leading-none font-normal tracking-[-0.015em] whitespace-nowrap",
             "transition-[opacity,filter] ease-(--ease-entrance)",
             staged ? "opacity-100 blur-none" : "pointer-events-none opacity-0 blur-[6px]",
           )}
@@ -597,10 +598,10 @@ function Result({ answers }: { answers: Answer[] }) {
       {/* A soft light where the card was, so the space does not read as empty. */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 bg-[radial-gradient(closest-side,var(--surface-secondary),transparent)]"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(closest-side,rgb(255_255_255/0.75),transparent)] dark:bg-[radial-gradient(closest-side,var(--surface-secondary),transparent)]"
       />
       <p className="text-text-tertiary -mb-2 text-[13px]">{t("resultSubtitle")}</p>
-      <p className="font-heading text-foreground text-[80px] leading-none font-semibold tracking-[-0.03em]">
+      <p className="font-display text-foreground text-[96px] leading-none font-normal tracking-[-0.02em]">
         {result.band}
       </p>
       <div className="grid w-full max-w-[240px] grid-cols-6 gap-1" aria-hidden>
