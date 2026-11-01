@@ -7,6 +7,7 @@ import { flushSync } from "react-dom";
 
 import { EnterOnboarding } from "@/components/onboarding/enter-onboarding";
 import { ProgressBar } from "@/components/onboarding/progress-bar";
+import { SKIP_PILL } from "@/components/onboarding/top-bar";
 import { Button } from "@/components/ui/button";
 import { unlockVoice } from "@/lib/audio/voice";
 import { Link, useRouter } from "@/lib/i18n/navigation";
@@ -319,14 +320,7 @@ export function LevelCheck({
             total={total}
             label={t("progress", { n: Math.min(answers.length + 1, total), total })}
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-text-secondary hover:text-foreground h-9 shrink-0 px-3 text-[14px]"
-            asChild
-          >
-            <EnterOnboarding>{t("skip")}</EnterOnboarding>
-          </Button>
+          <EnterOnboarding className={SKIP_PILL}>{t("skip")}</EnterOnboarding>
         </div>
       </header>
 

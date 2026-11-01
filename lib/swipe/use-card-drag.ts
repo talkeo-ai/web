@@ -4,6 +4,15 @@ import { useRef, useState } from "react";
 
 /** How far a card has to travel before letting go answers it. */
 export const CARD_COMMIT_PX = 110;
+/**
+ * A push that answers short of the line: let go while moving at least this
+ * fast (px/ms, over the last ~100 ms) and past `FLICK_MIN_PX`, the way the
+ * cards in Tinder and its kind read a throw. Without it only distance counted,
+ * and a quick shove released short came back (Joaquin, 1/nov).
+ */
+const FLICK_PX_PER_MS = 0.45;
+const FLICK_MIN_PX = 36;
+const FLICK_WINDOW_MS = 100;
 /** How far a side that does not answer still gives before it stops. */
 const CARD_RESIST_PX = 56;
 
@@ -44,10 +53,13 @@ export function useCardDrag({
   // until a reload (Joaquin, 1/nov). The state is only what gets drawn.
   const heldNow = useRef(false);
   const dxNow = useRef(0);
+  /** Recent positions, to read how fast the card was going when let go. */
+  const trail = useRef<{ x: number; t: number }[]>([]);
 
   const release = () => {
     heldNow.current = false;
     dxNow.current = 0;
+    trail.current = [];
     setHeld(false);
     setDx(0);
   };
@@ -69,23 +81,31 @@ export function useCardDrag({
       from.current = event.clientX;
       heldNow.current = true;
       dxNow.current = 0;
+      trail.current = [{ x: 0, t: event.timeStamp }];
       setHeld(true);
     },
     onPointerMove: (event: React.PointerEvent<HTMLElement>) => {
       if (!heldNow.current) return;
       const next = clamp(event.clientX - from.current);
       dxNow.current = next;
+      const t = event.timeStamp;
+      trail.current = [...trail.current.filter((p) => t - p.t <= FLICK_WINDOW_MS), { x: next, t }];
       setDx(next);
     },
     onPointerUp: (event: React.PointerEvent<HTMLElement>) => {
       if (!heldNow.current) return;
       const at = dxNow.current;
+      const recent = trail.current.filter((p) => event.timeStamp - p.t <= FLICK_WINDOW_MS);
+      const first = recent[0];
+      const speed = first && event.timeStamp > first.t ? (at - first.x) / (event.timeStamp - first.t) : 0;
       release();
       if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
       const side: Side = at < 0 ? "left" : "right";
-      if (Math.abs(at) >= CARD_COMMIT_PX && allow[side]) onCommit(side, at);
+      const thrown =
+        Math.abs(at) >= FLICK_MIN_PX && Math.abs(speed) >= FLICK_PX_PER_MS && Math.sign(speed) === Math.sign(at);
+      if ((Math.abs(at) >= CARD_COMMIT_PX || thrown) && allow[side]) onCommit(side, at);
     },
     onPointerCancel: () => {
       if (heldNow.current) release();

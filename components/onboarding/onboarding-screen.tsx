@@ -20,6 +20,7 @@ import { MicHint } from "./mic-hint";
 import { MicNotice } from "./mic-notice";
 import { ProgressBar } from "./progress-bar";
 import { Surface } from "./surface";
+import { SKIP_PILL } from "./top-bar";
 import { Transcript } from "./transcript";
 import { VoiceGlow } from "./voice-glow";
 
@@ -123,31 +124,13 @@ function Screen({
             skipping (NN/g, "Cancel vs Close", 2019), and nothing told you
             you could play without finishing the chat (Joaquin, 1/nov). It
             leads to a practice, not out; the chat keeps what was said. */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-text-secondary hover:text-foreground h-9 shrink-0 px-3 text-[14px]"
-          asChild
-        >
-          <Link href="/try" prefetch={false} data-slot="onboarding-skip">
-            {t("skip")}
-          </Link>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={run.toggleVoice}
-          aria-label={run.voiceOn ? t("voice.mute") : t("voice.unmute")}
-          data-slot="onboarding-voice"
-          data-on={run.voiceOn ? "true" : "false"}
-          className="size-9 shrink-0 p-0"
-        >
-          {run.voiceOn ? (
-            <Volume2 className="size-5" />
-          ) : (
-            <VolumeX className="size-5" />
-          )}
-        </Button>
+        {/* A glass pill, the same one the measurement's header has, so the
+            two screens share one top bar: the way out on the left, the skip
+            on the right, nothing else (Joaquin, 1/nov: the mute next to it
+            broke the symmetry; it now sits by the field). */}
+        <Link href="/try" prefetch={false} data-slot="onboarding-skip" className={SKIP_PILL}>
+          {t("skip")}
+        </Link>
         </div>
       </header>
 
@@ -210,7 +193,20 @@ function Screen({
           ) : null}
           {/* Behind the field: it rises from under the composer's edge. */}
           <VoiceGlow {...run.glow} />
-          <div className="relative z-10">
+          <div className="relative z-10 flex items-end gap-2">
+            {/* Talkeo's voice on or off, by the field where the conversation
+                is had rather than in the top bar. */}
+            <button
+              type="button"
+              onClick={run.toggleVoice}
+              aria-label={run.voiceOn ? t("voice.mute") : t("voice.unmute")}
+              data-slot="onboarding-voice"
+              data-on={run.voiceOn ? "true" : "false"}
+              className="bg-card text-foreground hover:bg-surface-secondary focus-key:ring-ring focus-key:ring-2 grid size-[52px] shrink-0 cursor-pointer place-items-center rounded-full shadow-[0_0_0_1px_rgb(28_25_23/0.06),0_8px_18px_-8px_rgb(40_90_170/0.3)] outline-none transition-colors duration-(--duration-control) ease-(--ease-standard)"
+            >
+              {run.voiceOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
+            </button>
+            <div className="min-w-0 flex-1">
             <Composer
               placeholder={
                 conversation.name
@@ -234,6 +230,7 @@ function Screen({
               onHangUp={run.hangUp}
               onMute={run.toggleMic}
             />
+            </div>
           </div>
         </div>
       </div>

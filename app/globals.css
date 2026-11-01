@@ -617,6 +617,14 @@ body[data-scroll-locked] {
   box-shadow: var(--sky-card-shadow);
 }
 
+/* A card arrives in a row that grows open, and that row clips: the shadow was
+   cut flat along its bottom and sides. The row takes room for the shadow and
+   gives it back with a negative margin, so the layout does not move. */
+[data-sky] .overflow-hidden:has(> div > [data-slot="chat-surface"]) {
+  margin: 0 -32px -40px;
+  padding: 0 32px 40px;
+}
+
 [data-sky] [data-slot="bubble"][data-from="you"] {
   background-color: var(--brand);
   border-radius: 20px;
