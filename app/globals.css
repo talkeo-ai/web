@@ -438,7 +438,8 @@
    scrolls the document at all, so there the reservation is just a dead strip
    down the right-hand edge — visible as a margin the panel does not have. */
 html:has([data-slot="chat-workspace"]),
-html:has([data-slot="inside"]) {
+html:has([data-slot="inside"]),
+html:has([data-sky] [data-slot="onboarding"]) {
   scrollbar-gutter: auto;
   overflow: hidden;
 }
@@ -590,6 +591,76 @@ body[data-scroll-locked] {
     var(--fade-5) 84%,
     var(--fade-0) 100%
   );
+}
+
+/* The conversation on the landing's sky (`onboarding/page.tsx`).
+   Scoped here rather than in the onboarding's components, so the chat keeps
+   its own look anywhere else it renders and only this page lifts it off the
+   picture: the same white cards and long blue shadow as the word deck, the
+   answer you give in the brand blue, the field as one more card.
+   Unlayered on purpose, so it wins over the components' utility classes. */
+[data-sky] {
+  --sky-card-shadow:
+    0 0 0 1px rgb(28 25 23 / 0.05), 0 1px 2px rgb(28 25 23 / 0.04),
+    0 8px 18px -6px rgb(28 25 23 / 0.08), 0 24px 48px -20px rgb(40 90 170 / 0.24);
+}
+.dark [data-sky] {
+  --sky-card-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.08), 0 1px 3px rgb(0 0 0 / 0.3),
+    0 14px 36px -10px rgb(0 0 0 / 0.55);
+}
+
+[data-sky] [data-slot="bubble"][data-from="talkeo"],
+[data-sky] [data-slot="surface"] {
+  background-color: var(--card);
+  border-radius: 20px;
+  box-shadow: var(--sky-card-shadow);
+}
+
+[data-sky] [data-slot="bubble"][data-from="you"] {
+  background-color: var(--brand);
+  border-radius: 20px;
+  box-shadow: 0 10px 24px -12px rgb(40 90 170 / 0.55);
+}
+[data-sky] [data-slot="bubble"][data-from="you"] * {
+  color: white;
+}
+
+[data-sky] [data-slot="composer"] {
+  background-color: var(--card);
+  border-color: transparent;
+  border-radius: 9999px;
+  box-shadow: var(--sky-card-shadow);
+}
+[data-sky] [data-slot="composer"]:focus-within {
+  box-shadow: var(--sky-card-shadow), 0 0 0 2px var(--brand-soft);
+}
+
+[data-sky] [data-slot="surface-confirm"] {
+  background-color: var(--brand);
+  color: white;
+  border-radius: 9999px;
+}
+
+/* The track over the sky: grey reads as dirt there, so it is a light glass
+   line, as on the measurement's header. */
+[data-sky] [data-slot="onboarding-progress"] {
+  background-color: rgb(255 255 255 / 0.55);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.6);
+}
+.dark [data-sky] [data-slot="onboarding-progress"] {
+  background-color: rgb(255 255 255 / 0.1);
+  box-shadow: none;
+}
+
+/* The transcript's edges fade into the page colour, which here is a band of
+   beige across the sky. A mask fades the messages themselves instead. */
+[data-sky] .fade-edge-top,
+[data-sky] .fade-edge-bottom {
+  display: none;
+}
+[data-sky] .scroll-quiet {
+  mask-image: linear-gradient(to bottom, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
 }
 
 /* A message arriving. Opacity only, and no travel at all: a bubble that slides

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, Check, RotateCcw, X } from "lucide-react";
+import { ArrowLeftRight, Check, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -8,12 +8,11 @@ import { flushSync } from "react-dom";
 import { EnterOnboarding } from "@/components/onboarding/enter-onboarding";
 import { ProgressBar } from "@/components/onboarding/progress-bar";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/lib/i18n/navigation";
+import { unlockVoice } from "@/lib/audio/voice";
+import { Link, useRouter } from "@/lib/i18n/navigation";
 import { useCardDrag, type Side } from "@/lib/swipe/use-card-drag";
 import {
-  BANDS,
   KNOBS,
-  estimate,
   nextCard,
   type Answer,
   type Next,
@@ -29,6 +28,8 @@ const TILT = 1 / 22;
 const EXIT_PX = 440;
 const EXIT_DEG = 18;
 const OUT_MS = 560;
+/** The deck and its title clearing before the interview takes the screen. */
+const LEAVE_MS = 420;
 const OUT_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 /** Short enough that a fast swiper is never reading a word still in focus. */
 const IN_MS = 360;
@@ -168,8 +169,8 @@ export function LevelCheck({
 
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [flying, setFlying] = useState<Flying[]>([]);
-  /** Bumped on "again", so the first card replays its entrance. */
-  const [round, setRound] = useState(0);
+  /** One round per visit since the result card and its "again" gave way to the interview. */
+  const round = 0;
   const [staged, setStaged] = useState(standalone);
   /** The height the deck held in the hero, kept while it is away so the hero does not collapse. */
   const [slot, setSlot] = useState<number | undefined>(undefined);
@@ -205,6 +206,9 @@ export function LevelCheck({
 
   const answer = (side: Side, fromX: number) => {
     if (!next) return;
+    // The last answer is the last gesture before Talkeo speaks, so the audio
+    // is claimed here, as `EnterOnboarding` does on its press.
+    if (answers.length === total - 1) void unlockVoice();
     const commit = () => {
       setFlying((f) => [...f, { key: `${round}-${answers.length}`, card: next, side, fromX }]);
       setAnswers((a) => [...a, { ...next, known: side === "right" }]);
@@ -213,11 +217,21 @@ export function LevelCheck({
     else commit();
   };
 
-  const again = () => {
-    setAnswers([]);
-    setFlying([]);
-    setRound((r) => r + 1);
-  };
+  // The deck ends in the conversation, not on a result card (Joaquin, 1/nov):
+  // the last card flies, the deck and its title clear, and the interview
+  // opens on the same sky under the same veil, so it reads as the next step
+  // of one place rather than a new page.
+  const router = useRouter();
+  const [leaving, setLeaving] = useState(false);
+  useEffect(() => {
+    if (!finished) return;
+    const fade = window.setTimeout(() => setLeaving(true), OUT_MS * 0.5);
+    const go = window.setTimeout(() => router.push("/onboarding"), OUT_MS * 0.5 + LEAVE_MS);
+    return () => {
+      window.clearTimeout(fade);
+      window.clearTimeout(go);
+    };
+  }, [finished, router]);
 
   // While on stage: the page under it holds still, the hero's layer rises
   // above the site header, and the browser's back undoes the move.
@@ -331,7 +345,10 @@ export function LevelCheck({
           staged
             ? "fixed top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-[46%]"
             : "relative w-full",
+          "transition-[opacity,filter] ease-(--ease-standard)",
+          leaving && "pointer-events-none opacity-0 blur-[6px]",
         )}
+        style={{ transitionDuration: `${LEAVE_MS}ms` }}
       >
         {/* The title arrives with the stage and sits over the deck without
             taking room, so the deck's own move is the only one. */}
@@ -353,9 +370,7 @@ export function LevelCheck({
         {/* The deck: one size for every state, so finishing does not move the
             page. Width steps with the breakpoint and the height follows it. */}
         <div className="relative isolate aspect-[4/5] w-[284px] sm:w-[300px] lg:w-[320px]">
-          {!next ? (
-            <Result key={round} answers={answers} />
-          ) : (
+          {!next ? null : (
             <>
               {answers.length < total - 1 && (
                 <div
@@ -405,26 +420,7 @@ export function LevelCheck({
         {/* One row for both states, the same height, so nothing under the
             deck jumps when it ends. */}
         <div className="mt-7 flex h-14 items-center justify-center">
-          {finished ? (
-            <div
-              key={round}
-              className="flex items-center gap-3"
-              style={{ animation: `blur-in ${IN_MS}ms var(--ease-entrance) 120ms backwards` }}
-            >
-              <Button size="lg" variant="primary" className="rounded-full text-[15px]" asChild>
-                <EnterOnboarding>{t("measure")}</EnterOnboarding>
-              </Button>
-              <Button
-                size="lg"
-                variant="ghost"
-                className="bg-card/80 hover:bg-card rounded-full text-[15px] shadow-[0_0_0_1px_rgb(28_25_23/0.08)] backdrop-blur"
-                onClick={again}
-              >
-                <RotateCcw className="size-4" />
-                {t("again")}
-              </Button>
-            </div>
-          ) : (
+          {finished ? null : (
             <div className="flex items-center gap-7">
               <Choice tone="no" label={t("no")} onClick={() => answer("left", 0)} />
               {/* Where you are, between the two answers, so the row weighs
@@ -675,64 +671,5 @@ function Choice({
     >
       <Icon className="size-[22px]" strokeWidth={2.5} />
     </button>
-  );
-}
-
-/**
- * The end of the deck, in the deck's place: the band, where it sits on the
- * scale, and how many real words were known. The invented words are named if
- * they were taken for real ones.
- */
-function Result({ answers }: { answers: Answer[] }) {
-  const t = useTranslations("levelCheck");
-  const result = estimate(answers);
-  const at = BANDS.indexOf(result.band);
-
-  return (
-    <div
-      className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-4 text-center"
-      style={{ animation: `blur-in ${IN_MS}ms var(--ease-entrance) 160ms backwards` }}
-    >
-      {/* A soft light where the card was, so the space does not read as empty. */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 bg-[radial-gradient(closest-side,rgb(255_255_255/0.75),transparent)] dark:bg-[radial-gradient(closest-side,var(--surface-secondary),transparent)]"
-      />
-      <p className="text-text-tertiary -mb-2 text-[13px]">{t("resultSubtitle")}</p>
-      <p className="font-heading text-foreground text-[88px] leading-none font-medium tracking-[-0.045em]">
-        {result.band}
-      </p>
-      <div className="grid w-full max-w-[240px] grid-cols-6 gap-1" aria-hidden>
-        {BANDS.map((band, i) => (
-          <div key={band} className="flex flex-col items-center gap-1.5">
-            <span
-              className={cn(
-                "h-1 w-full rounded-full",
-                i <= at ? "bg-brand" : "bg-foreground/[0.08]",
-              )}
-            />
-            <span
-              className={cn(
-                "text-[11px] tabular-nums",
-                i === at ? "text-foreground font-semibold" : "text-text-tertiary",
-              )}
-            >
-              {band}
-            </span>
-          </div>
-        ))}
-      </div>
-      <p className="text-text-secondary text-[14px]">
-        {t("resultBody", { known: result.known, real: result.real })}
-      </p>
-      {result.fooled.length > 0 && (
-        <p className="text-text-tertiary max-w-[240px] text-[12px] leading-snug">
-          {t("fooled", {
-            count: result.fooled.length,
-            words: result.fooled.map((word) => t("quote", { word })).join(", "),
-          })}
-        </p>
-      )}
-    </div>
   );
 }

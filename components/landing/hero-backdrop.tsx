@@ -22,11 +22,13 @@ export function HeroBackdrop() {
         fetchPriority="high"
         // The phone crops a narrow window out of a wide picture: there it
         // takes the open sky, so the clouds do not sit behind the headline.
-        className="size-full origin-[70%_50%] object-cover object-[28%_50%] transition-transform duration-[1400ms] ease-(--ease-entrance) in-data-level-stage:scale-[1.06] lg:object-right motion-reduce:transition-none"
+        className="size-full origin-[70%_50%] object-cover object-[28%_50%] transition-transform duration-[1400ms] ease-(--ease-entrance) in-data-level-stage:scale-[1.06] in-data-sky:scale-[1.06] lg:object-right motion-reduce:transition-none"
       />
       {/* A faint light from the left, under the copy. */}
       <div className="absolute inset-0 bg-gradient-to-r from-white/35 via-white/10 to-transparent dark:from-black/30 dark:via-black/10" />
-      <div className="to-background absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent" />
+      {/* Not under the conversation: there the field sits on the sky, and
+          the page ground showing through under it read as a stain. */}
+      <div className="to-background absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent in-data-sky:hidden" />
     </div>
   );
 }
