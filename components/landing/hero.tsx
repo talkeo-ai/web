@@ -4,7 +4,7 @@ import { EnterOnboarding } from "@/components/onboarding/enter-onboarding";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/i18n/navigation";
 
-import { HeroTry } from "./hero-try";
+import { LevelCheck } from "./level-check";
 
 /**
  * This is the largest contentful paint, so it sits outside every Suspense
@@ -122,14 +122,16 @@ export async function Hero() {
             </div>
           </div>
 
-          {/* The practice you can play before anything else — headline, then
-              this, then the ask on the phone, as the orb was; right column on
+          {/* Something to play before anything else — headline, then this,
+              then the ask on the phone, as the orb was; right column on
               desktop. It replaced the orb (Joaquin, 1/nov): only Duolingo
-              among the four top-earning language apps lets you do a real
-              exercise before asking for anything, and moving its lesson ahead
-              of sign-up gave it +20% daily active users. */}
+              among the four top-earning language apps lets you do something
+              real before asking for anything, and moving its lesson ahead of
+              sign-up gave it +20% daily active users. What is played is a
+              rough level from swiped words, which is the promise in the
+              headline kept on the spot. */}
           <div className="order-2 flex min-h-0 flex-1 items-center justify-center py-6 lg:order-none lg:flex-initial lg:py-0">
-            <HeroTry className="mx-auto w-full max-w-[420px] lg:mr-0 lg:ml-auto" />
+            <LevelCheck className="mx-auto w-full max-w-[420px] lg:mr-0 lg:ml-auto" />
           </div>
         </div>
       </div>

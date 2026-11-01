@@ -12,6 +12,30 @@
     "cta": "Começar agora",
     "signIn": "Já tenho uma conta"
   },
+  "levelCheck": {
+    "eyebrow": "Seu nível em 30 segundos, sem cadastro",
+    "progress": "Palavra {n} de {total}",
+    "question": "Você conhece esta palavra?",
+    "yes": "Conheço",
+    "no": "Não conheço",
+    "hint": "Deslize o cartão ou use as setas",
+    "resultEyebrow": "Seu vocabulário, a olho",
+    "resultBody": "Você conhece {known} de {real} palavras reais. É uma estimativa com poucos cartões: a medição completa também escuta como você fala.",
+    "fooled": "{count, plural, one {{words} não existe} other {{words} não existem}}: colocamos para ver se você dizia sim a tudo.",
+    "quote": "«{word}»",
+    "measure": "Meça seu nível completo",
+    "again": "De novo",
+    "cards": [
+      { "word": "house", "band": "A1" },
+      { "word": "achieve", "band": "B1" },
+      { "word": "flurbish" },
+      { "word": "borrow", "band": "A2" },
+      { "word": "reluctant", "band": "B2" },
+      { "word": "cradgy" },
+      { "word": "notwithstanding", "band": "C1" },
+      { "word": "obfuscate", "band": "C2" }
+    ]
+  },
   "try": {
     "eyebrow": "Teste agora, sem cadastro",
     "title": "Traduza esta frase",

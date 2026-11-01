@@ -12,6 +12,30 @@
     "cta": "Start now",
     "signIn": "I already have an account"
   },
+  "levelCheck": {
+    "eyebrow": "Your level in 30 seconds, no sign-up",
+    "progress": "Word {n} of {total}",
+    "question": "Do you know this word?",
+    "yes": "I know it",
+    "no": "I don't",
+    "hint": "Swipe the card or use the arrow keys",
+    "resultEyebrow": "Your vocabulary, roughly",
+    "resultBody": "You know {known} of {real} real words. It's an estimate from a few cards: the full measurement also listens to how you speak.",
+    "fooled": "{count, plural, one {{words} isn't a word} other {{words} aren't words}}: we slipped them in to see if you'd say yes to everything.",
+    "quote": "“{word}”",
+    "measure": "Find your full level",
+    "again": "Again",
+    "cards": [
+      { "word": "house", "band": "A1" },
+      { "word": "achieve", "band": "B1" },
+      { "word": "flurbish" },
+      { "word": "borrow", "band": "A2" },
+      { "word": "reluctant", "band": "B2" },
+      { "word": "cradgy" },
+      { "word": "notwithstanding", "band": "C1" },
+      { "word": "obfuscate", "band": "C2" }
+    ]
+  },
   "try": {
     "eyebrow": "Try it now, no sign-up",
     "title": "Translate this sentence",

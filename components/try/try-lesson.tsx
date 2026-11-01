@@ -144,8 +144,8 @@ export function TryLesson({
   );
 }
 
-/** One segment per sentence: done ones filled, the current one half-lit. */
-function Steps({ total, index, label }: { total: number; index: number; label: string }) {
+/** One segment per step: done ones filled, the current one half-lit. */
+export function Steps({ total, index, label }: { total: number; index: number; label: string }) {
   return (
     <div
       role="progressbar"
