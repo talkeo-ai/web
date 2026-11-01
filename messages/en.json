@@ -8,8 +8,8 @@
     "theme": "Switch theme"
   },
   "hero": {
-    "headline": "Speak English confidently in the situations that matter to you",
-    "subtitle": "In one minute we see which words you already know, and Talkeo builds your personalized practice.",
+    "headline": "Speak English <hl>with confidence</hl> where it matters most",
+    "subtitle": "We measure your level in a minute, and Talkeo builds your personalized practice.",
     "cta": "Start now",
     "signIn": "I already have an account"
   },

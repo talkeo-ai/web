@@ -6,6 +6,7 @@ import { Link } from "@/lib/i18n/navigation";
 
 import { HeroBackdrop } from "./hero-backdrop";
 import { LevelCheck } from "./level-check";
+import { StrokeHighlight } from "./stroke-highlight";
 
 /**
  * This is the largest contentful paint, so it sits outside every Suspense
@@ -63,8 +64,8 @@ export async function Hero() {
 
                   Outfit at 500 rather than 600, set tight: the heavier cut
                   read as a template next to the background (1/nov). */}
-              <h1 className="text-foreground font-heading text-[clamp(20px,6.6cqw,38px)] leading-[1.1] font-medium tracking-[-0.03em] text-balance lg:text-[clamp(42px,8.4cqw,56px)] lg:leading-[1.03] lg:tracking-[-0.038em] lg:max-w-[13em]">
-                {t("headline")}
+              <h1 className="text-foreground font-heading text-[clamp(22px,7.4cqw,42px)] leading-[1.1] font-medium tracking-[-0.03em] text-balance lg:text-[clamp(46px,9.4cqw,62px)] lg:leading-[1.05] lg:tracking-[-0.038em] lg:max-w-[11em]">
+                {t.rich("headline", { hl: (words) => <StrokeHighlight>{words}</StrokeHighlight> })}
               </h1>
               {/* Not on the phone: there the deck sits right under the headline
                   and says the same thing by being played, and the two lines
