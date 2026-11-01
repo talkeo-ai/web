@@ -1,8 +1,8 @@
 "use client";
 
-import { Flame, House, MessageCircle, Mic, TrendingUp, type LucideIcon } from "lucide-react";
+import { Flame, House, Mic, Settings as SettingsIcon, TrendingUp, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { HeroBackdrop } from "@/components/landing/hero-backdrop";
 import { Link } from "@/lib/i18n/navigation";
@@ -13,20 +13,20 @@ import { Practice } from "./practice";
 import { Progress } from "./progress";
 import { Segmented } from "./segmented";
 import { Settings } from "./settings";
-import { TalkeoBar, TalkeoFull, TalkeoPanel, useTalkeo } from "./talkeo-chat";
+import { TalkeoChat } from "./talkeo-chat";
 import { Today } from "./today";
-import { CANVAS, GLASS, SMOOTH, type T } from "./ui";
+import { BRAND_FILL, GLASS, SMOOTH, type T } from "./ui";
 
-type Section = "today" | "practice" | "progress" | "talkeo" | "settings";
+type Section = "today" | "practice" | "progress" | "settings";
 
-const NAV: { key: Exclude<Section, "settings">; Icon: LucideIcon }[] = [
+const NAV: { key: Section; Icon: LucideIcon }[] = [
   { key: "today", Icon: House },
   { key: "practice", Icon: Mic },
   { key: "progress", Icon: TrendingUp },
-  { key: "talkeo", Icon: MessageCircle },
+  { key: "settings", Icon: SettingsIcon },
 ];
 
-const PANEL_W = "w-[384px]";
+const CHAT_W = "w-[380px]";
 
 const desktopQuery = "(min-width: 1024px)";
 const subscribeDesktop = (notify: () => void) => {
@@ -36,57 +36,39 @@ const subscribeDesktop = (notify: () => void) => {
 };
 
 /**
- * The inside, as one screen that never scrolls as a page (Joaquin, 1/nov):
- * the bar on top, and under it one white canvas with the section, scrolling
- * inside itself only when it has to. Laid out after the Shopify admin with
- * Sidekick, which Joaquin pointed at as clean and premium: Talkeo is not a
- * button in the header but a one-line bar floating at the foot of the
- * canvas; writing in it opens a panel beside the canvas, and the panel
- * expands to Talkeo on its own (a section, for talking only to the AI).
+ * The inside, as one screen that never scrolls as a page (Joaquin, 1/nov: a
+ * single page app, everything at hand, nothing to scroll past): the bar on
+ * top, the section in the middle, scrolling inside itself only when it has
+ * to, and Talkeo beside it, open or put away. Switching sections is state, not
+ * a navigation, so nothing reloads and the chat keeps its conversation.
  *
- * One conversation for the bar, the panel and the full screen, so moving
- * between them never loses a word. On a phone there is no bar or panel:
- * Talkeo is one more tab.
+ * It stands on the landing's sky with the same white cards, so arriving from
+ * the interview is one more step in the same place. On a phone the sections
+ * move to a bar under the thumb and Talkeo opens as a sheet over the page.
  *
  * Data: `MOCK_HOME`, shaped like the Core's responses; what is real and what
  * is mocked is written at the top of `lib/inside/mock.ts`.
  */
 export function Home({ home }: { home: HomeData }) {
   const t = useTranslations("home");
-  const talkeo = useTalkeo(home);
   const [section, setSection] = useState<Section>("today");
-  const [autoOpen, setAutoOpen] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(autoOpen);
-  // Where to come back to when the full screen folds back into the panel.
-  const before = useRef<Section>("today");
+  const [autoOpen, setAutoOpen] = useState(true);
+  const [deskOpen, setDeskOpen] = useState(true);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(desktopQuery).matches, () => true);
+  const chatOpen = desktop ? deskOpen : sheetOpen;
 
-  const go = (next: Section) => {
-    if (next === "talkeo") {
-      if (section !== "talkeo") before.current = section;
-      setPanelOpen(false);
-    }
-    setSection(next);
-  };
-  const expand = () => go("talkeo");
-  const toPanel = () => {
-    setSection(before.current);
-    setPanelOpen(true);
-  };
-
-  const showPanel = desktop && panelOpen && section !== "talkeo";
-  const showBar = desktop && !showPanel && section !== "talkeo";
+  const toggleChat = () => (desktop ? setDeskOpen((o) => !o) : setSheetOpen((o) => !o));
+  const closeChat = () => (desktop ? setDeskOpen(false) : setSheetOpen(false));
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setPanelOpen(false);
+      if (event.key === "Escape") setSheetOpen(false);
       // ⌘J / Ctrl+J, the chat-panel toggle of the editors this audience
-      // already knows. On a phone it goes to the Talkeo tab.
+      // already knows.
       if (event.key.toLowerCase() === "j" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
-        if (!desktop) go(section === "talkeo" ? before.current : "talkeo");
-        else if (section === "talkeo") toPanel();
-        else setPanelOpen((o) => !o);
+        toggleChat();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -100,86 +82,88 @@ export function Home({ home }: { home: HomeData }) {
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgb(255_255_255/0.2),rgb(255_255_255/0.45)_50%,rgb(255_255_255/0.6))] dark:bg-black/45" />
       </div>
 
-      <TopBar t={t} home={home} section={section} onSection={go} />
+      <TopBar
+        t={t}
+        home={home}
+        section={section}
+        onSection={setSection}
+        chatOpen={chatOpen}
+        onChat={toggleChat}
+      />
 
-      <div className="flex min-h-0 flex-1 px-2 pb-[76px] sm:px-4 lg:px-5 lg:pb-5">
-        <main className={cn(CANVAS, "relative min-w-0 flex-1 overflow-hidden")}>
-          {section === "talkeo" ? (
-            <div key="talkeo" className="h-full px-4 pt-4 pb-4 sm:px-8 motion-safe:animate-[view-in_380ms_var(--ease-entrance)_both]">
-              <TalkeoFull talkeo={talkeo} t={t} onToPanel={toPanel} />
-            </div>
-          ) : (
-            // Only this scrolls, and only when a section is taller than the
-            // canvas. The bottom fades under Talkeo's bar.
-            <div
-              key={section}
-              className={cn(
-                "scroll-quiet h-full overflow-y-auto px-4 pt-6 pb-10 sm:px-8 lg:px-10 lg:pt-9",
-                showBar && "lg:pb-28",
-                "[mask-image:linear-gradient(to_bottom,black_calc(100%-64px),transparent)]",
-              )}
-            >
-              {section === "today" && <Today home={home} t={t} />}
-              {section === "practice" && <Practice home={home} t={t} />}
-              {section === "progress" && <Progress home={home} t={t} />}
-              {section === "settings" && <Settings home={home} t={t} autoOpen={autoOpen} onAutoOpen={setAutoOpen} />}
-            </div>
-          )}
-
-          {/* Talkeo's bar, floating at the foot of the canvas. It steps aside
-              while the panel is open: there is already a field there. */}
+      <div className="flex min-h-0 flex-1 px-3 pb-3 sm:px-5 sm:pb-5">
+        <main className="relative min-w-0 flex-1">
+          {/* Only this scrolls, and only when a section is taller than the
+              window. Its edges fade so content slides under the bar instead of
+              being cut by it. */}
           <div
-            aria-hidden={!showBar}
-            inert={!showBar}
+            key={section}
             className={cn(
-              "absolute inset-x-0 bottom-5 hidden justify-center px-6 lg:flex",
-              "transition-[opacity,translate] duration-[360ms]",
-              SMOOTH,
-              showBar ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0",
+              "scroll-quiet h-full overflow-y-auto px-1 pt-3 pb-28 sm:px-3 lg:pt-6 lg:pb-6",
+              "[mask-image:linear-gradient(to_bottom,transparent,black_20px,black_calc(100%-20px),transparent)]",
             )}
           >
-            <div className="w-full max-w-[560px]">
-              <TalkeoBar
-                t={t}
-                onOpen={() => setPanelOpen(true)}
-                onAsk={(text) => {
-                  setPanelOpen(true);
-                  talkeo.say(text);
-                }}
-              />
-            </div>
+            {section === "today" && <Today home={home} t={t} />}
+            {section === "practice" && <Practice home={home} t={t} />}
+            {section === "progress" && <Progress home={home} t={t} />}
+            {section === "settings" && (
+              <Settings home={home} t={t} autoOpen={autoOpen} onAutoOpen={setAutoOpen} />
+            )}
           </div>
         </main>
 
-        {/* The panel: the width opens and closes, the card inside keeps its
-            own so nothing rewraps on the way, and fades as it goes. */}
+        {/* Docked: the width opens and closes, the panel inside keeps its own
+            so nothing rewraps on the way, and fades as it goes. */}
         <aside
           aria-label="Talkeo"
-          aria-hidden={!showPanel}
-          inert={!showPanel}
+          aria-hidden={!deskOpen}
+          inert={!deskOpen}
           className={cn(
-            "hidden shrink-0 lg:block",
+            "hidden shrink-0 overflow-hidden lg:block",
             "transition-[width,margin] duration-[460ms]",
             SMOOTH,
-            showPanel ? cn(PANEL_W, "ml-3") : "ml-0 w-0",
+            deskOpen ? cn(CHAT_W, "ml-4") : "ml-0 w-0",
           )}
         >
           <div
             className={cn(
-              CANVAS,
-              "h-full overflow-hidden",
-              PANEL_W,
+              "h-full rounded-[28px]",
+              CHAT_W,
+              "bg-white/62 shadow-[0_0_0_1px_rgb(255_255_255/0.7),0_24px_60px_-28px_rgb(40_90_170/0.45)] backdrop-blur-2xl dark:bg-black/30",
               "transition-[opacity,translate] duration-[460ms]",
               SMOOTH,
-              showPanel ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0",
+              deskOpen ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0",
             )}
           >
-            <TalkeoPanel talkeo={talkeo} t={t} onClose={() => setPanelOpen(false)} onExpand={expand} />
+            <TalkeoChat home={home} t={t} onClose={() => setDeskOpen(false)} />
           </div>
         </aside>
       </div>
 
-      <BottomNav t={t} section={section} onSection={go} />
+      {/* The phone: Talkeo as a sheet over the page. */}
+      <div
+        aria-hidden
+        onClick={closeChat}
+        className={cn(
+          "fixed inset-0 z-40 bg-[rgb(20_40_80/0.18)] backdrop-blur-[2px] transition-opacity duration-300 lg:hidden",
+          sheetOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      />
+      <aside
+        aria-label="Talkeo"
+        aria-hidden={!sheetOpen}
+        inert={!sheetOpen}
+        className={cn(
+          "fixed inset-x-2 top-16 bottom-2 z-50 rounded-[28px] lg:hidden",
+          "bg-white/85 shadow-[0_0_0_1px_rgb(255_255_255/0.8),0_-20px_60px_-20px_rgb(20_40_80/0.4)] backdrop-blur-2xl",
+          "transition-[translate,opacity] duration-[460ms] ease-(--ease-entrance)",
+          sheetOpen ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-[105%] opacity-0",
+        )}
+      >
+        <TalkeoChat home={home} t={t} onClose={() => setSheetOpen(false)} />
+      </aside>
+
+      <BottomNav t={t} section={section} onSection={setSection} />
     </div>
   );
 }
@@ -189,33 +173,37 @@ function TopBar({
   home,
   section,
   onSection,
+  chatOpen,
+  onChat,
 }: {
   t: T;
   home: HomeData;
   section: Section;
   onSection: (s: Section) => void;
+  chatOpen: boolean;
+  onChat: () => void;
 }) {
   return (
-    <div className="relative z-30 shrink-0 px-3 py-2.5 sm:px-5">
-      <nav className="flex h-12 items-center justify-between gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr]">
+    <div className="relative z-30 shrink-0 px-3 pt-3 sm:px-5">
+      <nav className="flex h-14 items-center justify-between gap-3 lg:grid lg:grid-cols-[1fr_auto_1fr]">
         <Link
           href="/home"
-          className="text-foreground font-heading flex w-fit items-center gap-2.5 text-[18px] font-semibold tracking-[-0.02em]"
+          className="text-foreground font-heading flex w-fit items-center gap-2.5 text-[19px] font-semibold tracking-[-0.02em]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt="Talkeo"
-            className="size-[28px] rounded-full shadow-[0_0_0_2px_rgb(255_255_255),0_4px_12px_-2px_rgb(30_70_160/0.35)]"
+            className="size-[30px] rounded-full shadow-[0_0_0_2px_rgb(255_255_255),0_4px_12px_-2px_rgb(30_70_160/0.35)]"
           />
-          <span>Talkeo</span>
+          <span className="hidden sm:inline">Talkeo</span>
         </Link>
 
         <div className="hidden lg:block">
           <Segmented
             value={section === "settings" ? ("today" as Section) : section}
             onChange={onSection}
-            options={NAV.map(({ key, Icon }) => ({ value: key, label: t(`nav.${key}`), Icon }))}
+            options={NAV.slice(0, 3).map(({ key, Icon }) => ({ value: key, label: t(`nav.${key}`), Icon }))}
             className={cn(section === "settings" && "[&_[role=tab]]:text-foreground/55 [&>span]:opacity-0")}
           />
         </div>
@@ -232,12 +220,30 @@ function TopBar({
 
           <button
             type="button"
+            onClick={onChat}
+            aria-pressed={chatOpen}
+            aria-label={chatOpen ? t("talkeo.close") : t("talkeo.open")}
+            title={`${chatOpen ? t("talkeo.close") : t("talkeo.open")} (⌘J)`}
+            className={cn(
+              "font-heading flex h-9 cursor-pointer items-center gap-2 rounded-full pr-3.5 pl-1 text-[14px] font-semibold",
+              "transition-[background-color,color,box-shadow] duration-300 ease-(--ease-standard)",
+              chatOpen ? cn(BRAND_FILL, "text-white shadow-[0_8px_18px_-8px_rgb(40_90_170/0.7)]") : cn(GLASS, "text-foreground"),
+            )}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" className="size-7 rounded-full shadow-[0_0_0_1.5px_rgb(255_255_255)]" />
+            Talkeo
+          </button>
+
+          <button
+            type="button"
             onClick={() => onSection("settings")}
             aria-label={t("nav.settings")}
             title={t("nav.settings")}
             className={cn(
-              "font-heading bg-foreground text-background grid size-9 cursor-pointer place-items-center rounded-full text-[14px] font-semibold",
-              "shadow-[0_0_0_2px_rgb(255_255_255),0_6px_16px_-6px_rgb(15_30_60/0.5)] transition-[transform,box-shadow] duration-200 active:scale-95",
+              "font-heading hidden size-9 cursor-pointer place-items-center rounded-full text-[14px] font-semibold text-white sm:grid",
+              BRAND_FILL,
+              "shadow-[0_0_0_2px_rgb(255_255_255),0_6px_16px_-6px_rgb(40_90_170/0.55)] transition-transform duration-200 active:scale-95",
               section === "settings" && "shadow-[0_0_0_2px_rgb(255_255_255),0_0_0_4px_var(--brand)]",
             )}
           >
@@ -251,14 +257,11 @@ function TopBar({
 
 function BottomNav({ t, section, onSection }: { t: T; section: Section; onSection: (s: Section) => void }) {
   return (
-    <nav className="fixed inset-x-2 bottom-2 z-30 sm:inset-x-4 lg:hidden">
+    <nav className="fixed inset-x-3 bottom-3 z-30 lg:hidden">
       <Segmented
-        value={section === "settings" ? ("today" as Section) : section}
+        value={section}
         onChange={onSection}
-        className={cn(
-          "mx-auto w-full max-w-md justify-between [&_[role=tab]]:h-[52px] [&_[role=tab]]:flex-1 [&_[role=tab]]:flex-col [&_[role=tab]]:gap-0.5 [&_[role=tab]]:px-1 [&_[role=tab]]:text-[11px]",
-          section === "settings" && "[&_[role=tab]]:text-foreground/55 [&>span]:opacity-0",
-        )}
+        className="mx-auto w-full max-w-md justify-between [&_[role=tab]]:h-12 [&_[role=tab]]:flex-1 [&_[role=tab]]:flex-col [&_[role=tab]]:gap-0.5 [&_[role=tab]]:px-1 [&_[role=tab]]:text-[11px]"
         options={NAV.map(({ key, Icon }) => ({ value: key, label: t(`nav.${key}`), Icon }))}
       />
     </nav>

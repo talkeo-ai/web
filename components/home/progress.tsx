@@ -5,7 +5,7 @@ import { Check } from "lucide-react";
 import type { AreaState, Goal, Home } from "@/lib/inside/mock";
 import { cn } from "@/lib/utils";
 
-import { ARRIVE, BANDS, CARD, MUTED, PAGE_TITLE, SECTION_TITLE, arrive, type T } from "./ui";
+import { ARRIVE, BANDS, CARD, LEAD_FILL, arrive, type T } from "./ui";
 
 /**
  * Where you are, with everything that is known and how well: the estimate and
@@ -17,12 +17,14 @@ import { ARRIVE, BANDS, CARD, MUTED, PAGE_TITLE, SECTION_TITLE, arrive, type T }
  */
 export function Progress({ home, t }: { home: Home; t: T }) {
   return (
-    <div className="mx-auto flex w-full max-w-[960px] flex-col gap-4">
-      <header className={cn("mb-1", ARRIVE)} style={arrive(0)}>
-        <h1 className={PAGE_TITLE}>{t("progressView.title")}</h1>
+    <div className="mx-auto flex w-full max-w-[980px] flex-col gap-5 pb-6">
+      <header className={ARRIVE} style={arrive(0)}>
+        <h1 className="font-heading text-foreground text-[30px] leading-[1.05] font-medium tracking-[-0.035em] lg:text-[40px]">
+          {t("progressView.title")}
+        </h1>
       </header>
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <Estimate home={home} t={t} />
         <Activity minutes={home.activity} t={t} />
       </div>
@@ -35,37 +37,31 @@ export function Progress({ home, t }: { home: Home; t: T }) {
 
 function Estimate({ home, t }: { home: Home; t: T }) {
   const { level_estimate, confidence_pct } = home.state.headline;
-  // Certainty in three steps, read at a glance like a risk meter, with the
-  // exact percent beside it for whoever wants it.
-  const step = confidence_pct < 40 ? 1 : confidence_pct < 70 ? 2 : 3;
-  const word = t(`progressView.${step === 1 ? "low" : step === 2 ? "medium" : "high"}`);
   return (
-    <section className={cn(CARD, "flex flex-col p-5", ARRIVE)} style={arrive(1)}>
-      <p className={cn(SECTION_TITLE)}>{t("progressView.estimate")}</p>
-      <span className="font-heading text-foreground mt-3 text-[44px] leading-none font-semibold tracking-[-0.04em]">
-        {level_estimate}
-      </span>
-      <div className="mt-auto pt-5">
-        <div className="flex items-baseline justify-between text-[13px]">
-          <span className={MUTED}>{t("progressView.certainty")}</span>
-          <span className="text-foreground font-medium">
-            {word} <span className="text-text-tertiary font-normal tabular-nums">· {t("progressView.confidence", { pct: confidence_pct })}</span>
-          </span>
-        </div>
-        <div className="mt-2 grid grid-cols-3 gap-1">
-          {[1, 2, 3].map((k) => (
-            <span
-              key={k}
-              className={cn(
-                "h-1.5 origin-left rounded-full",
-                k <= step ? "bg-[var(--brand)] motion-safe:animate-[bar-grow_600ms_var(--ease-entrance)_both]" : "bg-surface-tertiary",
-              )}
-              style={{ animationDelay: `${300 + k * 90}ms` }}
-            />
-          ))}
-        </div>
-        <p className="text-text-tertiary mt-3 text-[12px] leading-snug">{t("progressView.estimateNote")}</p>
+    <section
+      className={cn(
+        "relative isolate overflow-hidden rounded-[24px] p-6 text-white",
+        "shadow-[0_1px_2px_rgb(28_25_23/0.08),0_24px_48px_-24px_rgb(30_80_180/0.6)]",
+        LEAD_FILL,
+        ARRIVE,
+      )}
+      style={arrive(1)}
+    >
+      <div aria-hidden className="pointer-events-none absolute -top-20 -right-10 -z-10 size-[260px] rounded-full bg-white/25 blur-3xl" />
+      <p className="text-[13px] font-medium text-white/80">{t("progressView.estimate")}</p>
+      <div className="mt-2 flex items-end gap-3">
+        <span className="font-heading text-[56px] leading-none font-semibold tracking-[-0.04em]">{level_estimate}</span>
+        <span className="mb-1.5 rounded-full bg-white/18 px-2.5 py-1 text-[13px] font-medium ring-1 ring-white/25">
+          {t("progressView.confidence", { pct: confidence_pct })}
+        </span>
       </div>
+      <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/22">
+        <div
+          className="h-full origin-left rounded-full bg-white motion-safe:animate-[bar-grow_1100ms_var(--ease-entrance)_both]"
+          style={{ width: `${confidence_pct}%`, animationDelay: "300ms" }}
+        />
+      </div>
+      <p className="mt-3 text-[13px] leading-snug text-white/80">{t("progressView.estimateNote")}</p>
     </section>
   );
 }
@@ -75,17 +71,20 @@ function Activity({ minutes, t }: { minutes: number[]; t: T }) {
   const total = minutes.reduce((a, b) => a + b, 0);
   const days = minutes.filter((m) => m > 0).length;
   return (
-    <section className={cn(CARD, "flex flex-col p-5", ARRIVE)} style={arrive(2)}>
-      <p className={SECTION_TITLE}>{t("progressView.activity")}</p>
-      <p className="text-foreground mt-3 text-[15px] font-medium tabular-nums">{t("progressView.minutesTotal", { minutes: total })}</p>
+    <section className={cn(CARD, "flex flex-col p-6", ARRIVE)} style={arrive(2)}>
+      <p className="text-text-secondary text-[13px] font-medium">{t("progressView.activity")}</p>
+      <p className="font-heading text-foreground mt-1 text-[22px] font-medium tracking-[-0.02em] tabular-nums">
+        {t("progressView.minutesTotal", { minutes: total })}
+      </p>
       <p className="text-text-tertiary text-[13px] tabular-nums">{t("progressView.daysActive", { days })}</p>
-      <div className="mt-auto flex h-20 items-end gap-[3px] pt-4" aria-hidden>
+      <div className="mt-auto flex h-24 items-end gap-[3px] pt-4" aria-hidden>
         {minutes.map((m, i) => (
           <span
             key={i}
             className={cn(
-              "flex-1 origin-bottom rounded-[3px] motion-safe:animate-[bar-rise_800ms_var(--ease-entrance)_both]",
-              m > 0 ? (i === minutes.length - 1 ? "bg-[var(--brand)]" : "bg-[var(--brand)]/55") : "bg-surface-secondary",
+              "flex-1 origin-bottom rounded-full motion-safe:animate-[bar-rise_800ms_var(--ease-entrance)_both]",
+              m > 0 ? "bg-[linear-gradient(to_top,var(--brand),oklch(0.72_0.12_230))]" : "bg-surface-secondary",
+              i === minutes.length - 1 && "ring-2 ring-[var(--brand)]/30 ring-offset-1 ring-offset-[var(--card)]",
             )}
             style={{ height: m > 0 ? `${Math.max((m / max) * 100, 12)}%` : "8%", animationDelay: `${260 + i * 18}ms` }}
           />
@@ -98,9 +97,9 @@ function Activity({ minutes, t }: { minutes: number[]; t: T }) {
 function AreaMap({ areas, t }: { areas: AreaState[]; t: T }) {
   const at = (band: string) => BANDS.indexOf(band as (typeof BANDS)[number]);
   return (
-    <section className={cn(CARD, "p-5", ARRIVE)} style={arrive(3)}>
+    <section className={cn(CARD, "p-5 sm:p-6", ARRIVE)} style={arrive(3)}>
       <div className="mb-4 flex items-baseline justify-between gap-3">
-        <h2 className={SECTION_TITLE}>{t("progressView.areas")}</h2>
+        <h2 className="font-heading text-foreground text-[18px] font-semibold tracking-[-0.01em]">{t("progressView.areas")}</h2>
         <p className="text-text-tertiary text-[13px]">{t("levelNote")}</p>
       </div>
 
@@ -131,20 +130,20 @@ function AreaMap({ areas, t }: { areas: AreaState[]; t: T }) {
                     : t("progressView.range", { floor: area.floor, ceiling: area.ceiling })}
                 </p>
               </div>
-              <div className="bg-surface-secondary/60 relative grid h-6 grid-cols-6 rounded-md">
+              <div className="bg-surface-secondary/70 relative grid h-9 grid-cols-6 rounded-full">
                 {BANDS.map((b, k) => (
-                  <span key={b} className={cn(k > 0 && "border-l border-white dark:border-white/5")} />
+                  <span key={b} className={cn(k > 0 && "border-l border-white/80 dark:border-white/5")} />
                 ))}
                 <span
                   className={cn(
-                    "absolute inset-y-[5px] rounded-[4px] motion-safe:animate-[span-in_900ms_var(--ease-entrance)_both]",
+                    "absolute inset-y-1 rounded-full motion-safe:animate-[span-in_900ms_var(--ease-entrance)_both]",
                     measured
-                      ? "bg-[var(--brand)]"
-                      : "bg-[repeating-linear-gradient(135deg,var(--surface-tertiary)_0_4px,transparent_4px_8px)] ring-1 ring-black/[0.08] ring-inset",
+                      ? "bg-[linear-gradient(90deg,var(--brand),oklch(0.72_0.12_230))] shadow-[0_6px_14px_-6px_rgb(40_90_170/0.6)]"
+                      : "bg-[repeating-linear-gradient(135deg,var(--surface-tertiary)_0_5px,transparent_5px_10px)] ring-1 ring-black/[0.06] ring-inset",
                   )}
                   style={{
-                    left: `calc(${(from / 6) * 100}% + 3px)`,
-                    width: `calc(${((to - from + 1) / 6) * 100}% - 6px)`,
+                    left: `calc(${(from / 6) * 100}% + 4px)`,
+                    width: `calc(${((to - from + 1) / 6) * 100}% - 8px)`,
                     animationDelay: `${360 + i * 70}ms`,
                   }}
                 />
@@ -157,7 +156,7 @@ function AreaMap({ areas, t }: { areas: AreaState[]; t: T }) {
                 ) : (
                   <button
                     type="button"
-                    className="text-foreground hover:bg-surface-secondary cursor-pointer rounded-full px-2.5 py-0.5 text-[12px] font-medium shadow-[inset_0_0_0_1px_rgb(15_30_60/0.14)] transition-colors"
+                    className="font-heading cursor-pointer rounded-full px-3 py-1 text-[12px] font-semibold text-[var(--brand-text)] ring-1 ring-[var(--brand)]/30 transition-colors hover:bg-[var(--brand-soft)]"
                   >
                     {t("measure")}
                   </button>
@@ -177,8 +176,8 @@ function Row({ children }: { children: React.ReactNode }) {
 
 function Goals({ goals, t }: { goals: Goal[]; t: T }) {
   return (
-    <section className={cn(CARD, "p-5", ARRIVE)} style={arrive(4)}>
-      <h2 className={cn(SECTION_TITLE, "mb-1")}>{t("goals")}</h2>
+    <section className={cn(CARD, "p-5 sm:p-6", ARRIVE)} style={arrive(4)}>
+      <h2 className="font-heading text-foreground mb-2 text-[18px] font-semibold tracking-[-0.01em]">{t("goals")}</h2>
       <ul className="grid grid-cols-[minmax(0,1fr)] gap-x-8 md:grid-cols-3">
         {goals.map((goal, i) => (
           <li key={goal.goal_id} className="py-3">

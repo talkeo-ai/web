@@ -19,15 +19,12 @@ export function Segmented<V extends string>({
   onChange,
   options,
   size = "md",
-  tone = "glass",
   className,
 }: {
   value: V;
   onChange: (value: V) => void;
   options: { value: V; label: string; Icon?: LucideIcon }[];
   size?: "md" | "sm";
-  /** Glass on the sky; neutral grey inside the white canvas. */
-  tone?: "glass" | "neutral";
   className?: string;
 }) {
   const track = useRef<HTMLDivElement>(null);
@@ -59,11 +56,7 @@ export function Segmented<V extends string>({
     <div
       ref={track}
       role="tablist"
-      className={cn(
-        "relative isolate flex items-center rounded-full p-1",
-        tone === "glass" ? GLASS : "bg-surface-secondary/80 shadow-[inset_0_0_0_1px_rgb(15_30_60/0.04)]",
-        className,
-      )}
+      className={cn("relative isolate flex items-center rounded-full p-1", GLASS, className)}
     >
       <span
         ref={pill}
@@ -85,7 +78,7 @@ export function Segmented<V extends string>({
           className={cn(
             "font-heading flex cursor-pointer items-center justify-center gap-2 rounded-full font-medium whitespace-nowrap",
             "transition-colors duration-200 ease-(--ease-standard)",
-            size === "md" ? "h-9 px-4 text-[14px]" : "h-7 px-3 text-[13px]",
+            size === "md" ? "h-9 px-4 text-[14px]" : "h-8 px-3 text-[13px]",
             v === value ? "text-foreground" : "text-foreground/55 hover:text-foreground",
           )}
         >
