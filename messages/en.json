@@ -23,18 +23,18 @@
     "resultBody": "You know {known} of {real} words",
     "fooled": "{count, plural, one {{words} isn't a word} other {{words} aren't words}}: a check for saying yes to everything.",
     "quote": "“{word}”",
-    "measure": "Find your full level",
+    "measure": "Continue",
     "again": "Again",
-    "cards": [
-      { "word": "house", "band": "A1", "pos": "Noun", "ipa": "/haʊs/" },
-      { "word": "achieve", "band": "B1", "pos": "Verb", "ipa": "/əˈtʃiːv/" },
-      { "word": "flurbish", "looks": "B2", "pos": "Verb", "ipa": "/ˈflɜːrbɪʃ/" },
-      { "word": "borrow", "band": "A2", "pos": "Verb", "ipa": "/ˈbɑːroʊ/" },
-      { "word": "reluctant", "band": "B2", "pos": "Adjective", "ipa": "/rɪˈlʌktənt/" },
-      { "word": "cradgy", "looks": "C1", "pos": "Adjective", "ipa": "/ˈkrædʒi/" },
-      { "word": "notwithstanding", "band": "C1", "pos": "Preposition", "ipa": "/ˌnɑːtwɪθˈstændɪŋ/" },
-      { "word": "obfuscate", "band": "C2", "pos": "Verb", "ipa": "/ˈɑːbfəskeɪt/" }
-    ]
+    "stageTitle": "Measuring your level",
+    "skip": "Skip",
+    "exit": "Leave",
+    "pos": {
+      "noun": "Noun",
+      "verb": "Verb",
+      "adjective": "Adjective",
+      "adverb": "Adverb",
+      "preposition": "Preposition"
+    }
   },
   "try": {
     "eyebrow": "Try it now, no sign-up",

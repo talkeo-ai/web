@@ -20,7 +20,9 @@ export async function Hero() {
   return (
     // `overflow-x-clip`, not `hidden`: a card flying off the deck must never
     // widen the page, and clip does that without making this a scroll box.
-    <section className="relative z-10 flex flex-1 flex-col overflow-x-clip">
+    // While the level check is on stage this layer rises over the site
+    // header, because the stage lives inside it (`LevelCheck`).
+    <section className="relative z-10 flex flex-1 flex-col overflow-x-clip in-data-level-stage:z-60">
       {/* 1. Header compensator — the floating header is out of the flow and
          cannot push anything down, so the space it covers is reserved here. */}
       <div className="h-28 shrink-0 lg:h-20" aria-hidden />

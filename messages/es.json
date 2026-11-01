@@ -23,18 +23,18 @@
     "resultBody": "Conocés {known} de {real} palabras",
     "fooled": "{count, plural, one {{words} no existe} other {{words} no existen}}: era para ver si decías que sí a todo.",
     "quote": "«{word}»",
-    "measure": "Medí tu nivel completo",
+    "measure": "Seguir",
     "again": "Otra vez",
-    "cards": [
-      { "word": "house", "band": "A1", "pos": "Sustantivo", "ipa": "/haʊs/" },
-      { "word": "achieve", "band": "B1", "pos": "Verbo", "ipa": "/əˈtʃiːv/" },
-      { "word": "flurbish", "looks": "B2", "pos": "Verbo", "ipa": "/ˈflɜːrbɪʃ/" },
-      { "word": "borrow", "band": "A2", "pos": "Verbo", "ipa": "/ˈbɑːroʊ/" },
-      { "word": "reluctant", "band": "B2", "pos": "Adjetivo", "ipa": "/rɪˈlʌktənt/" },
-      { "word": "cradgy", "looks": "C1", "pos": "Adjetivo", "ipa": "/ˈkrædʒi/" },
-      { "word": "notwithstanding", "band": "C1", "pos": "Preposición", "ipa": "/ˌnɑːtwɪθˈstændɪŋ/" },
-      { "word": "obfuscate", "band": "C2", "pos": "Verbo", "ipa": "/ˈɑːbfəskeɪt/" }
-    ]
+    "stageTitle": "Midiendo tu nivel",
+    "skip": "Saltar",
+    "exit": "Salir",
+    "pos": {
+      "noun": "Sustantivo",
+      "verb": "Verbo",
+      "adjective": "Adjetivo",
+      "adverb": "Adverbio",
+      "preposition": "Preposición"
+    }
   },
   "try": {
     "eyebrow": "Probalo ahora, sin registrarte",

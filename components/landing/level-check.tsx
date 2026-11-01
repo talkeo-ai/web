@@ -2,17 +2,26 @@
 
 import { ArrowLeftRight, Check, RotateCcw, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
 import { EnterOnboarding } from "@/components/onboarding/enter-onboarding";
+import { ProgressBar } from "@/components/onboarding/progress-bar";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/lib/i18n/navigation";
 import { useCardDrag, type Side } from "@/lib/swipe/use-card-drag";
-import { BANDS, estimate, type LevelCard } from "@/lib/try/level-check";
+import {
+  BANDS,
+  KNOBS,
+  estimate,
+  nextCard,
+  type Answer,
+  type Next,
+} from "@/lib/try/level-check";
 import { cn } from "@/lib/utils";
 
 /** Degrees per pixel of drag. The card hinges from below, so a little goes far. */
 const TILT = 1 / 22;
-/** How far an answered card flies, and how far it tips on the way. */
 // A throw that glides out (Joaquin, 1/nov): 600px solid read as wandering
 // off, 300px with a late fade read as stopping and vanishing. The answer is
 // the curve, not the distance: fast off the hand, then a long deceleration
@@ -24,6 +33,12 @@ const OUT_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 /** Short enough that a fast swiper is never reading a word still in focus. */
 const IN_MS = 360;
 /**
+ * The move from the hero to the middle of the screen, and back. Long enough
+ * to be followed by the eye, on the same decelerating curve as the throw, so
+ * the card that leaves and the deck that travels read as one gesture.
+ */
+const STAGE_MS = 720;
+/**
  * The card waiting underneath: narrower and showing a strip below the top
  * one, blank. Scaled from its bottom edge so the strip is the same at any
  * card size.
@@ -31,6 +46,8 @@ const IN_MS = 360;
 const BEHIND = { scale: 0.92, y: 8 };
 /** Card and deck share one hinge, so a flying ghost tips the way the card did. */
 const HINGE = "50% 115%";
+/** Where the measurement lives as a page of its own. */
+const STAGE_PATH = "/level";
 
 /**
  * The card's surface. The proportions are the reference's (Joaquin, 1/nov),
@@ -44,147 +61,323 @@ const SURFACE = cn(
   "dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_14px_36px_-10px_rgb(0_0_0/0.55)]",
 );
 
-type Flying = { key: string; card: LevelCard; side: Side; fromX: number };
+type Flying = { key: string; card: Next; side: Side; fromX: number };
+
+const reducedMotion = () =>
+  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * The landing's demonstration: a rough level from eight words, played as a
- * deck of tall cards you swipe — right if you know the word, left if you
- * don't, or the two buttons under it, or the arrow keys. Two of the words are
- * invented, which is how the yes/no method keeps "yes to everything" from
- * scoring C2 (see `lib/try/level-check.ts`).
- *
- * Look and motion follow a reference Joaquin sent (1/nov): no frame around
- * the deck, a header over it rather than a count on the card, one blank card
- * underneath, the top card hinging from below as it is dragged, and the next
- * one rising out of the blank and coming into focus rather than sliding in.
- * Leaving is drawn by the deck, not by the card, so the card can unmount
- * while its ghost is still flying.
- *
- * It is self-contained on purpose: the plan is for the hero to clear away
- * once someone starts playing, leaving this centred as the onboarding's first
- * step (Joaquin, 1/nov, not built yet).
+ * Moves an element that just changed place from where it was to where it is
+ * now (FLIP: measure first, change, measure last, animate the inverse). The
+ * layout change happens at once and only a transform runs, so nothing
+ * reflows while it plays and it holds 60fps on a phone.
  */
-export function LevelCheck({ className }: { className?: string }) {
-  const t = useTranslations("levelCheck");
-  const cards = t.raw("cards") as LevelCard[];
+function flip(el: HTMLElement, first: DOMRect) {
+  if (reducedMotion()) return;
+  const last = el.getBoundingClientRect();
+  const dx = first.left + first.width / 2 - (last.left + last.width / 2);
+  const dy = first.top + first.height / 2 - (last.top + last.height / 2);
+  if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+  el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], {
+    duration: STAGE_MS,
+    easing: OUT_EASE,
+  });
+}
 
-  const [knows, setKnows] = useState<boolean[]>([]);
+/**
+ * The vocabulary measurement, played as a deck of tall cards you swipe —
+ * right if you know the word, left if you don't, or the two buttons under it,
+ * or the arrow keys. It runs the Core's rules (`lib/try/level-check.ts`): 30
+ * words, a ladder from A2, an invented word after every five.
+ *
+ * It starts in the hero, and the first answer takes it to the stage
+ * (Joaquin, 1/nov): the page goes to the onboarding's plain background, the
+ * hero fades under it, and the deck travels to the middle of the screen, with
+ * the onboarding's bar, a title and a way to skip coming in around it. The
+ * URL becomes `/level` without a navigation — the same component keeps
+ * playing, so nothing remounts and nothing cuts — and `/level` is also a real
+ * route that renders this already on stage, so a reload or a shared link
+ * lands in the same place. Back undoes the move.
+ *
+ * Next, not built: at the end the card gives way to the chat, and Talkeo
+ * opens with the result.
+ *
+ * Look and motion of the deck follow a reference Joaquin sent (1/nov): one
+ * blank card underneath, the top card hinging from below as it is dragged,
+ * and the next one rising out of the blank and coming into focus.
+ */
+export function LevelCheck({
+  className,
+  standalone = false,
+}: {
+  className?: string;
+  /** Rendered by `/level` itself: on stage from the start, no way back to a hero. */
+  standalone?: boolean;
+}) {
+  const t = useTranslations("levelCheck");
+
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const [flying, setFlying] = useState<Flying[]>([]);
   /** Bumped on "again", so the first card replays its entrance. */
   const [round, setRound] = useState(0);
-  const index = knows.length;
-  const finished = index >= cards.length;
-  const total = cards.length;
+  const [staged, setStaged] = useState(standalone);
+  /** The height the deck held in the hero, kept while it is away so the hero does not collapse. */
+  const [slot, setSlot] = useState<number | undefined>(undefined);
+
+  const sectionRef = useRef<HTMLElement>(null);
+  const next = useMemo(() => nextCard(answers), [answers]);
+  const finished = next === null;
+  const total = KNOBS.total;
+
+  /** To the stage, from the hero. Called with the first answer. */
+  const enterStage = useCallback((commit: () => void) => {
+    const el = sectionRef.current;
+    if (!el) return commit();
+    const first = el.getBoundingClientRect();
+    flushSync(() => {
+      setSlot(first.height);
+      setStaged(true);
+      commit();
+    });
+    flip(el, first);
+    const here = window.location.pathname.replace(/\/$/, "");
+    window.history.pushState(null, "", `${here}${STAGE_PATH}`);
+  }, []);
+
+  /** Back to the hero, the same move reversed. */
+  const leaveStage = useCallback(() => {
+    const el = sectionRef.current;
+    if (!el) return setStaged(false);
+    const first = el.getBoundingClientRect();
+    flushSync(() => setStaged(false));
+    flip(el, first);
+  }, []);
 
   const answer = (side: Side, fromX: number) => {
-    if (finished) return;
-    setFlying((f) => [...f, { key: `${round}-${index}`, card: cards[index], side, fromX }]);
-    setKnows((k) => [...k, side === "right"]);
+    if (!next) return;
+    const commit = () => {
+      setFlying((f) => [...f, { key: `${round}-${answers.length}`, card: next, side, fromX }]);
+      setAnswers((a) => [...a, { ...next, known: side === "right" }]);
+    };
+    if (!staged) enterStage(commit);
+    else commit();
   };
 
   const again = () => {
-    setKnows([]);
+    setAnswers([]);
     setFlying([]);
     setRound((r) => r + 1);
   };
 
+  // While on stage: the page under it holds still, the hero's layer rises
+  // above the site header, and the browser's back undoes the move.
+  useEffect(() => {
+    if (!staged || standalone) return;
+    const root = document.documentElement;
+    root.dataset.levelStage = "";
+    const overflow = root.style.overflow;
+    root.style.overflow = "hidden";
+    const onPop = () => {
+      if (!window.location.pathname.endsWith(STAGE_PATH)) leaveStage();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      delete root.dataset.levelStage;
+      root.style.overflow = overflow;
+      window.removeEventListener("popstate", onPop);
+    };
+  }, [staged, standalone, leaveStage]);
+
+  // On stage the arrows answer from anywhere; in the hero only with focus in
+  // the deck, so they do not steal the page's own keys.
+  useEffect(() => {
+    if (!staged || finished) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault();
+      answer(event.key === "ArrowLeft" ? "left" : "right", 0);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   return (
-    <section
-      aria-label={t("title")}
-      // Arrow keys answer while focus is anywhere in here, so a keyboard plays
-      // it as fast as a thumb.
-      onKeyDown={(event) => {
-        if (finished) return;
-        if (event.key === "ArrowLeft") answer("left", 0);
-        else if (event.key === "ArrowRight") answer("right", 0);
-        else return;
-        event.preventDefault();
-      }}
-      className={cn("flex w-full flex-col items-center", className)}
-    >
-      {/* The deck: one size for every state, so finishing does not move the
-          page. Width steps with the breakpoint and the height follows it. No
-          header over it (Joaquin, 1/nov): a title competed with the hero's,
-          and where you are reads from the row underneath. */}
-      <div className="relative isolate aspect-[4/5] w-[284px] sm:w-[300px] lg:w-[320px]">
-        {finished ? (
-          <Result key={round} cards={cards} knows={knows} />
-        ) : (
-          <>
-            {index < total - 1 && (
-              <div
-                aria-hidden
-                className={cn(SURFACE, "absolute inset-0 -z-10")}
-                style={{
-                  transform: `translateY(${BEHIND.y}px) scale(${BEHIND.scale})`,
-                  transformOrigin: "50% 100%",
-                }}
-              />
-            )}
-            <Card key={`${round}-${index}`} card={cards[index]} onAnswer={answer} />
-          </>
+    <div className={cn("w-full", className)} style={{ height: staged && !standalone ? slot : undefined }}>
+      {/* The plain background the stage stands on: the onboarding's. It
+          fades over the hero rather than the hero fading out piece by piece,
+          so everything under it leaves at once and nothing reflows. */}
+      <div
+        aria-hidden
+        className={cn(
+          "bg-background fixed inset-0 z-10 transition-opacity ease-(--ease-standard)",
+          staged ? "opacity-100" : "pointer-events-none opacity-0",
         )}
+        style={{ transitionDuration: standalone ? "0ms" : `${STAGE_MS * 0.6}ms` }}
+      />
 
-        {flying.map((f) => (
-          <div
-            key={f.key}
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-20"
-            onAnimationEnd={(event) => {
-              if (event.target !== event.currentTarget) return;
-              setFlying((all) => all.filter((x) => x.key !== f.key));
-            }}
-            style={
-              {
-                transformOrigin: HINGE,
-                "--card-from-x": `${f.fromX}px`,
-                "--card-from-rotate": `${f.fromX * TILT}deg`,
-                "--card-to-x": `${f.side === "left" ? -EXIT_PX : EXIT_PX}px`,
-                "--card-to-rotate": `${f.side === "left" ? -EXIT_DEG : EXIT_DEG}deg`,
-                animation: `card-out ${OUT_MS}ms ${OUT_EASE} both`,
-              } as React.CSSProperties
-            }
-          >
-            <Face card={f.card} side={f.side} commitment={1} />
-          </div>
-        ))}
-      </div>
-
-      {/* One row for both states, the same height, so nothing under the deck
-          jumps when it ends. */}
-      <div className="mt-7 flex h-14 items-center justify-center">
-        {finished ? (
-          <div
-            key={round}
-            className="flex items-center gap-3"
-            style={{ animation: `blur-in ${IN_MS}ms var(--ease-entrance) 120ms backwards` }}
-          >
-            <Button size="lg" variant="raised" className="text-[15px]" asChild>
-              <EnterOnboarding>{t("measure")}</EnterOnboarding>
+      {/* The onboarding's own header, so the hand-off to the chat later
+          changes nothing at the top of the screen. */}
+      <header
+        className={cn(
+          "fixed inset-x-0 top-0 z-30 w-full px-4 pt-2 transition-[opacity,translate] ease-(--ease-entrance)",
+          staged ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0",
+        )}
+        style={{
+          transitionDuration: standalone ? "0ms" : `${STAGE_MS}ms`,
+          transitionDelay: staged && !standalone ? "160ms" : "0ms",
+        }}
+      >
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
+          {standalone ? (
+            <Button variant="ghost" size="sm" aria-label={t("exit")} className="size-9 shrink-0 p-0" asChild>
+              <Link href="/" prefetch={false}>
+                <X className="size-5" />
+              </Link>
             </Button>
-            <Button size="lg" variant="ghost" className="text-[15px]" onClick={again}>
-              <RotateCcw className="size-4" />
-              {t("again")}
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-7">
-            <Choice tone="no" label={t("no")} onClick={() => answer("left", 0)} />
-            {/* Where you are, between the two answers, so the row weighs as
-                much on each side as the card above it. */}
-            <p
-              aria-live="polite"
-              aria-label={t("progress", { n: index + 1, total })}
-              className="text-text-tertiary w-12 text-center text-[13px] font-medium tabular-nums"
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label={t("exit")}
+              className="size-9 shrink-0 p-0"
+              onClick={() => window.history.back()}
+              tabIndex={staged ? 0 : -1}
             >
-              {index + 1}
-              <span className="text-text-tertiary/60"> / {total}</span>
-            </p>
-            <Choice tone="yes" label={t("yes")} onClick={() => answer("right", 0)} />
-          </div>
+              <X className="size-5" />
+            </Button>
+          )}
+          <ProgressBar
+            stage={answers.length}
+            total={total}
+            label={t("progress", { n: Math.min(answers.length + 1, total), total })}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-text-secondary hover:text-foreground h-9 shrink-0 px-3 text-[14px]"
+            asChild
+          >
+            <EnterOnboarding>{t("skip")}</EnterOnboarding>
+          </Button>
+        </div>
+      </header>
+
+      <section
+        ref={sectionRef}
+        aria-label={t("title")}
+        onKeyDown={(event) => {
+          if (staged || finished) return;
+          if (event.key === "ArrowLeft") answer("left", 0);
+          else if (event.key === "ArrowRight") answer("right", 0);
+          else return;
+          event.preventDefault();
+        }}
+        className={cn(
+          "flex flex-col items-center",
+          staged
+            ? "fixed top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-[46%]"
+            : "relative w-full",
         )}
-      </div>
-    </section>
+      >
+        {/* The title arrives with the stage and sits over the deck without
+            taking room, so the deck's own move is the only one. */}
+        <h2
+          className={cn(
+            "font-heading text-foreground absolute bottom-full mb-9 text-[22px] font-semibold tracking-[-0.01em] whitespace-nowrap",
+            "transition-[opacity,filter] ease-(--ease-entrance)",
+            staged ? "opacity-100 blur-none" : "pointer-events-none opacity-0 blur-[6px]",
+          )}
+          style={{
+            transitionDuration: standalone ? "0ms" : `${STAGE_MS}ms`,
+            transitionDelay: staged && !standalone ? "220ms" : "0ms",
+          }}
+          aria-hidden={!staged}
+        >
+          {t("stageTitle")}
+        </h2>
+
+        {/* The deck: one size for every state, so finishing does not move the
+            page. Width steps with the breakpoint and the height follows it. */}
+        <div className="relative isolate aspect-[4/5] w-[284px] sm:w-[300px] lg:w-[320px]">
+          {!next ? (
+            <Result key={round} answers={answers} />
+          ) : (
+            <>
+              {answers.length < total - 1 && (
+                <div
+                  aria-hidden
+                  className={cn(SURFACE, "absolute inset-0 -z-10")}
+                  style={{
+                    transform: `translateY(${BEHIND.y}px) scale(${BEHIND.scale})`,
+                    transformOrigin: "50% 100%",
+                  }}
+                />
+              )}
+              <Card key={`${round}-${answers.length}`} card={next} onAnswer={answer} />
+            </>
+          )}
+
+          {flying.map((f) => (
+            <div
+              key={f.key}
+              aria-hidden
+              className="pointer-events-none absolute inset-0 z-20"
+              onAnimationEnd={(event) => {
+                if (event.target !== event.currentTarget) return;
+                setFlying((all) => all.filter((x) => x.key !== f.key));
+              }}
+              style={
+                {
+                  transformOrigin: HINGE,
+                  "--card-from-x": `${f.fromX}px`,
+                  "--card-from-rotate": `${f.fromX * TILT}deg`,
+                  "--card-to-x": `${f.side === "left" ? -EXIT_PX : EXIT_PX}px`,
+                  "--card-to-rotate": `${f.side === "left" ? -EXIT_DEG : EXIT_DEG}deg`,
+                  animation: `card-out ${OUT_MS}ms ${OUT_EASE} both`,
+                } as React.CSSProperties
+              }
+            >
+              <Face card={f.card} side={f.side} commitment={1} />
+            </div>
+          ))}
+        </div>
+
+        {/* One row for both states, the same height, so nothing under the
+            deck jumps when it ends. */}
+        <div className="mt-7 flex h-14 items-center justify-center">
+          {finished ? (
+            <div
+              key={round}
+              className="flex items-center gap-3"
+              style={{ animation: `blur-in ${IN_MS}ms var(--ease-entrance) 120ms backwards` }}
+            >
+              <Button size="lg" variant="raised" className="text-[15px]" asChild>
+                <EnterOnboarding>{t("measure")}</EnterOnboarding>
+              </Button>
+              <Button size="lg" variant="ghost" className="text-[15px]" onClick={again}>
+                <RotateCcw className="size-4" />
+                {t("again")}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-7">
+              <Choice tone="no" label={t("no")} onClick={() => answer("left", 0)} />
+              {/* Where you are, between the two answers, so the row weighs
+                  as much on each side as the card above it. */}
+              <p
+                aria-live="polite"
+                aria-label={t("progress", { n: answers.length + 1, total })}
+                className="text-text-tertiary w-14 text-center text-[13px] font-medium tabular-nums"
+              >
+                {answers.length + 1}
+                <span className="text-text-tertiary/60"> / {total}</span>
+              </p>
+              <Choice tone="yes" label={t("yes")} onClick={() => answer("right", 0)} />
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -193,7 +386,7 @@ function Card({
   card,
   onAnswer,
 }: {
-  card: LevelCard;
+  card: Next;
   onAnswer: (side: Side, fromX: number) => void;
 }) {
   const [spent, setSpent] = useState(false);
@@ -248,9 +441,9 @@ function Card({
 /**
  * What a card looks like, held or flying. Laid out like the reference's: a
  * row of small tags on top (what kind of word, and the band it sits in), the
- * word as the title with how it sounds under it, open space, and a foot that
- * asks the question and, as the card is dragged, turns into the answer the
- * hand is giving.
+ * word as the title with how it sounds under it, the question, and a foot
+ * that says how to answer and, as the card is dragged, turns into the answer
+ * the hand is giving.
  */
 function Face({
   card,
@@ -258,19 +451,19 @@ function Face({
   commitment,
   reveal = false,
 }: {
-  card: LevelCard;
+  card: Next;
   side: Side | null;
   commitment: number;
   /** Comes into focus as it arrives, instead of being there already. */
   reveal?: boolean;
 }) {
   const t = useTranslations("levelCheck");
-  // The question hands over to the answer in the first half of the drag, so
-  // the two never sit on top of each other legibly.
+  // The hint hands over to the answer in the first half of the drag, so the
+  // two never sit on top of each other legibly.
   const handover = Math.min(commitment * 2, 1);
   const yes = side === "right" ? handover : 0;
   const no = side === "left" ? handover : 0;
-  const band = card.band ?? card.looks;
+  const { word } = card;
 
   return (
     <div className={cn(SURFACE, "@container relative flex h-full flex-col overflow-hidden")}>
@@ -294,16 +487,14 @@ function Face({
         }
       >
         <div className="flex items-center justify-between gap-2">
-          {card.pos && (
-            <span className="bg-accent-50 text-accent-700 dark:bg-accent-950 dark:text-accent-300 rounded-[6px] px-2 py-[3px] text-[12px] font-medium">
-              {card.pos}
-            </span>
-          )}
-          {band && (
-            <span className="bg-surface-secondary text-text-secondary rounded-[6px] px-2 py-[3px] text-[12px] font-medium tabular-nums">
-              {band}
-            </span>
-          )}
+          <span className="bg-accent-50 text-accent-700 dark:bg-accent-950 dark:text-accent-300 rounded-[6px] px-2 py-[3px] text-[12px] font-medium">
+            {t(`pos.${word.pos}`)}
+          </span>
+          {/* An invented word wears the band it was served at, so it cannot
+              be spotted by being the one without one. */}
+          <span className="bg-surface-secondary text-text-secondary rounded-[6px] px-2 py-[3px] text-[12px] font-medium tabular-nums">
+            {card.shown}
+          </span>
         </div>
 
         <div className="mt-[18%]">
@@ -311,11 +502,11 @@ function Face({
               line: about 0.56em a letter at this weight. */}
           <p
             className="font-heading text-foreground leading-[1.05] font-medium tracking-[-0.02em]"
-            style={{ fontSize: `min(40px, calc((100cqw - 44px) / ${card.word.length * 0.56}))` }}
+            style={{ fontSize: `min(40px, calc((100cqw - 44px) / ${word.word.length * 0.56}))` }}
           >
-            {card.word}
+            {word.word}
           </p>
-          {card.ipa && <p className="text-text-tertiary mt-2 text-[15px]">{card.ipa}</p>}
+          <p className="text-text-tertiary mt-2 text-[15px]">{word.ipa}</p>
           <p className="text-text-secondary mt-6 text-[16px] leading-snug">{t("question")}</p>
         </div>
 
@@ -389,9 +580,9 @@ function Choice({
  * scale, and how many real words were known. The invented words are named if
  * they were taken for real ones.
  */
-function Result({ cards, knows }: { cards: LevelCard[]; knows: boolean[] }) {
+function Result({ answers }: { answers: Answer[] }) {
   const t = useTranslations("levelCheck");
-  const result = estimate(cards, knows);
+  const result = estimate(answers);
   const at = BANDS.indexOf(result.band);
 
   return (
