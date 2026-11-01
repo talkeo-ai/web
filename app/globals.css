@@ -589,6 +589,11 @@ body[data-scroll-locked] {
       rotate(var(--card-from-rotate, 0deg));
     opacity: 1;
   }
+  /* It stays solid most of the way and only thins at the end, so it reads as
+     thrown off rather than dissolving in place. */
+  60% {
+    opacity: 1;
+  }
   to {
     transform: translate3d(var(--card-to-x), 0, 0)
       rotate(var(--card-to-rotate));
@@ -597,16 +602,30 @@ body[data-scroll-locked] {
 }
 
 /* And the one under it, arriving. It does not slide up into place: it was
-   already there, behind, and what changes is that it is now the card being
-   played. */
+   already there, behind, as a blank, and what changes is that it is now the
+   card being played. Its face comes into focus with `blur-in`. */
 @keyframes card-in {
   from {
-    transform: scale(var(--card-behind-scale));
-    opacity: 0.72;
+    transform: translate3d(0, var(--card-behind-y, 0), 0)
+      scale(var(--card-behind-scale));
   }
   to {
     transform: none;
+  }
+}
+
+/* Coming into focus: out of a blur and a little below full size, the way an
+   eye finds something rather than the way a screen switches it on. */
+@keyframes blur-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: scale(0.97);
+  }
+  to {
     opacity: 1;
+    filter: none;
+    transform: none;
   }
 }
 
