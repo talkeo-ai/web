@@ -152,7 +152,14 @@
       "today": "Hoje",
       "practice": "Praticar",
       "progress": "Progresso",
-      "settings": "Ajustes"
+      "settings": "Ajustes",
+      "talkeo": "Talkeo"
+    },
+    "class": {
+      "now": "Agora",
+      "done": "{done} de {total} feitos",
+      "continueWith": "Continuar: {step}",
+      "seeRoad": "Ver o caminho"
     },
     "views": {
       "class": "Aula do dia",
@@ -165,7 +172,15 @@
       "placeholder": "Pergunte algo ao Talkeo",
       "send": "Enviar",
       "typing": "Talkeo está escrevendo",
-      "mic": "Falar em voz alta"
+      "mic": "Falar em voz alta",
+      "expand": "Tela cheia",
+      "toPanel": "Voltar ao painel",
+      "newChat": "Nova conversa",
+      "openPanel": "Abrir o painel",
+      "ask": "Sobre o que você quer falar?",
+      "askLine": "Pergunte o que quiser, ou pratique falando com o Talkeo.",
+      "call": "Ligar para o Talkeo",
+      "callLine": "Uma conversa em voz alta, sobre o que quiser"
     },
     "practice": {
       "title": "Praticar",
@@ -185,6 +200,10 @@
       "title": "Seu progresso",
       "estimate": "Nível estimado",
       "confidence": "{pct}% de confiança",
+      "certainty": "Confiança",
+      "low": "Baixa",
+      "medium": "Média",
+      "high": "Alta",
       "estimateNote": "É uma média: abaixo está o que você sabe em cada área.",
       "areas": "Por área",
       "range": "Entre {floor} e {ceiling}",

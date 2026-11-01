@@ -8,7 +8,7 @@ import type { Home } from "@/lib/inside/mock";
 import { cn } from "@/lib/utils";
 
 import { Segmented } from "./segmented";
-import { ARRIVE, CARD, arrive, type T } from "./ui";
+import { ARRIVE, CARD, PAGE_TITLE, PRIMARY, arrive, type T } from "./ui";
 
 const MINUTES = ["5", "10", "15", "20", "30"] as const;
 const LOCALES = [
@@ -43,7 +43,7 @@ export function Settings({
   return (
     <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 pb-6">
       <h1
-        className={cn("font-heading text-foreground text-[30px] leading-[1.05] font-medium tracking-[-0.035em] lg:text-[40px]", ARRIVE)}
+        className={cn(PAGE_TITLE, ARRIVE)}
         style={arrive(0)}
       >
         {t("settings.title")}
@@ -58,7 +58,7 @@ export function Settings({
           <Link
             href="/login"
             prefetch={false}
-            className="font-heading inline-flex h-8 items-center rounded-full bg-[var(--brand)] px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
+            className={cn(PRIMARY, "h-8 px-3.5 text-[13px]")}
           >
             {t("save.cta")}
           </Link>
@@ -68,6 +68,7 @@ export function Settings({
       <Group title={t("settings.practice")} order={2}>
         <Row label={t("settings.daily")} stack>
           <Segmented
+            tone="neutral"
             size="sm"
             value={minutes as (typeof MINUTES)[number]}
             onChange={setMinutes}
@@ -88,6 +89,7 @@ export function Settings({
         </Row>
         <Row label={t("settings.language")} stack>
           <Segmented
+            tone="neutral"
             size="sm"
             value={locale as (typeof LOCALES)[number]["value"]}
             onChange={(next) => router.replace(pathname, { locale: next })}

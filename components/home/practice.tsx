@@ -32,21 +32,22 @@ import type { Home, SurfaceGroup, SurfaceItem } from "@/lib/inside/mock";
 import { cn } from "@/lib/utils";
 
 import { Segmented } from "./segmented";
-import { ARRIVE, CARD, arrive, type T } from "./ui";
+import { ARRIVE, CARD, MUTED, PAGE_TITLE, arrive, type T } from "./ui";
 
 const GROUPS: SurfaceGroup[] = ["speak", "write", "listen", "play", "tools", "people"];
 
 /**
- * One tint per group, all drawn from around the sky's blue so the grid reads
- * as one family and not as a box of crayons: the hue moves, the softness stays.
+ * Icons in neutral squares, no colour per group (Joaquin, 1/nov: the
+ * coloured tiles read "de juguete"). The words carry the catalog; colour is
+ * kept for what you have to act on.
  */
-const TINT: Record<SurfaceGroup, { tile: string; icon: LucideIcon }> = {
-  speak: { tile: "bg-[linear-gradient(135deg,oklch(0.56_0.17_252),oklch(0.7_0.12_230))]", icon: Mic },
-  write: { tile: "bg-[linear-gradient(135deg,oklch(0.55_0.16_285),oklch(0.7_0.11_265))]", icon: PenLine },
-  listen: { tile: "bg-[linear-gradient(135deg,oklch(0.6_0.12_205),oklch(0.75_0.1_190))]", icon: Headphones },
-  play: { tile: "bg-[linear-gradient(135deg,oklch(0.7_0.15_60),oklch(0.8_0.12_80))]", icon: Gamepad2 },
-  tools: { tile: "bg-[linear-gradient(135deg,oklch(0.5_0.04_255),oklch(0.65_0.04_240))]", icon: Wrench },
-  people: { tile: "bg-[linear-gradient(135deg,oklch(0.62_0.15_10),oklch(0.74_0.11_30))]", icon: Users },
+const GROUP_ICON: Record<SurfaceGroup, LucideIcon> = {
+  speak: Mic,
+  write: PenLine,
+  listen: Headphones,
+  play: Gamepad2,
+  tools: Wrench,
+  people: Users,
 };
 
 const ICON: Record<string, LucideIcon> = {
@@ -83,17 +84,16 @@ export function Practice({ home, t }: { home: Home; t: T }) {
   const shown = group === "all" ? GROUPS : [group];
 
   return (
-    <div className="mx-auto w-full max-w-[980px] pb-6">
+    <div className="mx-auto w-full max-w-[960px]">
       <header className={cn("mb-5", ARRIVE)} style={arrive(0)}>
-        <h1 className="font-heading text-foreground text-[30px] leading-[1.05] font-medium tracking-[-0.035em] lg:text-[40px]">
-          {t("practice.title")}
-        </h1>
-        <p className="text-foreground/65 mt-1.5 text-[15px] lg:text-[17px]">{t("practice.lead")}</p>
+        <h1 className={PAGE_TITLE}>{t("practice.title")}</h1>
+        <p className={cn(MUTED, "mt-1 text-[14px]")}>{t("practice.lead")}</p>
       </header>
 
       {/* Scrolls sideways on a phone rather than wrapping into two rows. */}
-      <div className={cn("-mx-4 mb-6 overflow-x-auto px-4 pb-1 [scrollbar-width:none]", ARRIVE)} style={arrive(1)}>
+      <div className={cn("-mx-4 mb-7 overflow-x-auto px-4 pb-1 [scrollbar-width:none]", ARRIVE)} style={arrive(1)}>
         <Segmented
+          tone="neutral"
           className="w-fit"
           size="sm"
           value={group}
@@ -111,11 +111,11 @@ export function Practice({ home, t }: { home: Home; t: T }) {
           return (
             <section key={g}>
               {group === "all" && (
-                <h2 className="font-heading text-foreground mb-3 px-1 text-[18px] font-medium tracking-[-0.015em]">
+                <h2 className="text-text-secondary mb-2.5 text-[12px] font-semibold tracking-[0.06em] uppercase">
                   {t(`practice.group.${g}`)}
                 </h2>
               )}
-              <ul className="grid grid-cols-[repeat(auto-fill,minmax(156px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(210px,1fr))]">
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-2.5">
                 {items.map((item, i) => (
                   <li key={item.id} className={ARRIVE} style={arrive(i)}>
                     <Tile item={item} t={t} />
@@ -131,39 +131,38 @@ export function Practice({ home, t }: { home: Home; t: T }) {
 }
 
 function Tile({ item, t }: { item: SurfaceItem; t: T }) {
-  const Icon = ICON[item.id] ?? TINT[item.group].icon;
+  const Icon = ICON[item.id] ?? GROUP_ICON[item.group];
   const body = (
     <>
-      <div className="flex items-start justify-between">
-        <span
-          className={cn(
-            "grid size-11 place-items-center rounded-[14px] text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_6px_14px_-6px_rgb(30_60_140/0.45)]",
-            TINT[item.group].tile,
-            item.soon && "opacity-60 saturate-50",
-          )}
-        >
-          <Icon className="size-5" strokeWidth={2} />
-        </span>
-        {item.soon ? (
-          <span className="bg-surface-secondary text-text-secondary rounded-full px-2 py-0.5 text-[11px] font-semibold">
-            {t("practice.soon")}
-          </span>
-        ) : item.minutes ? (
-          <span className="text-text-tertiary text-[12px] tabular-nums">{t("minutes", { minutes: item.minutes })}</span>
-        ) : null}
+      <span
+        className={cn(
+          "bg-surface-secondary grid size-9 shrink-0 place-items-center rounded-[10px]",
+          item.soon ? "text-text-tertiary" : "text-foreground/80",
+        )}
+      >
+        <Icon className="size-[18px]" strokeWidth={1.9} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline gap-2">
+          <p className={cn("text-[14px] leading-snug font-semibold",item.soon ? "text-text-secondary" : "text-foreground")}>{item.title}</p>
+          {item.soon ? (
+            <span className="text-text-tertiary shrink-0 rounded-full px-1.5 text-[11px] font-medium shadow-[inset_0_0_0_1px_rgb(15_30_60/0.1)]">
+              {t("practice.soon")}
+            </span>
+          ) : item.minutes ? (
+            <span className="text-text-tertiary ml-auto shrink-0 text-[12px] tabular-nums">{t("minutes", { minutes: item.minutes })}</span>
+          ) : null}
+        </div>
+        <p className="text-text-secondary mt-0.5 line-clamp-2 text-[13px] leading-snug">{item.line}</p>
       </div>
-      <p className={cn("font-heading mt-4 text-[16px] font-semibold tracking-[-0.01em]", item.soon ? "text-text-secondary" : "text-foreground")}>
-        {item.title}
-      </p>
-      <p className="text-text-secondary mt-1 text-[13px] leading-snug">{item.line}</p>
     </>
   );
 
   const shell = cn(
     CARD,
-    "flex h-full flex-col p-4 text-left",
-    "transition-[transform,box-shadow] duration-300 ease-(--ease-entrance)",
-    !item.soon && "cursor-pointer hover:-translate-y-0.5 hover:shadow-[var(--sky-card-shadow),0_18px_36px_-18px_rgb(40_90_170/0.45)] active:translate-y-0 active:scale-[0.99]",
+    "flex h-full items-start gap-3 p-3.5 text-left",
+    "transition-[background-color,border-color,box-shadow] duration-200",
+    !item.soon && "cursor-pointer hover:border-black/[0.14] hover:shadow-[0_4px_14px_-6px_rgb(15_30_60/0.18)] active:bg-surface-secondary/40",
   );
 
   if (item.href && !item.soon) {

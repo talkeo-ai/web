@@ -539,7 +539,14 @@
       "today": "Today",
       "practice": "Practice",
       "progress": "Progress",
-      "settings": "Settings"
+      "settings": "Settings",
+      "talkeo": "Talkeo"
+    },
+    "class": {
+      "now": "Now",
+      "done": "{done} of {total} done",
+      "continueWith": "Continue: {step}",
+      "seeRoad": "See the path"
     },
     "views": {
       "class": "Today's class",
@@ -552,7 +559,15 @@
       "placeholder": "Ask Talkeo something",
       "send": "Send",
       "typing": "Talkeo is typing",
-      "mic": "Speak to it out loud"
+      "mic": "Speak to it out loud",
+      "expand": "Full screen",
+      "toPanel": "Back to the panel",
+      "newChat": "New chat",
+      "openPanel": "Open the panel",
+      "ask": "What do you want to talk about?",
+      "askLine": "Ask anything, or practise by talking to Talkeo.",
+      "call": "Call Talkeo",
+      "callLine": "A conversation out loud, about anything"
     },
     "practice": {
       "title": "Practice",
@@ -572,6 +587,10 @@
       "title": "Your progress",
       "estimate": "Estimated level",
       "confidence": "{pct}% confidence",
+      "certainty": "Confidence",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
       "estimateNote": "It is an average: below is what you know in each area.",
       "areas": "By area",
       "range": "Between {floor} and {ceiling}",
