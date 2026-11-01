@@ -37,7 +37,7 @@ export function LocaleSelector() {
           screens, so the accessible name cannot be left to the contents. */}
       <DropdownMenuTrigger
         aria-label={t("language")}
-        className="group text-foreground gap-1.5 rounded-full bg-white/75 px-3 py-1.5 text-[14px] font-medium shadow-[0_0_0_1px_rgb(255_255_255/0.7),0_2px_8px_-2px_rgb(28_25_23/0.12)] backdrop-blur-md transition-colors hover:bg-white"
+        className="group text-foreground gap-1.5 h-9 rounded-full bg-white/80 px-3.5 text-[14px] font-medium shadow-[0_0_0_1px_rgb(255_255_255/0.7),0_2px_8px_-2px_rgb(28_25_23/0.12)] backdrop-blur-md transition-colors hover:bg-white"
       >
         {/* Flag and the language's own name, in sentence case, on a white
             pill: as bare grey text over the sky it washed out (1/nov). */}

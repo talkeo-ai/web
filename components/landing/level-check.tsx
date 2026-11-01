@@ -576,7 +576,7 @@ function Choice({
       aria-label={label}
       title={label}
       className={cn(
-        "focus-key:ring-ring flex size-14 cursor-pointer items-center justify-center rounded-full outline-none focus-key:ring-2 focus-key:ring-offset-2",
+        "focus-key:ring-ring flex size-[52px] cursor-pointer items-center justify-center rounded-full outline-none focus-key:ring-2 focus-key:ring-offset-2",
         "transition-[background-color,scale] duration-150 ease-out hover:scale-[1.06] active:scale-[0.92]",
         // Solid white, ringed and lifted like the card: on the hero these
         // sit on a painting, where a tinted wash disappears into the image.
@@ -584,7 +584,7 @@ function Choice({
         tone === "yes" ? "text-brand-text" : "text-destructive",
       )}
     >
-      <Icon className="size-6" strokeWidth={2.5} />
+      <Icon className="size-[22px]" strokeWidth={2.5} />
     </button>
   );
 }
