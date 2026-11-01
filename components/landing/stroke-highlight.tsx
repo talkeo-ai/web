@@ -30,7 +30,7 @@ export function StrokeHighlight({ children }: { children: React.ReactNode }) {
           strokeWidth="5"
           strokeLinecap="round"
           pathLength={1}
-          className="[stroke-dasharray:1] [stroke-dashoffset:1] motion-safe:animate-[stroke-draw_900ms_var(--ease-entrance)_450ms_forwards] motion-reduce:[stroke-dashoffset:0]"
+          className="[stroke-dasharray:1] [stroke-dashoffset:1] motion-safe:animate-[stroke-draw_900ms_var(--ease-entrance)_450ms_both] motion-reduce:[stroke-dashoffset:0]"
         />
       </svg>
     </span>

@@ -644,9 +644,20 @@ body[data-scroll-locked] {
 /* Coming into focus: out of a blur and a little below full size, the way an
    eye finds something rather than the way a screen switches it on. */
 /* The headline's underline, drawn left to right like a pen (`StrokeHighlight`). */
+/* Hidden until it starts: a fully offset dash still paints its round cap as
+   a dot at the end of the path, which showed during the delay (Joaquin,
+   1/nov). Run with `both`, so the first frame holds through the delay. */
 @keyframes stroke-draw {
-  to {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  100% {
     stroke-dashoffset: 0;
+    opacity: 1;
   }
 }
 
