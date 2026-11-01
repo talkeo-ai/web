@@ -13,25 +13,27 @@
     "signIn": "Já tenho uma conta"
   },
   "levelCheck": {
-    "eyebrow": "Seu nível em 30 segundos",
+    "title": "Seu vocabulário",
     "progress": "Palavra {n} de {total}",
-    "question": "Conhece?",
-    "yes": "Sim",
-    "no": "Não",
+    "resultSubtitle": "Seu nível estimado",
+    "question": "Sabe o que significa?",
+    "swipe": "Deslize para responder",
+    "yes": "Conheço",
+    "no": "Não conheço",
     "resultBody": "Você conhece {known} de {real} palavras",
     "fooled": "{count, plural, one {{words} não existe} other {{words} não existem}}: era para ver se você dizia sim a tudo.",
     "quote": "«{word}»",
     "measure": "Meça seu nível completo",
     "again": "De novo",
     "cards": [
-      { "word": "house", "band": "A1" },
-      { "word": "achieve", "band": "B1" },
-      { "word": "flurbish" },
-      { "word": "borrow", "band": "A2" },
-      { "word": "reluctant", "band": "B2" },
-      { "word": "cradgy" },
-      { "word": "notwithstanding", "band": "C1" },
-      { "word": "obfuscate", "band": "C2" }
+      { "word": "house", "band": "A1", "pos": "Substantivo", "ipa": "/haʊs/" },
+      { "word": "achieve", "band": "B1", "pos": "Verbo", "ipa": "/əˈtʃiːv/" },
+      { "word": "flurbish", "looks": "B2", "pos": "Verbo", "ipa": "/ˈflɜːrbɪʃ/" },
+      { "word": "borrow", "band": "A2", "pos": "Verbo", "ipa": "/ˈbɑːroʊ/" },
+      { "word": "reluctant", "band": "B2", "pos": "Adjetivo", "ipa": "/rɪˈlʌktənt/" },
+      { "word": "cradgy", "looks": "C1", "pos": "Adjetivo", "ipa": "/ˈkrædʒi/" },
+      { "word": "notwithstanding", "band": "C1", "pos": "Preposição", "ipa": "/ˌnɑːtwɪθˈstændɪŋ/" },
+      { "word": "obfuscate", "band": "C2", "pos": "Verbo", "ipa": "/ˈɑːbfəskeɪt/" }
     ]
   },
   "try": {

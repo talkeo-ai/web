@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, RotateCcw, X } from "lucide-react";
+import { ArrowLeftRight, Check, RotateCcw, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -13,38 +13,50 @@ import { cn } from "@/lib/utils";
 /** Degrees per pixel of drag. The card hinges from below, so a little goes far. */
 const TILT = 1 / 22;
 /** How far an answered card flies, and how far it tips on the way. */
-const EXIT_PX = 560;
+const EXIT_PX = 600;
 const EXIT_DEG = 22;
 const OUT_MS = 420;
 const IN_MS = 520;
-/** The card waiting underneath: a step smaller and lower, blank. */
-const BEHIND = { scale: 0.94, y: 12 };
+/**
+ * The card waiting underneath: narrower and showing a strip below the top
+ * one, blank. Scaled from its bottom edge so the strip is the same at any
+ * card size.
+ */
+const BEHIND = { scale: 0.9, y: 14 };
 /** Card and deck share one hinge, so a flying ghost tips the way the card did. */
 const HINGE = "50% 115%";
 
-/** What a card is drawn with, in light and in dark. */
+/**
+ * The card's surface. The proportions are the reference's (Joaquin, 1/nov),
+ * measured off the recording: corners about 6% of the width, a hairline edge,
+ * and a shadow that is mostly spread with very little darkness.
+ */
 const SURFACE = cn(
-  "bg-background rounded-[26px] border",
-  "border-black/[0.06] dark:border-white/[0.09]",
-  "shadow-[0_1px_2px_rgb(0_0_0/0.04),0_22px_44px_-18px_rgb(0_0_0/0.16)]",
-  "dark:shadow-[0_1px_2px_rgb(0_0_0/0.3),0_22px_44px_-18px_rgb(0_0_0/0.6)]",
+  "bg-background rounded-[20px] border",
+  "border-black/[0.05] dark:border-white/[0.08]",
+  "shadow-[0_1px_3px_rgb(0_0_0/0.04),0_14px_36px_-10px_rgb(0_0_0/0.12)]",
+  "dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_14px_36px_-10px_rgb(0_0_0/0.55)]",
 );
 
-type Flying = { key: string; word: string; n: number; side: Side; fromX: number };
+type Flying = { key: string; card: LevelCard; side: Side; fromX: number };
 
 /**
  * The landing's demonstration: a rough level from eight words, played as a
  * deck of tall cards you swipe — right if you know the word, left if you
- * don't, or the two actions under it, or the arrow keys. Two of the words are
+ * don't, or the two buttons under it, or the arrow keys. Two of the words are
  * invented, which is how the yes/no method keeps "yes to everything" from
  * scoring C2 (see `lib/try/level-check.ts`).
  *
- * Its look and motion follow a reference Joaquin sent (1/nov): no frame
- * around the deck, a white card with a long soft shadow, one blank card
+ * Look and motion follow a reference Joaquin sent (1/nov): no frame around
+ * the deck, a header over it rather than a count on the card, one blank card
  * underneath, the top card hinging from below as it is dragged, and the next
  * one rising out of the blank and coming into focus rather than sliding in.
  * Leaving is drawn by the deck, not by the card, so the card can unmount
  * while its ghost is still flying.
+ *
+ * It is self-contained on purpose: the plan is for the hero to clear away
+ * once someone starts playing, leaving this centred as the onboarding's first
+ * step (Joaquin, 1/nov, not built yet).
  */
 export function LevelCheck({ className }: { className?: string }) {
   const t = useTranslations("levelCheck");
@@ -60,10 +72,7 @@ export function LevelCheck({ className }: { className?: string }) {
 
   const answer = (side: Side, fromX: number) => {
     if (finished) return;
-    setFlying((f) => [
-      ...f,
-      { key: `${round}-${index}`, word: cards[index].word, n: index + 1, side, fromX },
-    ]);
+    setFlying((f) => [...f, { key: `${round}-${index}`, card: cards[index], side, fromX }]);
     setKnows((k) => [...k, side === "right"]);
   };
 
@@ -75,7 +84,7 @@ export function LevelCheck({ className }: { className?: string }) {
 
   return (
     <section
-      aria-label={t("eyebrow")}
+      aria-label={t("title")}
       // Arrow keys answer while focus is anywhere in here, so a keyboard plays
       // it as fast as a thumb.
       onKeyDown={(event) => {
@@ -85,13 +94,19 @@ export function LevelCheck({ className }: { className?: string }) {
         else return;
         event.preventDefault();
       }}
-      className={cn("flex w-full flex-col items-center gap-5", className)}
+      className={cn("flex w-full flex-col items-center", className)}
     >
-      <p className="text-text-tertiary text-[13px] font-medium">{t("eyebrow")}</p>
+      {/* The header: what this is, and where you are in it. */}
+      <header className="flex flex-col items-center gap-0.5 text-center">
+        <h2 className="text-foreground text-[15px] font-semibold">{t("title")}</h2>
+        <p className="text-text-tertiary text-[12px] tabular-nums" aria-live="polite">
+          {finished ? t("resultSubtitle") : t("progress", { n: index + 1, total })}
+        </p>
+      </header>
 
       {/* The deck: one size for every state, so finishing does not move the
           page. Width steps with the breakpoint and the height follows it. */}
-      <div className="relative isolate aspect-[3/4] w-[220px] sm:w-[248px] lg:w-[272px]">
+      <div className="relative isolate mt-5 aspect-[5/7] w-[284px] sm:w-[300px] lg:w-[320px]">
         {finished ? (
           <Result key={round} cards={cards} knows={knows} />
         ) : (
@@ -99,20 +114,14 @@ export function LevelCheck({ className }: { className?: string }) {
             {index < total - 1 && (
               <div
                 aria-hidden
-                className={cn(SURFACE, "absolute inset-0 -z-10 shadow-none")}
+                className={cn(SURFACE, "absolute inset-0 -z-10")}
                 style={{
                   transform: `translateY(${BEHIND.y}px) scale(${BEHIND.scale})`,
                   transformOrigin: "50% 100%",
                 }}
               />
             )}
-            <Card
-              key={`${round}-${index}`}
-              word={cards[index].word}
-              n={index + 1}
-              total={total}
-              onAnswer={answer}
-            />
+            <Card key={`${round}-${index}`} card={cards[index]} onAnswer={answer} />
           </>
         )}
 
@@ -136,29 +145,32 @@ export function LevelCheck({ className }: { className?: string }) {
               } as React.CSSProperties
             }
           >
-            <Face word={f.word} n={f.n} total={total} side={f.side} commitment={1} />
+            <Face card={f.card} side={f.side} commitment={1} />
           </div>
         ))}
       </div>
 
       {/* One row for both states, the same height, so nothing under the deck
           jumps when it ends. */}
-      <div className="flex h-12 items-center justify-center gap-12">
+      <div className="mt-7 flex h-[78px] items-start justify-center gap-10">
         {finished ? (
           <div
             key={round}
-            className="flex items-center gap-6"
+            className="flex items-center gap-3 pt-2"
             style={{ animation: `blur-in ${IN_MS}ms var(--ease-entrance) 120ms backwards` }}
           >
-            <Button size="sm" variant="raised" className="h-10 px-4 text-[14px]" asChild>
+            <Button size="lg" variant="raised" className="text-[15px]" asChild>
               <EnterOnboarding>{t("measure")}</EnterOnboarding>
             </Button>
-            <Action icon={RotateCcw} label={t("again")} onClick={again} />
+            <Button size="lg" variant="ghost" className="text-[15px]" onClick={again}>
+              <RotateCcw className="size-4" />
+              {t("again")}
+            </Button>
           </div>
         ) : (
           <>
-            <Action icon={X} label={t("no")} onClick={() => answer("left", 0)} />
-            <Action icon={Check} label={t("yes")} onClick={() => answer("right", 0)} />
+            <Choice tone="no" label={t("no")} onClick={() => answer("left", 0)} />
+            <Choice tone="yes" label={t("yes")} onClick={() => answer("right", 0)} />
           </>
         )}
       </div>
@@ -168,17 +180,12 @@ export function LevelCheck({ className }: { className?: string }) {
 
 /** The card on top: it follows the hand, hinges, and answers when let go far enough. */
 function Card({
-  word,
-  n,
-  total,
+  card,
   onAnswer,
 }: {
-  word: string;
-  n: number;
-  total: number;
+  card: LevelCard;
   onAnswer: (side: Side, fromX: number) => void;
 }) {
-  const t = useTranslations("levelCheck");
   const [spent, setSpent] = useState(false);
   const play = (side: Side, fromX: number) => {
     if (spent) return;
@@ -191,7 +198,6 @@ function Card({
   return (
     <div
       {...(spent ? {} : handleProps)}
-      aria-label={t("progress", { n, total })}
       className={cn(
         "absolute inset-0 z-10 touch-pan-y select-none",
         spent ? "pointer-events-none opacity-0" : held ? "cursor-grabbing" : "cursor-grab",
@@ -212,27 +218,25 @@ function Card({
         } as React.CSSProperties
       }
     >
-      <Face word={word} n={n} total={total} side={side} commitment={commitment} reveal />
+      <Face card={card} side={side} commitment={commitment} reveal />
     </div>
   );
 }
 
 /**
- * What a card looks like, held or flying: the count in the corner, the word,
- * and a foot that asks the question and, as the card is dragged, turns into
- * the answer the hand is giving.
+ * What a card looks like, held or flying. Laid out like the reference's: a
+ * row of small tags on top (what kind of word, and the band it sits in), the
+ * word as the title with how it sounds under it, open space, and a foot that
+ * asks the question and, as the card is dragged, turns into the answer the
+ * hand is giving.
  */
 function Face({
-  word,
-  n,
-  total,
+  card,
   side,
   commitment,
   reveal = false,
 }: {
-  word: string;
-  n: number;
-  total: number;
+  card: LevelCard;
   side: Side | null;
   commitment: number;
   /** Comes into focus as it arrives, instead of being there already. */
@@ -244,6 +248,7 @@ function Face({
   const handover = Math.min(commitment * 2, 1);
   const yes = side === "right" ? handover : 0;
   const no = side === "left" ? handover : 0;
+  const band = card.band ?? card.looks;
 
   return (
     <div className={cn(SURFACE, "@container relative flex h-full flex-col overflow-hidden")}>
@@ -259,32 +264,46 @@ function Face({
       />
 
       <div
-        className="relative flex flex-1 flex-col"
+        className="relative flex flex-1 flex-col p-[22px] pb-0"
         style={
           reveal
             ? { animation: `blur-in ${IN_MS}ms var(--ease-entrance) 80ms backwards` }
             : undefined
         }
       >
-        <span className="text-text-tertiary self-end px-5 pt-4 text-[12px] tabular-nums">
-          {n}/{total}
-        </span>
-        <div className="flex flex-1 items-center px-6 pb-6">
-          {/* Sized against the card, so the longest word still fits on one
-              line: about 0.58em a letter at this weight. */}
-          <p
-            className="font-heading text-foreground leading-none font-semibold tracking-[-0.025em]"
-            style={{ fontSize: `min(38px, calc((100cqw - 3rem) / ${word.length * 0.58}))` }}
-          >
-            {word}
-          </p>
+        <div className="flex items-center justify-between gap-2">
+          {card.pos && (
+            <span className="bg-accent-50 text-accent-700 dark:bg-accent-950 dark:text-accent-300 rounded-[6px] px-2 py-[3px] text-[12px] font-medium">
+              {card.pos}
+            </span>
+          )}
+          {band && (
+            <span className="bg-surface-secondary text-text-secondary rounded-[6px] px-2 py-[3px] text-[12px] font-medium tabular-nums">
+              {band}
+            </span>
+          )}
         </div>
-        <div className="mx-5 grid border-t border-black/[0.06] py-3.5 text-[13px] dark:border-white/[0.08]">
+
+        <div className="mt-[18%]">
+          {/* Sized against the card, so the longest word still fits on one
+              line: about 0.56em a letter at this weight. */}
+          <p
+            className="font-heading text-foreground leading-[1.05] font-medium tracking-[-0.02em]"
+            style={{ fontSize: `min(40px, calc((100cqw - 44px) / ${card.word.length * 0.56}))` }}
+          >
+            {card.word}
+          </p>
+          {card.ipa && <p className="text-text-tertiary mt-2 text-[15px]">{card.ipa}</p>}
+          <p className="text-text-secondary mt-6 text-[16px] leading-snug">{t("question")}</p>
+        </div>
+
+        <div className="mt-auto grid py-[18px] text-[13px]">
           <span
-            className="text-text-secondary [grid-area:1/1]"
+            className="text-text-tertiary flex items-center justify-between [grid-area:1/1]"
             style={{ opacity: 1 - handover }}
           >
-            {t("question")}
+            {t("swipe")}
+            <ArrowLeftRight className="text-text-tertiary size-4" />
           </span>
           <span
             aria-hidden
@@ -308,27 +327,36 @@ function Face({
   );
 }
 
-/** An answer under the deck: an icon and its word, nothing around them. */
-function Action({
-  icon: Icon,
+/** A round answer button with its word under it, in the side's colour. */
+function Choice({
   label,
+  tone,
   onClick,
 }: {
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   label: string;
+  tone: "yes" | "no";
   onClick: () => void;
 }) {
+  const Icon = tone === "yes" ? Check : X;
   return (
     <button
       type="button"
       onClick={onClick}
-      className={cn(
-        "text-text-secondary hover:text-foreground focus-key:ring-ring flex cursor-pointer flex-col items-center gap-1 rounded-lg px-2 py-1 outline-none focus-key:ring-2",
-        "transition-[color,scale] duration-150 active:scale-[0.94]",
-      )}
+      className="group focus-key:ring-ring flex w-24 cursor-pointer flex-col items-center gap-2 rounded-xl outline-none focus-key:ring-2"
     >
-      <Icon className="size-5" strokeWidth={2} />
-      <span className="text-[11px] font-medium">{label}</span>
+      <span
+        className={cn(
+          "bg-background flex size-[52px] items-center justify-center rounded-full border",
+          "shadow-[0_2px_0_0_var(--cta-alt-lip)] transition-[translate,box-shadow,background-color] duration-100",
+          "group-active:translate-y-[2px] group-active:shadow-none",
+          tone === "yes"
+            ? "border-accent-300 text-accent-700 group-hover:bg-accent-50 dark:border-accent-800 dark:text-accent-400 dark:group-hover:bg-accent-950"
+            : "text-destructive group-hover:bg-destructive/[0.06] border-[color-mix(in_oklch,var(--destructive)_35%,transparent)]",
+        )}
+      >
+        <Icon className="size-[22px]" strokeWidth={2.75} />
+      </span>
+      <span className="text-text-secondary text-[12px] font-medium">{label}</span>
     </button>
   );
 }
@@ -345,33 +373,42 @@ function Result({ cards, knows }: { cards: LevelCard[]; knows: boolean[] }) {
 
   return (
     <div
-      className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center"
+      className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-4 text-center"
       style={{ animation: `blur-in ${IN_MS}ms var(--ease-entrance) 160ms backwards` }}
     >
       {/* A soft light where the card was, so the space does not read as empty. */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 rounded-[40px] bg-[radial-gradient(closest-side,var(--surface-secondary),transparent)]"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(closest-side,var(--surface-secondary),transparent)]"
       />
-      <p className="font-heading text-foreground text-[72px] leading-none font-semibold tracking-[-0.03em]">
+      <p className="font-heading text-foreground text-[80px] leading-none font-semibold tracking-[-0.03em]">
         {result.band}
       </p>
-      <div className="flex gap-1" aria-hidden>
+      <div className="grid w-full max-w-[240px] grid-cols-6 gap-1" aria-hidden>
         {BANDS.map((band, i) => (
-          <span
-            key={band}
-            className={cn(
-              "h-1 w-5 rounded-full",
-              i <= at ? "bg-accent-500" : "bg-foreground/[0.08]",
-            )}
-          />
+          <div key={band} className="flex flex-col items-center gap-1.5">
+            <span
+              className={cn(
+                "h-1 w-full rounded-full",
+                i <= at ? "bg-accent-500" : "bg-foreground/[0.08]",
+              )}
+            />
+            <span
+              className={cn(
+                "text-[11px] tabular-nums",
+                i === at ? "text-foreground font-semibold" : "text-text-tertiary",
+              )}
+            >
+              {band}
+            </span>
+          </div>
         ))}
       </div>
       <p className="text-text-secondary text-[14px]">
         {t("resultBody", { known: result.known, real: result.real })}
       </p>
       {result.fooled.length > 0 && (
-        <p className="text-text-tertiary max-w-[220px] text-[12px] leading-snug">
+        <p className="text-text-tertiary max-w-[240px] text-[12px] leading-snug">
           {t("fooled", {
             count: result.fooled.length,
             words: result.fooled.map((word) => t("quote", { word })).join(", "),

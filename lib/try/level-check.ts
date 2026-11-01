@@ -16,6 +16,15 @@ export type LevelCard = {
   word: string;
   /** The band a real word belongs to; absent on an invented one. */
   band?: Band;
+  /**
+   * The band an invented word wears on its card, so it cannot be spotted by
+   * being the one without a band. Never counted.
+   */
+  looks?: Band;
+  /** Part of speech, in the reader's language. Display only. */
+  pos?: string;
+  /** How it sounds, in IPA. An invented word gets a plausible one. */
+  ipa?: string;
 };
 
 export type LevelResult = {
