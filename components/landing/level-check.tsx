@@ -21,7 +21,8 @@ const EXIT_PX = 440;
 const EXIT_DEG = 18;
 const OUT_MS = 560;
 const OUT_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
-const IN_MS = 520;
+/** Short enough that a fast swiper is never reading a word still in focus. */
+const IN_MS = 360;
 /**
  * The card waiting underneath: narrower and showing a strip below the top
  * one, blank. Scaled from its bottom edge so the strip is the same at any
@@ -218,16 +219,28 @@ function Card({
           // Nothing eases while held: the pointer is the animation. Let go
           // short, it settles back with the faintest overshoot.
           transition: held ? undefined : "transform 480ms cubic-bezier(0.2, 1.25, 0.35, 1)",
-          // It rises out of the blank card that was under it. `backwards`, not
-          // `both`: a fill that outlived the animation would pin the transform
-          // and the card would stop following the hand.
-          animation: `card-in ${IN_MS}ms var(--ease-entrance) backwards`,
-          "--card-behind-y": `${BEHIND.y}px`,
-          "--card-behind-scale": BEHIND.scale,
         } as React.CSSProperties
       }
     >
-      <Face card={card} side={side} commitment={commitment} reveal />
+      {/* The entrance lives one layer in, never on the layer the hand moves.
+          A running animation overrides the inline transform, so with both on
+          one element a card grabbed while still arriving would not follow
+          the pointer — which is exactly what swiping fast does (Joaquin,
+          1/nov). Split, the two transforms compose: it can be rising and
+          dragged at once. */}
+      <div
+        className="h-full"
+        style={
+          {
+            transformOrigin: "50% 100%",
+            animation: `card-in ${IN_MS}ms var(--ease-entrance) backwards`,
+            "--card-behind-y": `${BEHIND.y}px`,
+            "--card-behind-scale": BEHIND.scale,
+          } as React.CSSProperties
+        }
+      >
+        <Face card={card} side={side} commitment={commitment} reveal />
+      </div>
     </div>
   );
 }
@@ -276,7 +289,7 @@ function Face({
         className="relative flex flex-1 flex-col p-[22px] pb-0"
         style={
           reveal
-            ? { animation: `blur-in ${IN_MS}ms var(--ease-entrance) 80ms backwards` }
+            ? { animation: `blur-in ${IN_MS}ms var(--ease-entrance) 40ms backwards` }
             : undefined
         }
       >
