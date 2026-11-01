@@ -1,28 +1,49 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
+
 import { LocaleSelector } from "@/components/locale-selector";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Link, usePathname } from "@/lib/i18n/navigation";
 import { scrollBehavior } from "@/lib/motion";
+import { cn } from "@/lib/utils";
+
+const onScroll = (notify: () => void) => {
+  window.addEventListener("scroll", notify, { passive: true });
+  return () => window.removeEventListener("scroll", notify);
+};
 
 /**
- * Floating header: a fixed wrapper that centres a rounded bar over the page
- * rather than a full-width band pinned to the top edge.
+ * Floating header. At the top of the page it has no bar at all: the logo and
+ * the two controls sit straight on the page, on the same left edge as the
+ * headline, the way the reference landings do it (1/nov) — a bar over a full
+ * background read as a strip pasted on top. Once the page scrolls, a glass
+ * bar fades in under them so they stay legible over whatever passes below.
  *
- * It is translucent and blurred, so whatever scrolls underneath stays visible
- * through it. Pages reserve the space it covers themselves — the bar is out of
- * the flow and cannot push anything down.
+ * Pages reserve the space it covers themselves — it is out of the flow and
+ * cannot push anything down.
  */
 export function SiteHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const scrolled = useSyncExternalStore(
+    onScroll,
+    () => window.scrollY > 8,
+    () => false,
+  );
 
   return (
     // Leaves with the rest of the hero while the level check is on stage.
     <div className="fixed top-4 right-0 left-0 z-50 flex justify-center px-6 transition-opacity duration-500 in-data-level-stage:pointer-events-none in-data-level-stage:opacity-0">
-      {/* Glass rather than a white bar: over the hero's background a solid
-          bar with a border reads as a separate strip pasted on top. */}
-      <nav className="bg-background/55 flex w-full max-w-6xl items-center justify-between rounded-2xl px-3 py-2.5 shadow-[0_0_0_1px_rgb(255_255_255/0.6),0_1px_2px_rgb(28_25_23/0.05),0_8px_24px_-12px_rgb(28_25_23/0.12)] backdrop-blur-xl backdrop-saturate-150 sm:px-4 sm:py-3 dark:shadow-[0_0_0_1px_rgb(255_255_255/0.08)]">
+      <nav
+        className={cn(
+          "flex w-full max-w-6xl items-center justify-between rounded-2xl py-2.5 sm:py-3",
+          "transition-[background-color,box-shadow,padding] duration-300 ease-(--ease-standard)",
+          scrolled
+            ? "bg-background/85 px-3 shadow-[0_0_0_1px_rgb(255_255_255/0.6),0_1px_2px_rgb(28_25_23/0.05),0_8px_24px_-12px_rgb(28_25_23/0.12)] backdrop-blur-xl backdrop-saturate-150 sm:px-4 dark:shadow-[0_0_0_1px_rgb(255_255_255/0.08)]"
+            : "bg-transparent px-0 shadow-none",
+        )}
+      >
         {/* A real link, so it is the way back from anywhere. On the home page
             there is nowhere to go, so it scrolls to the top instead — which is
             what it did everywhere before, and why deeper pages had to carry

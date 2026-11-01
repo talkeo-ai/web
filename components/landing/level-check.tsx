@@ -56,11 +56,12 @@ const STAGE_PATH = "/level";
  * White on the page's warm paper, edged by a ring drawn as a shadow rather
  * than a border (a border adds to the box and greys the corner), then three
  * layers that each do one job: contact, lift, and a long soft fall tinted
- * toward the brand so the shadow belongs to the page instead of being grey.
+ * toward the sky behind it, so the shadow belongs to the page instead of
+ * being grey.
  */
 const SURFACE = cn(
   "bg-card rounded-[20px]",
-  "shadow-[0_0_0_1px_rgb(28_25_23/0.06),0_1px_2px_rgb(28_25_23/0.05),0_6px_14px_-4px_rgb(28_25_23/0.07),0_28px_56px_-16px_rgb(30_70_160/0.2)]",
+  "shadow-[0_0_0_1px_rgb(28_25_23/0.05),0_1px_2px_rgb(28_25_23/0.04),0_8px_18px_-6px_rgb(28_25_23/0.08),0_36px_72px_-20px_rgb(40_90_170/0.28)]",
   "dark:shadow-[0_0_0_1px_rgb(255_255_255/0.08),0_1px_3px_rgb(0_0_0/0.3),0_14px_36px_-10px_rgb(0_0_0/0.55)]",
 );
 
@@ -206,14 +207,15 @@ export function LevelCheck({
 
   return (
     <div className={cn("w-full", className)} style={{ height: staged && !standalone ? slot : undefined }}>
-      {/* A frosted veil over the hero's background, so the stage keeps the
-          same sky the first screen had instead of cutting to a blank page.
-          The hero's copy fades out under it on its own (`hero.tsx`), so
-          nothing reflows. */}
+      {/* A light veil over the hero's sky, so the stage keeps the same place
+          the first screen had instead of cutting to a blank page; the sky
+          itself eases forward under it (`HeroBackdrop`). Not frosted: blurred,
+          the clouds turned to a beige smear. The hero's copy fades out on its
+          own (`hero.tsx`), so nothing reflows. */}
       <div
         aria-hidden
         className={cn(
-          "bg-background/35 fixed inset-0 z-10 backdrop-blur-2xl transition-opacity ease-(--ease-standard)",
+          "fixed inset-0 z-10 bg-white/25 transition-opacity ease-(--ease-standard) dark:bg-black/40",
           staged ? "opacity-100" : "pointer-events-none opacity-0",
         )}
         style={{ transitionDuration: standalone ? "0ms" : `${STAGE_MS * 0.6}ms` }}
@@ -231,7 +233,9 @@ export function LevelCheck({
           transitionDelay: staged && !standalone ? "160ms" : "0ms",
         }}
       >
-        <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
+        {/* The progress track is the onboarding's own component; over the sky
+            its grey track reads as dirt, so here it is a light glass line. */}
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-3 [&_[data-slot=onboarding-progress]]:bg-white/55 [&_[data-slot=onboarding-progress]]:ring-1 [&_[data-slot=onboarding-progress]]:ring-white/60 dark:[&_[data-slot=onboarding-progress]]:bg-white/10 dark:[&_[data-slot=onboarding-progress]]:ring-0">
           {standalone ? (
             <Button variant="ghost" size="sm" aria-label={t("exit")} className="size-9 shrink-0 p-0" asChild>
               <Link href="/" prefetch={false}>
@@ -355,10 +359,15 @@ export function LevelCheck({
               className="flex items-center gap-3"
               style={{ animation: `blur-in ${IN_MS}ms var(--ease-entrance) 120ms backwards` }}
             >
-              <Button size="lg" variant="raised" className="text-[15px]" asChild>
+              <Button size="lg" variant="primary" className="rounded-full text-[15px]" asChild>
                 <EnterOnboarding>{t("measure")}</EnterOnboarding>
               </Button>
-              <Button size="lg" variant="ghost" className="text-[15px]" onClick={again}>
+              <Button
+                size="lg"
+                variant="ghost"
+                className="bg-card/80 hover:bg-card rounded-full text-[15px] shadow-[0_0_0_1px_rgb(28_25_23/0.08)] backdrop-blur"
+                onClick={again}
+              >
                 <RotateCcw className="size-4" />
                 {t("again")}
               </Button>
@@ -496,7 +505,7 @@ function Face({
           </span>
           {/* An invented word wears the band it was served at, so it cannot
               be spotted by being the one without one. */}
-          <span className="bg-surface-secondary text-text-secondary rounded-[6px] px-2 py-[3px] text-[12px] font-medium tabular-nums">
+          <span className="text-text-secondary rounded-[6px] px-2 py-[3px] text-[12px] font-medium tabular-nums ring-1 ring-black/[0.08] ring-inset dark:ring-white/[0.12]">
             {card.shown}
           </span>
         </div>
@@ -505,8 +514,8 @@ function Face({
           {/* Sized against the card, so the longest word still fits on one
               line: about 0.56em a letter at this weight. */}
           <p
-            className="font-heading text-foreground leading-[1.05] font-medium tracking-[-0.02em]"
-            style={{ fontSize: `min(40px, calc((100cqw - 44px) / ${word.word.length * 0.56}))` }}
+            className="font-heading text-foreground leading-[1.02] font-medium tracking-[-0.035em]"
+            style={{ fontSize: `min(46px, calc((100cqw - 44px) / ${word.word.length * 0.54}))` }}
           >
             {word.word}
           </p>
@@ -514,7 +523,7 @@ function Face({
           <p className="text-text-secondary mt-6 text-[16px] leading-snug">{t("question")}</p>
         </div>
 
-        <div className="mt-auto grid py-[18px] text-[13px]">
+        <div className="-mx-[22px] mt-auto grid border-t border-black/[0.05] px-[22px] py-[16px] text-[13px] dark:border-white/[0.08]">
           <span
             className="text-text-tertiary flex items-center justify-between [grid-area:1/1]"
             style={{ opacity: 1 - handover }}
