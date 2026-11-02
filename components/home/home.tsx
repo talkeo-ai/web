@@ -55,12 +55,6 @@ export function Home({ home }: { home: HomeData }) {
     window.scrollTo({ top: 0 });
   };
 
-  /** Ask from anywhere on the page: the window opens with the question asked. */
-  const ask = (text: string) => {
-    setChatOpen(true);
-    talkeo.say(text);
-  };
-
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setChatOpen(false);
@@ -88,7 +82,7 @@ export function Home({ home }: { home: HomeData }) {
       ) : (
         <main className="mx-auto w-full max-w-[1120px] px-4 pt-6 pb-36 sm:px-6 lg:px-8 lg:pt-10 lg:pb-24">
           <div key={section} className="motion-safe:animate-[view-in_420ms_var(--ease-entrance)_both]">
-            {section === "today" && <Today home={home} t={t} onAsk={ask} onSection={go} />}
+            {section === "today" && <Today home={home} t={t} />}
             {section === "road" && <Road home={home} t={t} />}
             {section === "practice" && <Practice home={home} t={t} />}
             {section === "progress" && <Progress home={home} t={t} />}
