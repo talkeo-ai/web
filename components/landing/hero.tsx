@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { ViewTransition } from "react";
 
 import { EnterOnboarding } from "@/components/onboarding/enter-onboarding";
 import { Button } from "@/components/ui/button";
@@ -129,6 +130,10 @@ export async function Hero() {
             <div className="relative mx-auto flex aspect-square w-full max-w-[320px] items-center justify-center sm:max-w-[380px] lg:mr-[-2%] lg:ml-auto lg:max-w-[400px]">
               <NervousActivity />
 
+              {/* Named so it is the same object on the other side of "start":
+                  the shell carries an orb under this name, and the navigation
+                  moves this one there instead of swapping the two. */}
+              <ViewTransition name="talkeo-orb" share="shell-orb" default="none">
               <div className="relative z-20 h-[60%] w-[60%] sm:h-[55%] sm:w-[55%]">
                 {/* A link, not a decorated div. Attaching a click listener to
                     a bare element gives a mouse-only affordance: nothing to
@@ -149,6 +154,7 @@ export async function Hero() {
                   </div>
                 </EnterOnboarding>
               </div>
+              </ViewTransition>
             </div>
           </div>
         </div>

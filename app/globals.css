@@ -725,6 +725,60 @@ body[data-scroll-locked] {
   }
 }
 
+/* Landing → shell (#120, round 2). One view transition, three movements:
+   the landing fades, the orb travels to the top of the panel, and the frame
+   closes in from the edges of the window — the panel starts as the whole
+   viewport and settles into its rounded box, which is what uncovers the dark
+   margin and the sidebar instead of having them pop in. */
+::view-transition-old(root) {
+  animation: shell-fade-out 260ms var(--ease-standard) both;
+}
+::view-transition-new(root) {
+  animation: shell-fade-in 420ms var(--ease-standard) both;
+}
+::view-transition-group(.shell-orb) {
+  animation-duration: 640ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0, 1);
+  z-index: 3;
+}
+::view-transition-group(.shell-panel) {
+  animation: shell-panel-in 640ms cubic-bezier(0.2, 0.8, 0, 1) both;
+  z-index: 1;
+}
+::view-transition-new(.shell-panel) {
+  block-size: 100%;
+  animation: none;
+}
+::view-transition-group(.shell-nav) {
+  z-index: 2;
+}
+::view-transition-new(.shell-nav) {
+  animation: shell-nav-in 520ms cubic-bezier(0.2, 0.8, 0, 1) 120ms both;
+}
+@keyframes shell-panel-in {
+  from {
+    width: 100vw;
+    height: 100vh;
+    transform: none;
+  }
+}
+@keyframes shell-nav-in {
+  from {
+    opacity: 0;
+    translate: -28px 0;
+  }
+}
+@keyframes shell-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes shell-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
 /* Every animation in this project is gated on this. */
 @media (prefers-reduced-motion: reduce) {
   *,
