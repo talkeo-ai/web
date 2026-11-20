@@ -57,10 +57,12 @@
     "errorAge": "\"I have 25 years\" → \"I am 25\""
   },
   "home": {
-    "placeholder": "Base lista. Todavía no hay app.",
-    "loading": "Cargando",
-    "sessionReady": "Sesión activa",
-    "sessionMissing": "Sin sesión"
+    "greeting": "Hola",
+    "today": {
+      "title": "Tu clase de hoy",
+      "body": "Todavía no está construida.",
+      "start": "Empezar"
+    }
   },
   "onboarding": {
     "name": {

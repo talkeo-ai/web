@@ -444,10 +444,12 @@
     "errorAge": "\"I have 25 years\" → \"I am 25\""
   },
   "home": {
-    "placeholder": "Foundation ready. No app yet.",
-    "loading": "Loading",
-    "sessionReady": "Session active",
-    "sessionMissing": "No session"
+    "greeting": "Hi",
+    "today": {
+      "title": "Your class for today",
+      "body": "Not built yet.",
+      "start": "Start"
+    }
   },
   "onboarding": {
     "name": {
